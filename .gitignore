@@ -1,0 +1,4 @@
+*.o
+ISO/boot/kernel.img
+Kernel/kernel.img
+NativeOS.iso
