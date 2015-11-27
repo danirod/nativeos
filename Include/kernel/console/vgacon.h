@@ -43,4 +43,7 @@ void VGACon_Gotoxy(int x, int y);
 /* Set the color used in future PutChar or PutString calls. */
 void VGACon_SetColor(unsigned char fg, unsigned char bg);
 
+/* Clear the console using the current color attributes. */
+void VGACon_Clrscr();
+
 #endif // KERNEL_CONSOLE_VGACON_H_

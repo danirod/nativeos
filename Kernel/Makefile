@@ -2,7 +2,7 @@ include ../Makefile.inc
 CFLAGS += -I../Include/
 LDFLAGS += -T ../linker.ld
 
-OBJECTS = ../Boot/bootstrap.o main.o console/vgacon.o
+OBJECTS = ../Boot/bootstrap.o main.o io.o console/vgacon.o
 
 All: kernel.img
 

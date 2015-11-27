@@ -5,19 +5,30 @@
 	vgacon.c - Bogus display driver for the VGA framebuffer.
 */
 
+#include <kernel/io.h>
 #include <kernel/console/vgacon.h>
 
 /* How many characters fit in a row of text. */
 #define CONSOLE_COLS 80
 
 /* How many character lines fit in the screen. */
-#define CONSOLE_ROWS 24
+#define CONSOLE_ROWS 25
 
 /* How many characters in total fit in the screen. */
 #define CONSOLE_SIZE (CONSOLE_COLS * CONSOLE_ROWS)
 
 /* Macro for creating VGA entries with character, foreground and background */
 #define VGA_ENTRY(char, fg, bg) (char | fg << 8 | bg << 12)
+
+/* Address register for the VGA controller. */
+#define VGACON_ADDR_REG 0x3D4
+
+/* Data register for the VGA controller. */
+#define VGACON_DATA_REG 0x3D5
+
+/* Cursor Location (high and low register) */
+#define VGACON_COMMAND_CURSOR_HI 0xE
+#define VGACON_COMMAND_CURSOR_LO 0xF
 
 /* Base address for the framebuffer. 16 bit pointer to include color attrs */
 static unsigned short *baseAddr;
@@ -38,10 +49,6 @@ static unsigned char fgColor, bgColor;
 	is ever implemented, it will allow to scroll up the console when the
 	cursor reaches the bottom of the screen. At the moment the cursor
 	simply jumps to the top.
-
-	At the moment the VGA Console driver cannot update the blinking bar
-	that is displayed on the screen to indicate where will the next
-	character be printed out.
 */
 static void IncrementCursor()
 {
@@ -53,11 +60,12 @@ static void IncrementCursor()
 		}
 	}
 
-	/*
-		TODO: Update the blinking caret position on the screen.
-		I cannot do this at the moment because I need IO routines
-		to talk to the framebuffer using ports.
-	*/
+	/* Move the blinking cursor by calling the appropiate VGA routines. */
+	int pos = cursorY * CONSOLE_COLS + cursorX;
+	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_HI);
+	IO_OutP(VGACON_DATA_REG, ((pos >> 8) & 0xFF));
+	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_LO);
+	IO_OutP(VGACON_DATA_REG, pos & 0xFF);
 }
 
 /*
@@ -132,8 +140,16 @@ void VGACon_PutString(char* chArray)
 */
 void VGACon_Gotoxy(int x, int y)
 {
+	/* Move the cursor coordinates. */
 	cursorX = x;
 	cursorY = y;
+
+	/* Update the cursor position in the frame buffer. */
+	int pos = cursorY * CONSOLE_COLS + cursorY;
+	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_HI);
+	IO_OutP(VGACON_DATA_REG, ((pos >> 8) & 0xFF));
+	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_LO);
+	IO_OutP(VGACON_DATA_REG, pos & 0xFF);
 }
 
 /*
@@ -145,4 +161,16 @@ void VGACon_SetColor(unsigned char fg, unsigned char bg)
 {
 	fgColor = fg;
 	bgColor = bg;
+}
+
+void VGACon_Clrscr()
+{
+	/* Reset cursor position. */
+	cursorX = 0;
+	cursorY = 0;
+
+	/* Clear the console. */
+	register int i;
+	for (i = 0; i < CONSOLE_SIZE; i++)
+		*(baseAddr + i) = VGA_ENTRY(0, fgColor, bgColor);
 }
