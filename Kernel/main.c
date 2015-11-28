@@ -5,6 +5,7 @@
 	main.c - This unit contains the main routine for the NativeOS Kernel.
 */
 
+#include <kernel/kernel.h>
 #include <kernel/console/vgacon.h>
 
 /*
@@ -20,5 +21,5 @@
 void Kernel_Main()
 {
 	VGACon_Init();
-	VGACon_PutString("Starting NativeOS...");
+	VGACon_PutString("Welcome to NativeOS");
 }

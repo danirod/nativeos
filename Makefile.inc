@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostartfiles -nodefaultlibs -nostdinc --freestanding \
+CFLAGS = -m32 -nostdlib -nostartfiles -nodefaultlibs --freestanding \
 		-fno-builtin -Wall -Wextra -g
 
 AS = nasm
