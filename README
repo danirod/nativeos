@@ -1,24 +1,19 @@
 NativeOS
 
-    This is the main repository for the NativeOS project.
+	This is the main repository for the NativeOS project.
 	NativeOS is a hobbyist operating system for the x86 platform.
 
 Compiling NativeOS
 
-	Please note that the building process has only been tested
-	on an i386 Linux virtual machine at the moment. Testing on
-	x64 Linux and on OS X is on the checklist. There is no support
-	for Windows.
+	NativeOS can be compiled on Linux i686 and Linux x86_64.
+	It should work by just running  make  provided you have all
+	the tools installed. See Documents/Building.txt for more
+	information.
 
-	This project makes use of the following tools: gcc, nasm, ld,
-	make, genisoimage, qemu... You'll need to install these tools.
-	genisoimage can be installed on Ubuntu based system using APT.
-	On Arch Linux it is included in the cdrkit package.
-
-	To generate an ISO image with the NativeOS operating system
-	run the command  `make iso`. If you want to quickly execute this
-	image on QEMU, provided you have it installed you can run
-	`make qemu`.
+	This project makes use of the following tools: gcc, nasm, ld.
+	You'll need to install these tools first. Also, you'll probably
+	want a virtual machine to test this kernel. There are instructions
+	for building the kernel as a QEMU raw drive.
 
 Directory Structure
 
@@ -27,7 +22,8 @@ Directory Structure
 	with an uppercase letter.
 
 	- Boot: Assembly files related to the bootstrap process.
-	- ISO: Contains the template for the ISO images.
+	- Documents: Documentation and other guides.
 	- Include: Include directory for the kernel and libraries.
 	- Kernel: NativeOS Kernel contents.
 	- Library: Core libraries and libc.
+	- Tools: Other tools.

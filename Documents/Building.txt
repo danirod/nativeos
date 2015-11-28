@@ -1,0 +1,202 @@
+BUILDING
+========
+
+"Hey, this looks cool, can I test it?"
+
+Well, that's a fun question, stranger person. However, not so fast.
+
+At the moment, I'm figuring out a lot of things on the build process so
+building and running the kernel is not a so enjoyable experience. However,
+this document will try to explain you how I'm setting up things on my
+computer so that you can try if you want too.
+
+
+BUILD SYSTEM
+============
+
+Only GNU/Linux is supported at this moment. The build process has been
+tested on Linux i686 and on Linux x86_64. Linux x86_64 is my main build
+system and I sometimes test it under Linux i686.
+
+MacOS X support will be added later. It might be still possible to build
+NativeOS on MacOS X at the moment if you can get a cross-compiler able to
+produce ELF code, which is what the kernel needs as it uses GRUB2.
+
+No Windows support is ever expected to have. Therefore, if your computer
+doesn't run Linux, grab a VM with Ubuntu or something fancier and just
+load it. It's good for you. No thank required.
+
+You're going to need also the following tools:
+
+* GNU Make: required for the Makefiles.
+* GCC: required for compiling the C source code files into object code.
+* NASM: required for compiling the Assembly source code. I repeat: NASM.
+  I don't know if it's worth porting the current assembly scripts to GAS
+  and I prefer Intel syntax over AT&T syntax anyway.
+
+To run the operating system I suggest you to use QEMU.
+
+
+BUILDING THE KERNEL
+===================
+
+Provided you have all the tools installed, go ahead and run `make` on the
+project root folder. It should generate a file named nativeos.elf, which
+is the kernel file.
+
+
+BOOTING NATIVEOS
+================
+
+NativeOS bootstrapper makes use of Multiboot, the booting standard defined
+by GNU GRUB. NativeOS should work on different bootloaders provided they
+implement Multiboot. Officially I have only tested NativeOS under GRUB and
+GRUB 2 and it works on both.
+
+nativeos.elf, the kernel image you got on the previous step, is an ELF image
+that boots with Multiboot. In the following section, I'll cover how to
+generate a virtual disk image that will let you boot NativeOS inside QEMU
+or other compatible virtual machines.
+
+
+GENERATING A BOOTABLE DEVICE
+============================
+
+No installation process is supported at the moment. Unfortunately, this
+means that you'll have to manually create a virtual hard drive and put
+GRUB on it, then copy the kernel image to the hard drive, then boot
+the virtual hard drive using QEMU or other compatible virtual machines.
+
+Before starting, let me warn you that we will be creating a hard drive,
+initializing it, creating, formating and mounting a partition. These
+commands should be safe if you use them correctly. No warranties, though,
+and I deny any responsability due to the bad use of these commands. Which
+means that if you brick your computer, it's your fault, not mine. Proceed
+at your own risk.
+
+First, create an empty virtual hard drive. I'll use qemu-img. Note that
+you can dd from /dev/zero as well since I'm using a raw image:
+
+	$ qemu-img create -f raw NativeOS.img 100M
+
+Mount the virtual hard drive as a loopback device. I'm using /dev/loop0.
+If you are using other loopback devices, use the first loopback device
+available or unmount one of your loopback devices.
+
+	$ sudo losetup /dev/loop0 NativeOS.img
+
+Now it's time to format the image. At the moment NativeOS will only work
+on a drive that uses DOS partition table (no GPT) and on a partition that
+uses the FAT32 format. I'll be using Linux's fdisk for this:
+
+	$ fdisk /dev/loop0
+
+As long as you use your loopback device, it will try to use that file as a
+virtual block device. However, watch closely what you are doing. I'm not
+responsible if your computer blows up because of using this command wrong.
+
+Create a new partition using n command. By default it will try to use the
+complete disk. It's OK since we don't need any other partition, so create
+a primary partition taking the entire disk. Press ENTER several times.
+
+	Command (m for help): n
+	Select (default p):
+	Partition number (1-4, default 1):
+	First sector (2048-204799, default 2048):
+	Last sector, +sectors or +size{K,M,G,T,P} (2048-204799, default 204799):
+
+By default, fdisk will create a Linux partition (type 83). We don't want that.
+We need a FAT32 partition (type 0B). Use the  t  command to to this.
+
+	Command (m for help): t
+	Selected partition 1
+	Partition type (type L to list all types): b
+	Changed type of partition 'Linux' to 'W95 FAT32'.
+
+Finally make the partition bootable:
+
+	Command (m for help): a
+	Selected partition 1
+	The bootable flag on partition 1 is enabled now.
+
+Write the changes.
+
+	Command (m for help): w
+	The partition table has been altered.
+	Syncing disks.
+
+Now, we'll proceed to mount our PARTITION as another loopback device. This is
+not the same as mounting the hard drive. What we mounted before was comparable
+to /dev/sda or /dev/sdb. Now we want to mount or /dev/sda1 partition. Use
+the following command:
+
+	$ sudo losetup /dev/loop1 NativeOS.img -o 1048576
+
+We use the offset parameter because we want to skip the sectors that are part
+of the bootloader. When we created the partition, we assigned 2048 as the first
+sector for our bootloader. If you used a different number, multiply it by
+512 (or the sector size) and put it here.
+
+Now we can format the partition as a FAT32 partition.
+
+	$ sudo mkdosfs -F32 -f 2 -n NATIVEOS /dev/loop1
+	mkfs.fat 3.0.28 (2015-05-16)
+	Loop device does not match a floppy size, using default hd params
+
+We use -F32 to format is as FAT32, -f 2 to provide 2 FATs and NATIVEOS
+as the partition label. You can use whatever you want or not use any
+label at all by omiting this argument.
+
+We can mount it now wherever we want. I suggest you to provide the uid and
+gid parameters to mount so that your user has permissions and you don't have
+to use sudo to copy files. For example:
+
+	$ sudo mount -o uid=1000,gid=1000 /dev/loop1 /mnt
+
+Ok, we are almost done! Now we only have to install GRUB to the drive. I'll
+assume that you are already using GRUB2.
+
+	$ sudo grub-install --root-directory=/mnt --no-floppy \
+		--modules="normal part_msdos ext2 multiboot" /dev/loop0
+
+Should work without any error. If you open the folder where your virtual drive
+is mounted, you should see a new directory: boot. This is where all the files
+that GRUB requires are in, including the modules. I'm not covering how GRUB
+works, so let's just add our kernel image and the configuration file that will
+make GRUB aware of it.
+
+Copy your kernel.elf file to the mounted drive. The suggested location is
+/system/nativeos.elf, although you can put it on /boot/nativeos.elf as well.
+Now, create a configuration file in /boot/grub/grub.cfg with the following
+contents:
+
+	set display=0
+	set timeout=0
+
+	menuentry "NativeOS" {
+	    multiboot /system/nativeos.elf
+	}
+
+The first two lines are there to skip the GRUB menu since there is only one
+OS in the image. You can remove them and you'll see the GRUB menu asking to
+load NativeOS (beautiful, by the way). The last three lines create the NativeOS
+entry. Most importantly, I'm asking the multiboot module to boot the ELF
+file I previously created.
+
+Save the changes, and you are done. Sync the buffers and unmount the device:
+
+	$ sync
+	$ umount /mnt
+
+Your virtual disk is done. It should work with QEMU and other virtual machines
+provided they support raw virtual disks. To boot the virtual disk with QEMU:
+
+	$ qemu-system-i386 -hda NativeOS.img
+
+It should boot.
+
+I know this is not beautiful but it's here to stay for now. I could make a
+script to automatize it, but there are so many variables, so many locations
+and so many commands that could potentially destroy your computer if you
+use them wrong that I'm afraid to.
+
