@@ -92,6 +92,12 @@ void VGACon_Init()
 	register int i;
 	for (i = 0; i < CONSOLE_SIZE; i++)
 		*(baseAddr + i) = VGA_ENTRY(0, fgColor, bgColor);
+
+	/* Move the blinking cursor to the top left as well. */
+	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_HI);
+	IO_OutP(VGACON_DATA_REG, 0);
+	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_LO);
+	IO_OutP(VGACON_DATA_REG, 0);
 }
 
 /*
