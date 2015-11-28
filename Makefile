@@ -1,25 +1,37 @@
-include Makefile.inc
+# NativeOS Makefile
 
-# Default rule: build the kernel.
-default: Kernel/kernel.img
+# Tools
+CC = gcc
+AS = nasm
+LD = ld
 
-# Extra rule: generate CD image.
-iso: NativeOS.iso
+# Tool flags
+CFLAGS = -m32 -nostdlib -nostartfiles -nodefaultlibs --freestanding \
+	-fno-builtin -Wall -Wextra -g -IInclude/
+ASFLAGS = -f elf32
+LDFLAGS = -melf_i386 -nostdlib -T linker.ld
 
-# This rule executes NativeOS using qemu.
-qemu: NativeOS.iso
-	qemu-system-i386 -cdrom NativeOS.iso
+# Kernel. Add every new unit to KERNEL_OBJS. It works. Ew, tho.
+KERNEL_IMG := nativeos.elf
+KERNEL_OBJS := Boot/bootstrap.o \
+	Kernel/io.o \
+	Kernel/main.o \
+	Kernel/printk.o \
+	Kernel/console/vgacon.o
 
-NativeOS.iso: Kernel/kernel.img
-	cp Kernel/kernel.img ISO/boot/kernel.img
-	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot \
-		-boot-load-size 4 -A os -input-charset utf8 -quiet \
-		-boot-info-table -o NativeOS.iso ISO
+# Kernel image distibution
+$(KERNEL_IMG): $(KERNEL_OBJS)
+	$(LD) $(LDFLAGS) -o $@ $^
 
-Kernel/kernel.img:
-	@make -C Kernel
+# Object file generation
+%.o: %.c
+	$(CC) -c $(CFLAGS) -o $@ $<
+%.o: %.s
+	$(AS) $(ASFLAGS) -o $@ $<
+%.s: %.c
+	$(CC) -S $(CFLAGS) -o $@ $<
 
+# Clean objective
 clean:
-	@make clean -C Kernel
-	rm -f ISO/boot/kernel.img
-	rm -f NativeOS.iso
+	rm -f $(KERNEL_IMG) $(KERNEL_OBJS)
+
