@@ -11,4 +11,7 @@
 /* printk: like printf, but for the kernel and with less placeholders. */
 void printk(char* fmt, ...);
 
+/* kpanic: print a kernel panic message and halt the system. */
+void kpanic(int errcode, char* extra);
+
 #endif // KERNEL_KERNEL_H_

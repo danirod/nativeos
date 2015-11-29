@@ -16,6 +16,7 @@ KERNEL_IMG := nativeos.elf
 KERNEL_OBJS := Boot/bootstrap.o \
 	Kernel/io.o \
 	Kernel/main.o \
+	Kernel/panic.o \
 	Kernel/printk.o \
 	Kernel/vga.o
 

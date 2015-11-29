@@ -22,4 +22,7 @@ void kmain()
 {
 	VGACon_Init();
 	printk("Welcome to NativeOS!");
+
+	/* TODO: Replace this with actual kernel code. */
+	kpanic(80, "Kernel went idle.");
 }

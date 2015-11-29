@@ -16,6 +16,7 @@ MULTIBOOT_CHECKSUM		equ -(MULTIBOOT_MAGIC_NUMBER + MULTIBOOT_FLAGS)
 STACK_SIZE				equ 0x4000
 
 global Bootstrap
+global kdie
 extern kmain
 
 section .text
@@ -34,9 +35,18 @@ Bootstrap:
 	push ebx
 	call kmain
 
+	; In case the kernel ever returns, kill the system
+	jmp kdie
+
+; Enter an infinite loop with interrupts disabled. There is no back from
+; this unless you reboot the computer. This should be used in a few
+; situations: when the kernel enters a non-recoverable state or when the
+; computer should go idle.
+kdie:
 	cli
-.l:	hlt
-	jmp .l
+.dieloop:
+	hlt
+	jmp .dieloop
 
 section .bss
 align 4
