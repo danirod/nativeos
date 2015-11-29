@@ -99,32 +99,39 @@ void Scroll(int amount)
 }
 
 /*
+	This function will relocate the framebuffer blinking cursor via IO
+	operations to place it in the position described by the cursor
+	variables. It should be called whenever the cursor has changed so
+	that the display renders the blinking line where it should.
+*/
+static void UpdateFramebufferCursor()
+{
+	int pos = cursorY * CONSOLE_COLS + cursorX;
+	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_HI);
+	IO_OutP(VGACON_DATA_REG, ((pos >> 8) & 0xFF));
+	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_LO);
+	IO_OutP(VGACON_DATA_REG, pos & 0xFF);
+}
+
+/*
 	Increment the cursor indices and possibly update the cursor position
 	on the screen. After invoking this method, the cursor static variables
 	that dictate where will the next character be printed out will be
 	updated.
-
-	At the moment the VGA Console driver doesn't support scrolling. If it
-	is ever implemented, it will allow to scroll up the console when the
-	cursor reaches the bottom of the screen. At the moment the cursor
-	simply jumps to the top.
 */
 static void IncrementCursor()
 {
 	if (++cursorX == CONSOLE_COLS) {
 		cursorX = 0;
 		if (++cursorY == CONSOLE_ROWS) {
-			/* TODO: Wouldn't it be better to scroll up the window? */
-			cursorY = 0;
+			/* Scroll the cursor, then put it on the just made line. */
+			Scroll(1);
+			cursorY = CONSOLE_ROWS - 1;
 		}
 	}
 
 	/* Move the blinking cursor by calling the appropiate VGA routines. */
-	int pos = cursorY * CONSOLE_COLS + cursorX;
-	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_HI);
-	IO_OutP(VGACON_DATA_REG, ((pos >> 8) & 0xFF));
-	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_LO);
-	IO_OutP(VGACON_DATA_REG, pos & 0xFF);
+	UpdateFramebufferCursor();
 }
 
 /*
@@ -153,10 +160,7 @@ void VGACon_Init()
 		*(baseAddr + i) = VGA_ENTRY(0, fgColor, bgColor);
 
 	/* Move the blinking cursor to the top left as well. */
-	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_HI);
-	IO_OutP(VGACON_DATA_REG, 0);
-	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_LO);
-	IO_OutP(VGACON_DATA_REG, 0);
+	UpdateFramebufferCursor();
 }
 
 /*
@@ -167,12 +171,25 @@ void VGACon_Init()
 */
 void VGACon_PutChar(char ch)
 {
-	/* Places a character in the framebuffer. */
-	register int pos = cursorY * CONSOLE_COLS + cursorX;
-	*(baseAddr + pos) = VGA_ENTRY(ch, fgColor, bgColor);
+	register int pos;
 
-	// Increment the cursor position.
-	IncrementCursor();
+	switch (ch) {
+		case '\n':
+			/* Introduce a line break. */
+			cursorX = 0;
+			if (++cursorY == CONSOLE_ROWS) {
+				Scroll(1);
+				cursorY = CONSOLE_ROWS - 1;
+			}
+			UpdateFramebufferCursor();
+			break;
+		default:
+			/* Place the character in the frame buffer. */
+			pos = cursorY * CONSOLE_COLS + cursorX;
+			*(baseAddr + pos) = VGA_ENTRY(ch, fgColor, bgColor);
+			IncrementCursor();
+			break;
+	}
 }
 
 /*
@@ -187,14 +204,10 @@ void VGACon_PutString(char* chArray)
 	register char *ch;
 	register int pos;
 
-	// Iterate until we find a NUL-character.
+	/* Iterate until we find a NUL character. */
 	for (ch = chArray; *ch; ch++) {
-		// Put this character to the framebuffer.
-		pos = cursorY * CONSOLE_COLS + cursorX;
-		*(baseAddr + pos) = VGA_ENTRY(*ch, fgColor, bgColor);
-
-		// Increment the cursor position.
-		IncrementCursor();
+		/* What are the performance implications of such loop? */
+		VGACon_PutChar(*ch);
 	}
 }
 
@@ -210,11 +223,7 @@ void VGACon_Gotoxy(int x, int y)
 	cursorY = y;
 
 	/* Update the cursor position in the frame buffer. */
-	int pos = cursorY * CONSOLE_COLS + cursorY;
-	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_HI);
-	IO_OutP(VGACON_DATA_REG, ((pos >> 8) & 0xFF));
-	IO_OutP(VGACON_ADDR_REG, VGACON_COMMAND_CURSOR_LO);
-	IO_OutP(VGACON_DATA_REG, pos & 0xFF);
+	UpdateFramebufferCursor();
 }
 
 /*
@@ -233,6 +242,7 @@ void VGACon_Clrscr()
 	/* Reset cursor position. */
 	cursorX = 0;
 	cursorY = 0;
+	UpdateFramebufferCursor();
 
 	/* Clear the console. */
 	register int i;

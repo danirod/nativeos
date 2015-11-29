@@ -21,5 +21,5 @@
 void kmain()
 {
 	VGACon_Init();
-	VGACon_PutString("Welcome to NativeOS");
+	printk("Welcome to NativeOS!");
 }
