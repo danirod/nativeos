@@ -16,7 +16,7 @@ MULTIBOOT_CHECKSUM		equ -(MULTIBOOT_MAGIC_NUMBER + MULTIBOOT_FLAGS)
 STACK_SIZE				equ 0x4000
 
 global Bootstrap
-extern Kernel_Main
+extern kmain
 
 section .text
 align 4
@@ -32,7 +32,7 @@ Bootstrap:
 	; Prepare to start the kernel.
 	push eax
 	push ebx
-	call Kernel_Main
+	call kmain
 
 	cli
 .l:	hlt

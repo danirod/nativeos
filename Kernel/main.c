@@ -18,7 +18,7 @@
 	no rules on how should the main function be named. k* functions are
 	related to the kernel.
 */
-void Kernel_Main()
+void kmain()
 {
 	VGACon_Init();
 	VGACon_PutString("Welcome to NativeOS");
