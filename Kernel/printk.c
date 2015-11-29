@@ -36,6 +36,7 @@ void printk(char* fmt, ...)
 				VGACon_PutChar(*ch);
 			} else { /* Uh, oh, hold on. (Get it? Hold... nevermind) */
 				int d_num;
+				char* d_str;
 				ch++;
 				switch (*ch) {
 					case 'c': // print a character.
@@ -44,6 +45,10 @@ void printk(char* fmt, ...)
 					case 'd': // print a number
 						d_num = va_arg(list, int);
 						printk_write_int(d_num);
+						break;
+					case 's': // print a string.
+						d_str = va_arg(list, char*);
+						VGACon_PutString(d_str);
 						break;
 					default: // unrecognized, what to do?
 						VGACon_PutChar('%');
