@@ -6,6 +6,7 @@
 */
 
 #include <kernel/kernel.h>
+#include <kernel/gdt.h>
 #include <driver/vga.h>
 
 /*
@@ -20,6 +21,9 @@
 */
 void kmain()
 {
+	/* Set up GDT table. */
+	gdt_init();
+
 	VGACon_Init();
 	printk("Welcome to NativeOS!");
 
