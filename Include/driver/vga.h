@@ -5,8 +5,8 @@
 	vgacon.h - Bogus display driver for the VGA framebuffer.
 */
 
-#ifndef KERNEL_CONSOLE_VGACON_H_
-#define KERNEL_CONSOLE_VGACON_H_
+#ifndef DRIVER_VGA_H_
+#define DRIVER_VGA_H_
 
 /* VGA color constants. */
 enum VGA_COLORS {

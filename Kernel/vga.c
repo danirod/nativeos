@@ -5,8 +5,8 @@
 	vgacon.c - Bogus display driver for the VGA framebuffer.
 */
 
+#include <driver/vga.h>
 #include <kernel/io.h>
-#include <kernel/console/vgacon.h>
 
 /* How many characters fit in a row of text. */
 #define CONSOLE_COLS 80

@@ -6,7 +6,7 @@
 */
 
 #include <stdarg.h>
-#include <kernel/console/vgacon.h>
+#include <driver/vga.h>
 
 /* Forward declaration: print a number to the console. */
 static void printk_write_int(const int number);

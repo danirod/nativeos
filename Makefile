@@ -17,7 +17,7 @@ KERNEL_OBJS := Boot/bootstrap.o \
 	Kernel/io.o \
 	Kernel/main.o \
 	Kernel/printk.o \
-	Kernel/console/vgacon.o
+	Kernel/vga.o
 
 # Kernel image distibution
 $(KERNEL_IMG): $(KERNEL_OBJS)

@@ -6,7 +6,7 @@
 */
 
 #include <kernel/kernel.h>
-#include <kernel/console/vgacon.h>
+#include <driver/vga.h>
 
 /*
 	This is the main routine for the NativeOS Kernel. It will start the
