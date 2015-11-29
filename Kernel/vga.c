@@ -40,6 +40,65 @@ static int cursorX, cursorY;
 static unsigned char fgColor, bgColor;
 
 /*
+	This function will scroll the screen either up or down a number of times
+	provided in the amount argument. The direction of the scroll will depend
+	on the sign of the argument. If the sign is positive, the scroll is done
+	upwards (new lines enter on the bottom, top lines are lost). If the
+	sign is negative, the scroll is done downwards (new lines enter on the
+	top and bottom lines are lost).
+*/
+void Scroll(int amount)
+{
+	/* Start and end pointers for the region that will be overwritten. */
+	unsigned short *startAddr, *endAddr;
+
+	/* Offset for the source copying. */
+	short offset;
+
+	/** Start and end pointers for the region that will be cleant. */
+	unsigned short *baseClean, *endClean;
+
+	if (amount > 0) {
+		/* TODO: Should this variable mess be cleaned? */
+		startAddr = baseAddr;
+		endAddr = startAddr + CONSOLE_COLS * (CONSOLE_ROWS - amount);
+		offset = CONSOLE_COLS * amount;
+		baseClean = endAddr;
+		endClean = baseAddr + CONSOLE_COLS * CONSOLE_ROWS;
+
+		/* Overwrite one region of memory with other. TODO: memcpy? */
+		unsigned short* copyAddr;
+		for (copyAddr = startAddr; copyAddr < endAddr; copyAddr++) {
+			*(copyAddr) = *(copyAddr + offset);
+		}
+
+		/* Now clean the memory region that has scrolled in. TODO: memset? */
+		unsigned short* cleanAddr;
+		for (cleanAddr = baseClean; cleanAddr < endClean; cleanAddr++) {
+			*(cleanAddr) = VGA_ENTRY(0, fgColor, bgColor);
+		}
+	} else if (amount < 0) {
+		startAddr = baseAddr + (-amount * CONSOLE_COLS);
+		endAddr = startAddr + CONSOLE_COLS * (CONSOLE_ROWS + amount);
+		offset = amount * CONSOLE_COLS;
+		baseClean = startAddr + offset;
+		endClean = startAddr - 1;
+
+		/* Overwrite one region of memory with other. */
+		unsigned short *copyAddr;
+		for (copyAddr = endAddr; copyAddr >= startAddr; copyAddr--) {
+			*(copyAddr) = *(copyAddr + offset);
+		}
+
+		/* Clean the memory region. */
+		unsigned short *cleanAddr;
+		for (cleanAddr = baseClean; cleanAddr < endClean; cleanAddr++) {
+			*(cleanAddr) = VGA_ENTRY(0, fgColor, bgColor);
+		}
+	}
+}
+
+/*
 	Increment the cursor indices and possibly update the cursor position
 	on the screen. After invoking this method, the cursor static variables
 	that dictate where will the next character be printed out will be
