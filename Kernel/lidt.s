@@ -13,6 +13,7 @@ extern idt_handler
 ; pointer as an argument to avoid extern declarations.
 idt_load:
 	lidt [idt_toc]
+	sti
 	ret
 
 %macro NON_ERROR_INTERRUPT 1
@@ -62,6 +63,22 @@ NON_ERROR_INTERRUPT 28
 NON_ERROR_INTERRUPT 29
 NON_ERROR_INTERRUPT 30
 NON_ERROR_INTERRUPT 31
+NON_ERROR_INTERRUPT 32
+NON_ERROR_INTERRUPT 33
+NON_ERROR_INTERRUPT 34
+NON_ERROR_INTERRUPT 35
+NON_ERROR_INTERRUPT 36
+NON_ERROR_INTERRUPT 37
+NON_ERROR_INTERRUPT 38
+NON_ERROR_INTERRUPT 39
+NON_ERROR_INTERRUPT 40
+NON_ERROR_INTERRUPT 41
+NON_ERROR_INTERRUPT 42
+NON_ERROR_INTERRUPT 43
+NON_ERROR_INTERRUPT 44
+NON_ERROR_INTERRUPT 45
+NON_ERROR_INTERRUPT 46
+NON_ERROR_INTERRUPT 47
 
 idt_common_prehandler:
 	; Push data
@@ -77,4 +94,4 @@ idt_common_prehandler:
 	pop eax ; Pop the pointer
 	popa	; Pop the registers
 	add esp, 8 ; Remove the error code and the interrupt
-	ret ; TODO: Change with iret once this works.
+	iret ; TODO: Change with iret once this works.

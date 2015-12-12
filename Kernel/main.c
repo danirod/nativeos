@@ -26,11 +26,13 @@ extern void idt_1(void);
 void kmain()
 {
 	/* Set up GDT and IDT table. */
+	VGACon_Init();
 	gdt_init();
 	idt_init();
 
-	VGACon_Init();
 	printk("Welcome to NativeOS!\n");
+	
+	for(;;);
 	
 	/* TODO: Replace this with actual kernel code. */
 	// kpanic(80, "Kernel went idle.");

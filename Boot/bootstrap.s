@@ -34,7 +34,7 @@ Bootstrap:
 	push eax
 	push ebx
 	call kmain
-
+	
 	; In case the kernel ever returns, kill the system
 	jmp kdie
 

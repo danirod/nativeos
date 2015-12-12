@@ -5,11 +5,12 @@
 	idt.c - sets up the IDT table
 */
 
+#include <kernel/io.h>
 #include <kernel/idt.h>
 #include <driver/vga.h>
 #include <kernel/kernel.h>
 
-#define INTERRUPTS 32
+#define INTERRUPTS 48
 
 /* Table of contents for the IDT structure. */
 struct idt_table idt_toc;
@@ -53,6 +54,22 @@ extern void isr_28(void);
 extern void isr_29(void);
 extern void isr_30(void);
 extern void isr_31(void);
+extern void isr_32(void);
+extern void isr_33(void);
+extern void isr_34(void);
+extern void isr_35(void);
+extern void isr_36(void);
+extern void isr_37(void);
+extern void isr_38(void);
+extern void isr_39(void);
+extern void isr_40(void);
+extern void isr_41(void);
+extern void isr_42(void);
+extern void isr_43(void);
+extern void isr_44(void);
+extern void isr_45(void);
+extern void isr_46(void);
+extern void isr_47(void);
 
 static unsigned int isr_vector[] = {
 	(unsigned int) &isr_0,
@@ -86,7 +103,23 @@ static unsigned int isr_vector[] = {
 	(unsigned int) &isr_28,
 	(unsigned int) &isr_29,
 	(unsigned int) &isr_30,
-	(unsigned int) &isr_31
+	(unsigned int) &isr_31,
+	(unsigned int) &isr_32,
+	(unsigned int) &isr_33,
+	(unsigned int) &isr_34,
+	(unsigned int) &isr_35,
+	(unsigned int) &isr_36,
+	(unsigned int) &isr_37,
+	(unsigned int) &isr_38,
+	(unsigned int) &isr_39,
+	(unsigned int) &isr_40,
+	(unsigned int) &isr_41,
+	(unsigned int) &isr_42,
+	(unsigned int) &isr_43,
+	(unsigned int) &isr_44,
+	(unsigned int) &isr_45,
+	(unsigned int) &isr_46,
+	(unsigned int) &isr_47
 };
 
 static void idt_set_entry(int pos, unsigned int offset,
@@ -99,12 +132,37 @@ static void idt_set_entry(int pos, unsigned int offset,
 	idt_entries[pos].attributes = attributes;
 }
 
+static void remap_pic()
+{
+	/* Tell the PIC the party is about to begin. */
+	IO_OutP(0x20, 0x11);
+	IO_OutP(0xA0, 0x11);
+	
+	/* Tell the PIC where the interrupt vectors start. */
+	IO_OutP(0x21, 32);
+	IO_OutP(0xA1, 40);
+	
+	/* Tell each PIC which one is master and which one is slave. */
+	IO_OutP(0x21, 0x04);
+	IO_OutP(0xA1, 0x02);
+	
+	/* Tell the PICs that this is x86. */
+	IO_OutP(0x21, 0x01);
+	IO_OutP(0xA1, 0x01);
+	
+	/* Unmask the PICs. */
+	IO_OutP(0x21, 0x00);
+	IO_OutP(0xA1, 0x00);
+}
+
 void idt_init()
 {
 	/* Create the IDT table. */
 	idt_toc.base = (unsigned int) &idt_entries;
-	idt_toc.limit = (sizeof (struct idt_entry) * 256) - 1;
+	idt_toc.limit = (sizeof (struct idt_entry) * INTERRUPTS) - 1;
 	/* TODO: Fill the IDT table with zeros to avoid unexpected things. */
+	
+	remap_pic();
 	
 	/* Fill the IDT table. */
 	int i;
@@ -118,18 +176,36 @@ void idt_init()
 
 void idt_handler(struct idt_data* data)
 {
-	VGACon_SetColor(COLOR_LIGHT_CYAN, COLOR_BLACK);
-	printk("==== INTERRUPT ====\n");
-	printk("Interrupt Number: 0x%x\n", data->int_no);
-	
-	printk("EAX = %x  EBX = %x  ECX = %x  EDX = %x\n",
-			data->eax, data->ebx, data->ecx, data->edx);
-	printk("ESI = %x  EDI = %x  EBP = %x  ESP = %x\n",
-			data->esi, data->edi, data->esp, data->ebp);
-	printk("==== END OF INTERRUPT ====\n");
-	VGACon_SetColor(COLOR_WHITE, COLOR_BLACK);
+	if (data->int_no == 0x20) {
+		
+	} else if (data->int_no == 0x21) {
+		int scancode = IO_InP(0x60);
+		if (scancode == 1) {
+			VGACon_Clrscr();
+		}
+		printk("* Has pulsado: %d\n", scancode);
+	} else {
+		VGACon_SetColor(COLOR_LIGHT_CYAN, COLOR_BLACK);
+		printk("==== INTERRUPT ====\n");
+		printk("Interrupt Number: 0x%x\n", data->int_no);
+		
+		printk("EAX = %x  EBX = %x  ECX = %x  EDX = %x\n",
+				data->eax, data->ebx, data->ecx, data->edx);
+		printk("ESI = %x  EDI = %x  EBP = %x  ESP = %x\n",
+				data->esi, data->edi, data->esp, data->ebp);
+		printk("==== END OF INTERRUPT ====\n");
+		VGACon_SetColor(COLOR_WHITE, COLOR_BLACK);
+	}
 	
 	if (data->int_no < 16) {
 		kdie();
+	}
+	
+	/* Acknowledge the interrupt to the PIC. */
+	if (data->int_no >= 0x28 && data->int_no < 0x30) {
+		IO_OutP(0xA0, 0x20);
+	}
+	if (data->int_no >= 0x20 && data->int_no < 0x30) {
+		IO_OutP(0x20, 0x20);
 	}
 }
