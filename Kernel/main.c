@@ -7,7 +7,11 @@
 
 #include <kernel/kernel.h>
 #include <kernel/gdt.h>
+#include <kernel/idt.h>
 #include <driver/vga.h>
+
+extern void idt_0(void);
+extern void idt_1(void);
 
 /*
 	This is the main routine for the NativeOS Kernel. It will start the
@@ -21,12 +25,13 @@
 */
 void kmain()
 {
-	/* Set up GDT table. */
+	/* Set up GDT and IDT table. */
 	gdt_init();
+	idt_init();
 
 	VGACon_Init();
-	printk("Welcome to NativeOS!");
-
+	printk("Welcome to NativeOS!\n");
+	
 	/* TODO: Replace this with actual kernel code. */
-	kpanic(80, "Kernel went idle.");
+	// kpanic(80, "Kernel went idle.");
 }

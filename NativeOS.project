@@ -8,6 +8,7 @@
       <File Name="Include/kernel/gdt.h"/>
       <File Name="Include/kernel/io.h"/>
       <File Name="Include/kernel/kernel.h"/>
+      <File Name="Include/kernel/idt.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Description/>
@@ -23,6 +24,8 @@
     <File Name="Kernel/lgdt.s"/>
     <File Name="Kernel/io.s"/>
     <File Name="Kernel/printk.c"/>
+    <File Name="Kernel/idt.c"/>
+    <File Name="Kernel/lidt.s"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>

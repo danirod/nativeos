@@ -15,8 +15,10 @@ LDFLAGS = -melf_i386 -nostdlib -T linker.ld
 KERNEL_IMG := nativeos.elf
 KERNEL_OBJS := Boot/bootstrap.o \
 	Kernel/gdt.o \
+	Kernel/idt.o \
 	Kernel/io.o \
 	Kernel/main.o \
+	Kernel/lidt.o \
 	Kernel/lgdt.o \
 	Kernel/panic.o \
 	Kernel/printk.o \
