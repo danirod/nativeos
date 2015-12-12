@@ -8,58 +8,6 @@
 #include <stdarg.h>
 #include <driver/vga.h>
 
-/* Forward declaration: print a number to the console. */
-static void printk_write_int(const int number);
-
-/*
- * printk function for NativeOS. Intended to be compatible with Linux's printk.
- * Used by the kernel to print in the console in more creative ways than
- * what VGACon_PutChar or VGACon_PutString offer.
- *
- * First argument is a NUL-terminated string. Succesive arguments should be
- * the contents that the placeholders will be replaced to. At the moment the
- * function knows how to print the following formats:
- *
- * - %d: int numbers
- */
-void printk(char* fmt, ...)
-{
-	if (fmt) { /* Safety nullcheck */
-		/* The hardest part here is to extract the variadic argument. */
-		va_list list;
-		va_start(list, fmt);
-
-		/* Now it's just parsing fmt until we get a NUL character. */
-		char* ch;
-		for (ch = fmt; *ch; ch++) {
-			if (*ch != '%') { /* Not a placeholder, safe to print? */
-				VGACon_PutChar(*ch);
-			} else { /* Uh, oh, hold on. (Get it? Hold... nevermind) */
-				int d_num;
-				char* d_str;
-				ch++;
-				switch (*ch) {
-					case 'c': // print a character.
-						VGACon_PutChar(*ch);
-						break;
-					case 'd': // print a number
-						d_num = va_arg(list, int);
-						printk_write_int(d_num);
-						break;
-					case 's': // print a string.
-						d_str = va_arg(list, char*);
-						VGACon_PutString(d_str);
-						break;
-					default: // unrecognized, what to do?
-						VGACon_PutChar('%');
-						VGACon_PutChar(*ch);
-						break;
-				}
-			}
-		}
-	}
-}
-
 /*
 	Write a numeric value to the console. The algorithm will extract
 	numbers from the least significant to the most significant. So,
@@ -95,5 +43,112 @@ static void printk_write_int(const int number)
 	}
 	while (len > 0) {
 		VGACon_PutChar(buf[len--]);
+	}
+}
+
+/* This function will print an unsigned number to the screen. */
+static void printk_write_uint(const unsigned int number)
+{
+	/* Prepare the buffer. */
+	char buf[20];
+	buf[0] = 0;
+	int len = 0;
+	
+	/* Reverse write the number to the char array. */
+	unsigned int value = number;
+	while (value >= 10) {
+		int last_digit = value % 10;
+		value /= 10;
+		buf[++len] = '0' + last_digit;
+	}
+	buf[++len] = '0' + value;
+	
+	/* Reverse print the char array. */
+	while (len) {
+		VGACon_PutChar(buf[len--]);
+	}
+}
+
+static char hex_letters[] = {
+	'0', '1', '2', '3', '4', '5', '6', '7',
+	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+};
+
+static void printk_write_hex(const unsigned int number)
+{
+	char buf[20];
+	buf[0] = 0;
+	int len = 0;
+	
+	/* Write the number to the buffer. */
+	unsigned int value = number;
+	while (value >= 16) {
+		buf[++len] = hex_letters[value & 0xF];
+		value >>= 4;
+	}
+	buf[++len] = hex_letters[value & 0xF];
+	
+	/* Reverse print the buffer. */
+	while (len) {
+		VGACon_PutChar(buf[len--]);
+	}
+}
+
+/*
+ * printk function for NativeOS. Intended to be compatible with Linux's printk.
+ * Used by the kernel to print in the console in more creative ways than
+ * what VGACon_PutChar or VGACon_PutString offer.
+ *
+ * First argument is a NUL-terminated string. Succesive arguments should be
+ * the contents that the placeholders will be replaced to. At the moment the
+ * function knows how to print the following formats:
+ *
+ * - %d: int numbers
+ */
+void printk(char* fmt, ...)
+{
+	if (fmt) { /* Safety nullcheck */
+		/* The hardest part here is to extract the variadic argument. */
+		va_list list;
+		va_start(list, fmt);
+
+		/* Now it's just parsing fmt until we get a NUL character. */
+		char* ch;
+		for (ch = fmt; *ch; ch++) {
+			if (*ch != '%') { /* Not a placeholder, safe to print? */
+				VGACon_PutChar(*ch);
+			} else { /* Uh, oh, hold on. (Get it? Hold... nevermind) */
+				int d_num;
+				unsigned int u_num;
+				char* d_str;
+				ch++;
+				switch (*ch) {
+					case 'c': // print a character.
+						d_num = va_arg(list, int);
+						VGACon_PutChar(d_num);
+						break;
+					case 'd': // print a number
+						d_num = va_arg(list, int);
+						printk_write_int(d_num);
+						break;
+					case 's': // print a string.
+						d_str = va_arg(list, char*);
+						VGACon_PutString(d_str);
+						break;
+					case 'u':
+						u_num = va_arg(list, unsigned int);
+						printk_write_uint(u_num);
+						break;
+					case 'x':
+						u_num = va_arg(list, unsigned int);
+						printk_write_hex(u_num);
+						break;
+					default: // unrecognized, what to do?
+						VGACon_PutChar('%');
+						VGACon_PutChar(*ch);
+						break;
+				}
+			}
+		}
 	}
 }
