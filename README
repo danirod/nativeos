@@ -1,29 +1,90 @@
 NativeOS
+========
 
-	This is the main repository for the NativeOS project.
-	NativeOS is a hobbyist operating system for the x86 platform.
+	NativeOS is a hobbyist kernel and operating system for the x86 platform.
+	It is designed as a project to learn more about how the x86 processor
+	work and how operating systems work. My intention is purely educational.
+	The source code is open in the hope that it helps other people too.
 
-Compiling NativeOS
+Building NativeOS
 
-	NativeOS can be compiled on Linux i686 and Linux x86_64.
-	It should work by just running  make  provided you have all
-	the tools installed. See Documents/Building.txt for more
-	information.
+	At the moment NativeOS requires a Linux host for the build process.
+	In the future, I'd hope to add support for OS X hosts too. Support for
+	Windows hosts will not happen.
 
-	This project makes use of the following tools: gcc, nasm, ld.
-	You'll need to install these tools first. Also, you'll probably
-	want a virtual machine to test this kernel. There are instructions
-	for building the kernel as a QEMU raw drive.
+	NativeOS needs the following tools: the GCC compiler, the NASM assembler
+	and GNU Make for Makefiles. Probably you already have most of these tools,
+	maybe you need to install NASM.
 
-Directory Structure
+	NASM or GAS? NASM. It's a matter of taste, I'm more used to the Intel
+	syntax than to the AT&T syntax and I don't want to learn another syntax
+	at the moment.
 
-	The following directory structure is used in the NativeOS
-	repository. Please note that all the root folders begin
-	with an uppercase letter.
+	To build the kernel image just run the following command:
 
-	- Boot: Assembly files related to the bootstrap process.
-	- Documents: Documentation and other guides.
-	- Include: Include directory for the kernel and libraries.
-	- Kernel: NativeOS Kernel contents.
-	- Library: Core libraries and libc.
-	- Tools: Other tools.
+		$ make
+
+	This will build the kernel into "nativeos.elf" file. NativeOS kernel uses
+	the ELF format and it supports the Multiboot specification, so it can be
+	deployed in any machine that uses a Multiboot bootloader (such as GRUB)
+	and executed.
+
+Creating a virtual drive
+
+	For development purposes it is more useful to have a virtual drive where
+	NativeOS is installed so that you can modify the kernel and start right
+	on a virtual machine such as QEMU or Bochs.
+
+	Since the kernel is so small, NativeOS can be installed at the moment
+	on a floppy disk. You can use the tools at the Tools/ folder:
+
+	* mkfloppies: will create the NativeOS floppy disk and the GRUB bootdisk.
+	  You need the second disk as a helper disk to make the NativeOS bootable
+	  since the program cannot automatically install GRUB to the NativeOS
+	  disk (unless you use GRUB Legacy, which I doubt since most Linux
+	  distributions use GRUB2 nowadays).
+
+	  Run mkfloppies and follow the instructions that will appear on the
+	  screen to make the NativeOS virtual disk bootable.
+
+	* kerinstall: this program will transfer the NativeOS kernel that has
+	  been previously compiled as well as any other support file required by
+	  the kernel into the NativeOS floppy disk. After copying the files,
+	  you can run the floppy disk on your virtual machine to start NativeOS.
+
+	There are two Make rules that will help you creating and updating
+	floppy disks:
+
+		$ make grubinstall
+
+	This one will create the floppy disks and start QEMU for you. When you
+	see the GRUB shell, execute the following commands:
+
+		> root (fd1)
+		> setup (fd1)
+
+	GRUB is now installed on your NativeOS floppy drive. Close the VM.
+
+	The other rule is:
+
+		$ make qemu
+
+	This will recompile the kernel (using make) and copy the kernel image
+	to your floppy disk. Then it will start QEMU. If you don't want to
+	start QEMU, just issue:
+
+		$ make floppy
+
+	IF YOU GET AN INFINITE LOOP WHEN YOU START QEMU, make sure you actually
+	installed GRUB in the NativeOS disk. Run make grubinstall to fix it.
+
+License and disclaimer
+
+	NativeOS is licensed under the terms of the GNU General Public License v3.
+	See the COPYING file for more information. Old NativeOS files will
+	probably not have the GPL header on it. I'm working on that.
+
+	NativeOS is provided AS IS with no extra support. Working with kernels
+	and OS and bootloaders is fun, but I'm not resposible for anything wrong
+	you do with it. If you break your hard drive or your computer because
+	of using the wrong command, that is not my fault.
