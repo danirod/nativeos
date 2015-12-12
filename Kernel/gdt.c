@@ -15,7 +15,7 @@ struct gdt_entry gdt_table[3];
 /* Load the GDT table. This is defined in lgdt.s */
 extern void gdt_load();
 
-void fill_entry(int sid, unsigned int base, unsigned int limit,
+static void gdt_set_entry(int sid, unsigned int base, unsigned int limit,
 				unsigned char access, unsigned char granularity)
 {
 	/* Fill the base address (32 bits) */
@@ -35,9 +35,9 @@ void fill_entry(int sid, unsigned int base, unsigned int limit,
 void gdt_init()
 {
 	/* Setup the segments: NULL, code (0x9A) and data (0x92). */
-	fill_entry(0, 0, 0, 0, 0);
-	fill_entry(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); /* 0x9A = GDT_CODEDATA_BIT is ON. */
-	fill_entry(2, 0, 0xFFFFFFFF, 0x92, 0xCF); /* 0x92 = GDT_CODEDATA_BIT is OFF.*/
+	gdt_set_entry(0, 0, 0, 0, 0);
+	gdt_set_entry(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); /* 0x9A = CODEDATA_BIT ON. */
+	gdt_set_entry(2, 0, 0xFFFFFFFF, 0x92, 0xCF); /* 0x92 = CODEDATA_BIT OFF.*/
 
 	/* Set up the GDT table. */
 	gdt_toc.size = sizeof (struct gdt_entry) * 3 - 1;
