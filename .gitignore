@@ -1,3 +1,4 @@
 *.o
 Tools/*.img
 nativeos.elf
+.codelite/

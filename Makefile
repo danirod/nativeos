@@ -44,7 +44,7 @@ Tools/nativeos.img:
 qemu: floppy
 	qemu-system-i386 -fda Tools/nativeos.img -monitor stdio
 
-grubinstall:
+grubinstall: Tools/nativeos.img
 	qemu-system-i386 -fda Tools/grubdisk.img -fdb Tools/nativeos.img
 
 # Clean objective
