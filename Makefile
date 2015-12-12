@@ -34,7 +34,20 @@ $(KERNEL_IMG): $(KERNEL_OBJS)
 %.s: %.c
 	$(CC) -S $(CFLAGS) -o $@ $<
 
+# Floppies
+floppy: $(KERNEL_IMG) Tools/nativeos.img
+	cd Tools; ./kerinstall
+
+Tools/nativeos.img:
+	cd Tools; ./mkfloppies
+
+qemu: floppy
+	qemu-system-i386 -fda Tools/nativeos.img -monitor stdio
+
+grubinstall:
+	qemu-system-i386 -fda Tools/grubdisk.img -fdb Tools/nativeos.img
+
 # Clean objective
 clean:
-	rm -f $(KERNEL_IMG) $(KERNEL_OBJS)
+	rm -f $(KERNEL_IMG) $(KERNEL_OBJS) Tools/nativeos.img Tools/grubdisk.img
 

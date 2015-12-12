@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# This file updates the NativeOS system files in a floppy disk that has been
+# already created and initialized with GRUB. If the disk does not exists,
+# please, run mkfloppies.sh first.
+
+tput setaf 2
+
+# Copy kernel files...
+echo '* Copying kernel files...'
+echo 'drive n: file="nativeos.img" 1.44M filter' > mtoolsrc
+MTOOLSRC=mtoolsrc mmd -D o n:/system >/dev/null 2>&1
+MTOOLSRC=mtoolsrc mcopy -D o ../nativeos.elf n:/system/nativeos.exe >/dev/null 2>&1
+
+# Cleaning up...
+echo '* Cleaning up...'
+rm mtoolsrc
+
+tput setaf 3
+
+echo ""
+echo "Done! NativeOS disk has been updated. Enjoy!"
+
+tput sgr0

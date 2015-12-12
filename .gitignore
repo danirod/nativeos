@@ -1,1 +1,3 @@
 *.o
+Tools/*.img
+nativeos.elf

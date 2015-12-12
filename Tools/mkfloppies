@@ -1,0 +1,56 @@
+#!/bin/sh
+
+# This tool creates the floppy disks. As explained in the docs,
+# unless you have GRUB legacy on your host computer, you will need
+# two floppy disks:
+#
+# - One is the actual NativeOS floppy disk used to boot the system.
+# - The second one is a helper GRUB boot disk used to install the
+#   GRUB bootloader onto the NativeOS disk.
+
+tput setaf 2
+
+# Create the GRUB bootdisk
+echo "* Creating a GRUB bootdisk..."
+dd if=/dev/zero of=grubdisk.img bs=512 count=2880 >/dev/null 2>&1
+dd if=grub/stage1 of=grubdisk.img conv=notrunc count=1 >/dev/null 2>&1
+dd if=grub/stage2 of=grubdisk.img conv=notrunc seek=1 >/dev/null 2>&1
+
+# Create the NativeOS disk and copy the files on it.
+# This requires mtools to be installed in the computer.
+# mtools are a set of UNIX tools that works with FAT floppies.
+echo "* Creating the NativeOS disk..."
+dd if=/dev/zero of=nativeos.img bs=512 count=2880 >/dev/null 2>&1
+echo 'drive n: file="nativeos.img" 1.44M filter' > mtoolsrc
+MTOOLSRC=mtoolsrc mformat n: >/dev/null 2>&1
+
+echo "* Creating bootstrap distribution..."
+MTOOLSRC=mtoolsrc mmd n:/boot >/dev/null 2>&1
+MTOOLSRC=mtoolsrc mmd n:/boot/grub >/dev/null 2>&1
+MTOOLSRC=mtoolsrc mcopy grub/stage1 n:/boot/grub >/dev/null 2>&1
+MTOOLSRC=mtoolsrc mcopy grub/stage2 n:/boot/grub >/dev/null 2>&1
+MTOOLSRC=mtoolsrc mcopy grub/menu.lst n:/boot/grub >/dev/null 2>&1
+
+# Clean up...
+echo "* Cleaning up..."
+rm mtoolsrc
+
+tput setaf 3
+
+# Done. You still have to make the NativeOS disk bootable manually.
+echo ""
+echo "Disks are done! However, you still have to done one last step!"
+echo ""
+echo "NativeOS disk is not bootable. You have to start a virtual machine"
+echo "using bootdisk.img as floppy disk 0 and nativeos.img as floppy"
+echo "disk 1. If you have QEMU installed, this is as easy as:"
+echo "  qemu-system-i386 -fda grubdisk.img -fdb nativeos.img"
+echo ""
+echo "A GRUB shell will appear. Execute the following commands:"
+echo "  root (fd1)"
+echo "  setup (fd1)"
+echo ""
+echo "This will install GRUB in the NativeOS floppy disk image, making it"
+echo "actually bootable after a kernel image has been installed on it."
+
+tput sgr0
