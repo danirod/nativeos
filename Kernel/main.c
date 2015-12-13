@@ -8,6 +8,8 @@
 #include <kernel/kernel.h>
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
+#include <driver/keyboard.h>
+#include <driver/timer.h>
 #include <driver/vga.h>
 
 /*
@@ -23,11 +25,15 @@
 void kmain()
 {
 	/* Set up GDT and IDT table. */
-	VGACon_Init();
 	gdt_init();
 	idt_init();
 	
-	printk("Welcome to NativeOS!\n");
+	/* Set up the core drivers. */
+	VGACon_Init();
+	keyboard_init();
+	timer_init();
+	
+	printk("Starting NativeOS...\n");
 	
 	for(;;);
 }

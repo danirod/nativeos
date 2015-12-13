@@ -3,6 +3,8 @@
   <VirtualDirectory Name="Include">
     <VirtualDirectory Name="driver">
       <File Name="Include/driver/vga.h"/>
+      <File Name="Include/driver/keyboard.h"/>
+      <File Name="Include/driver/timer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="kernel">
       <File Name="Include/kernel/gdt.h"/>
@@ -28,6 +30,8 @@
     <File Name="Kernel/lidt.s"/>
     <VirtualDirectory Name="driver">
       <File Name="Kernel/vga.c"/>
+      <File Name="Kernel/driver/keyboard.c"/>
+      <File Name="Kernel/driver/timer.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">

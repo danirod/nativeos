@@ -22,6 +22,8 @@ KERNEL_OBJS := Boot/bootstrap.o \
 	Kernel/lgdt.o \
 	Kernel/panic.o \
 	Kernel/printk.o \
+	Kernel/driver/keyboard.o \
+	Kernel/driver/timer.o \
 	Kernel/driver/vga.o
 
 # Kernel image distibution
