@@ -9,6 +9,8 @@
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
 #include <kernel/multiboot.h>
+#include <driver/keyboard.h>
+#include <driver/timer.h>
 #include <driver/vga.h>
 
 /*
@@ -25,7 +27,11 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 {
 	gdt_init();
 	idt_init();
+
+	/* Set up the core drivers. */
 	VGACon_Init();
+	keyboard_init();
+	timer_init();
 	
 	/* Check that the magic code is valid. */
 	if (magic_number != 0x2BADB002) {
@@ -33,4 +39,6 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	}
 	
 	printk("Starting NativeOS...\n");
+	
+	for(;;);
 }
