@@ -22,7 +22,7 @@ KERNEL_OBJS := Boot/bootstrap.o \
 	Kernel/lgdt.o \
 	Kernel/panic.o \
 	Kernel/printk.o \
-	Kernel/vga.o
+	Kernel/driver/vga.o
 
 # Kernel image distibution
 $(KERNEL_IMG): $(KERNEL_OBJS)

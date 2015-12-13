@@ -18,7 +18,6 @@
     <File Name="Boot/bootstrap.s"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Kernel">
-    <File Name="Kernel/vga.c"/>
     <File Name="Kernel/main.c"/>
     <File Name="Kernel/gdt.c"/>
     <File Name="Kernel/panic.c"/>
@@ -27,6 +26,9 @@
     <File Name="Kernel/printk.c"/>
     <File Name="Kernel/idt.c"/>
     <File Name="Kernel/lidt.s"/>
+    <VirtualDirectory Name="driver">
+      <File Name="Kernel/vga.c"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
