@@ -27,7 +27,11 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 {
 	gdt_init();
 	idt_init();
-
+	
+	int i;
+	for (i = 0; i < 16; i++)
+		idt_set_handler(i, &bsod);
+	
 	/* Set up the core drivers. */
 	VGACon_Init();
 	keyboard_init();
@@ -39,6 +43,4 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	}
 	
 	printk("Starting NativeOS...\n");
-	
-	for(;;);
 }

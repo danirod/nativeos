@@ -36,3 +36,35 @@ void kpanic(int errcode, char* extra)
 	/* Halt the system. */
 	kdie();
 }
+
+void bsod(struct idt_data* data)
+{
+	VGACon_SetColor(COLOR_LIGHT_GRAY, COLOR_BLUE);
+	VGACon_Clrscr();
+	VGACon_Gotoxy(15, 10);
+	printk("An error has ocurred and unfortunately NativeOS is");
+	
+	VGACon_Gotoxy(15, 11);
+	printk("unable to continue normally. Some information might");
+	
+	VGACon_Gotoxy(15, 12);
+	printk("have been lost.");
+	
+	VGACon_Gotoxy(15, 15);
+	printk("Stack Trace:");
+	
+	VGACon_Gotoxy(15, 16);
+	printk("Interrupt Code: 0x%x", data->int_no);
+	
+	VGACon_Gotoxy(15, 17);
+	printk("EAX = %x  EBX = %x  ECX = %x  EDX = %x",
+			data->eax, data->ebx, data->ecx, data->edx);
+	
+	VGACon_Gotoxy(15, 18);
+	printk("ESI = %x  EDI = %x  EBP = %x  ESP = %x",
+			data->esi, data->edi, data->ebp, data->ebp);
+	
+	VGACon_SetColor(COLOR_BLUE, COLOR_LIGHT_GRAY);
+	VGACon_Gotoxy(35, 7);
+	printk(" NativeOS ");
+}
