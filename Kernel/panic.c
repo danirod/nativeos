@@ -22,16 +22,29 @@ extern void kdie();
 
 void kpanic(int errcode, char* extra)
 {
-	/* Set up the VGA framebuffer. */
-	VGACon_SetColor(COLOR_WHITE, COLOR_RED);
-	VGACon_Gotoxy(0, 0);
-
-	/* Print the message. */
-	printk("KERNEL PANIC\n");
-	printk("Error code: %d", errcode);
+	VGACon_SetColor(COLOR_LIGHT_GRAY, COLOR_RED);
+	VGACon_Clrscr();
+	VGACon_Gotoxy(15, 10);
+	printk("An error has ocurred and unfortunately NativeOS is");
+	
+	VGACon_Gotoxy(15, 11);
+	printk("unable to continue normally. Some information might");
+	
+	VGACon_Gotoxy(15, 12);
+	printk("have been lost.");
+	
+	VGACon_Gotoxy(15, 15);
+	printk("Kernel Panic:");
+	
+	VGACon_Gotoxy(15, 16);
+	printk("0x%x ", errcode);
 	if (extra) {
-		printk("\nMessage: %s", extra);
+		printk("%s", extra);
 	}
+	
+	VGACon_SetColor(COLOR_RED, COLOR_LIGHT_GRAY);
+	VGACon_Gotoxy(35, 7);
+	printk(" NativeOS ");
 
 	/* Halt the system. */
 	kdie();
@@ -58,7 +71,7 @@ static char* interrupt_names[] = {
 
 void bsod(struct idt_data* data)
 {
-	VGACon_SetColor(COLOR_LIGHT_GRAY, COLOR_BLUE);
+	VGACon_SetColor(COLOR_LIGHT_GRAY, COLOR_RED);
 	VGACon_Clrscr();
 	VGACon_Gotoxy(15, 10);
 	printk("An error has ocurred and unfortunately NativeOS is");
@@ -84,7 +97,7 @@ void bsod(struct idt_data* data)
 	printk("ESI = %x  EDI = %x  EBP = %x  ESP = %x",
 			data->esi, data->edi, data->ebp, data->ebp);
 	
-	VGACon_SetColor(COLOR_BLUE, COLOR_LIGHT_GRAY);
+	VGACon_SetColor(COLOR_RED, COLOR_LIGHT_GRAY);
 	VGACon_Gotoxy(35, 7);
 	printk(" NativeOS ");
 }
