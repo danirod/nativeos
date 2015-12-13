@@ -36,7 +36,6 @@ Bootstrap:
 	call kmain		; Call kernel
 
 	; In case the kernel ever returns, kill the system
-	int 0x06
 	jmp kdie
 
 ; Enter an infinite loop with interrupts disabled. There is no back from

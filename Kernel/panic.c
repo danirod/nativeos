@@ -37,6 +37,25 @@ void kpanic(int errcode, char* extra)
 	kdie();
 }
 
+static char* interrupt_names[] = {
+	"Division by zero",
+	"Debugger",
+	"Non Maskeable Interrupt",
+	"Breakpoint",
+	"Overflow",
+	"Bounds",
+	"Invalid Opcode",
+	"Coprocessor not available",
+	"Double fault",
+	"Coprocessor Segment Overrun",
+	"Invalid Task State Segment",
+	"Segment not Present",
+	"Stack Fault",
+	"General Protection Fault",
+	"Page Fault",
+	"Unknown Interruption"
+};
+
 void bsod(struct idt_data* data)
 {
 	VGACon_SetColor(COLOR_LIGHT_GRAY, COLOR_BLUE);
@@ -54,7 +73,8 @@ void bsod(struct idt_data* data)
 	printk("Stack Trace:");
 	
 	VGACon_Gotoxy(15, 16);
-	printk("Interrupt Code: 0x%x", data->int_no);
+	printk("Interrupt Code: 0x%x %s",
+			data->int_no, interrupt_names[data->int_no]);
 	
 	VGACon_Gotoxy(15, 17);
 	printk("EAX = %x  EBX = %x  ECX = %x  EDX = %x",

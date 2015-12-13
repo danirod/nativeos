@@ -43,4 +43,6 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	}
 	
 	printk("Starting NativeOS...\n");
+	
+	for(;;);
 }
