@@ -10,9 +10,6 @@
 #include <kernel/idt.h>
 #include <driver/vga.h>
 
-extern void idt_0(void);
-extern void idt_1(void);
-
 /*
 	This is the main routine for the NativeOS Kernel. It will start the
 	system and jump to user mode so that the init process can run.
@@ -29,11 +26,8 @@ void kmain()
 	VGACon_Init();
 	gdt_init();
 	idt_init();
-
+	
 	printk("Welcome to NativeOS!\n");
 	
 	for(;;);
-	
-	/* TODO: Replace this with actual kernel code. */
-	// kpanic(80, "Kernel went idle.");
 }

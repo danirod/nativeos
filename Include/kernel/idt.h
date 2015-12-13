@@ -33,4 +33,10 @@ void idt_init(void);
 /* This function will handle an interrupt. */
 void idt_handler(struct idt_data* data);
 
+/* This is the prototype function for local IDT handlers. */
+typedef void (*local_idt_handler_t)(struct idt_data*);
+
+/* This function is used to modify the handler associated to a interrupt. */
+void idt_set_handler(unsigned int interrupt_code, local_idt_handler_t handler);
+
 #endif // KERNEL_IDT_H_

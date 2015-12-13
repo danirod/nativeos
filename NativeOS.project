@@ -9,6 +9,7 @@
       <File Name="Include/kernel/io.h"/>
       <File Name="Include/kernel/kernel.h"/>
       <File Name="Include/kernel/idt.h"/>
+      <File Name="Include/kernel/isrdef.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Description/>
