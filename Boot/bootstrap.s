@@ -30,10 +30,10 @@ Bootstrap:
 	; Set up the stack.
 	mov esp, Stack + STACK_SIZE
 
-	; Prepare to start the kernel.
-	push eax
-	push ebx
-	call kmain
+	; Execute the kernel
+	push ebx		; Multiboot structure
+	push eax		; Magic number
+	call kmain		; Call kernel
 
 	; In case the kernel ever returns, kill the system
 	jmp kdie
