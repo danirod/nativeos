@@ -8,17 +8,22 @@ NativeOS
 
 Building NativeOS
 
-	At the moment NativeOS requires a Linux host for the build process.
-	In the future, I'd hope to add support for OS X hosts too. Support for
-	Windows hosts will not happen.
+	NativeOS requires the i386-elf-gcc cross-compiler installed in the machine.
+	The build process has been tested under Linux and MacOS X although I'm
+	testing this in the near future in other platforms such as FreeBSD or
+	Microsoft Windows.
 
-	NativeOS needs the following tools: the GCC compiler, the NASM assembler
-	and GNU Make for Makefiles. Probably you already have most of these tools,
-	maybe you need to install NASM.
+	You can get more information on how to build the i386-elf-gcc on my
+	website at http://www.danirod.es/unix/i386-elf-gcc-on-mac.html. Make sure
+	you have the i386-elf-* binaries on your PATH before running make.
 
-	NASM or GAS? NASM. It's a matter of taste, I'm more used to the Intel
-	syntax than to the AT&T syntax and I don't want to learn another syntax
-	at the moment.
+	You will also need the NASM compiler to compile the assembly source code
+	files. NASM or GAS? At the moment I'm happy with NASM and I prefer
+	Intel syntax over AT&T syntax but honestly I just don't care. I'm not
+	interested in losing time porting my .s files to GAS but I wouldn't mind
+	either.
+
+	GNU Make is also required to run the Makefile file.
 
 	To build the kernel image just run the following command:
 
