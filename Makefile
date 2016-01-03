@@ -14,16 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Tools
-CC = gcc
+# Tools. The i386-elf toolset is required to build this software
+CC = i386-elf-gcc
 AS = nasm
-LD = ld
+LD = i386-elf-gcc
 
 # Tool flags
-CFLAGS = -m32 -nostdlib -nostartfiles -nodefaultlibs --freestanding \
-	-fno-builtin -Wall -Wextra -g -IInclude/
-ASFLAGS = -f elf32
-LDFLAGS = -melf_i386 -nostdlib -T linker.ld
+CFLAGS = -nostdlib --freestanding -fno-builtin -g -IInclude/
+ASFLAGS = -f elf
+LDFLAGS = -nostdlib -T linker.ld
 
 # Kernel. Add every new unit to KERNEL_OBJS. It works. Ew, tho.
 KERNEL_IMG := nativeos.elf
