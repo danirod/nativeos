@@ -1,3 +1,25 @@
+/*
+ * This file is part of NativeOS: next-gen x86 operating system
+ * Copyright (C) 2015-2016 Dani Rodríguez
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * File: kernel/multiboot.h
+ * Description: multiboot routines
+ */
+
 #ifndef KERNEL_MULTIBOOT_H_
 #define KERNEL_MULTIBOOT_H_
 
@@ -6,10 +28,10 @@ typedef struct multiboot_module {
 	/* Mod starting and ending address. */
 	unsigned int mod_start;
 	unsigned int mod_end;
-	
+
 	/* String (usually command line). */
 	unsigned int string;
-	
+
 	/* Reserved (must be zero ATM) */
 	unsigned int reserved;
 } __attribute__((packed)) multiboot_module_t;
@@ -88,47 +110,47 @@ typedef struct multiboot_apm_table {
 typedef struct multiboot_info {
 	/* Which features are supported by the OS loader (and version). */
 	unsigned int flags;
-	
+
 	/* Attributes related to memory lower and upper bounds (flag 0) */
 	unsigned int mem_lower;
 	unsigned int mem_upper;
-	
+
 	/* Attributes related to boot device (flag 1) */
 	unsigned int boot_device;
-	
+
 	/* Attributes related to command line (flag 2) */
 	unsigned int command_line;
-	
+
 	/* Attributes related to modules (flag 3) */
 	unsigned int mods_count;
 	unsigned int mods_addr;
-	
+
 	/* Attributes related to the symbols (flags 4 or 5, but not both). */
 	union {
 		/* If flag 4 is ON, it is an A.OUT kernel. */
 		multiboot_aout_t aout;
-		
+
 		/* Buf if flag 5 is ON, it is an ELF kernel. */
 		multiboot_elf_t elf;
 	} aout_elf;
-	
+
 	/* Attributes related to memory map (flag 6). */
 	unsigned int mmap_length;
 	unsigned int mmap_addr;
-	
+
 	/* Attirbutes related to the drives (flag 7). */
 	unsigned int drives_length;
 	unsigned int drives_addr;
-	
+
 	/* Attributes related to the config table (flag 8). */
 	unsigned int config_table;
-	
+
 	/* Attributes related to the boot laoder name (flag 9). */
 	unsigned int boot_loader_name;
-	
+
 	/* Attributes related to the APM table (flag 10). */
 	unsigned int apm_table;
-	
+
 	/* Attributes related to VBE data (if requested by the OS, flag 11). */
 	unsigned int vbe_control_info;
 	unsigned int vbe_mode_info;

@@ -1,9 +1,24 @@
 /*
-	This file is part of NativeOS.
-	Copyright (C) 2015 Dani Rodríguez
-
-	printk.c - printf for kernel console, always prints to VGA screen
-*/
+ * This file is part of NativeOS: next-gen x86 operating system
+ * Copyright (C) 2015-2016 Dani Rodríguez
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * File: printk.c
+ * Description: kernel printf, always prints to VGA screen.
+ */
 
 #include <stdarg.h>
 #include <driver/vga.h>
@@ -53,7 +68,7 @@ static void printk_write_uint(const unsigned int number)
 	char buf[20];
 	buf[0] = 0;
 	int len = 0;
-	
+
 	/* Reverse write the number to the char array. */
 	unsigned int value = number;
 	while (value >= 10) {
@@ -62,7 +77,7 @@ static void printk_write_uint(const unsigned int number)
 		buf[++len] = '0' + last_digit;
 	}
 	buf[++len] = '0' + value;
-	
+
 	/* Reverse print the char array. */
 	while (len) {
 		VGACon_PutChar(buf[len--]);
@@ -79,7 +94,7 @@ static void printk_write_hex(const unsigned int number)
 	char buf[20];
 	buf[0] = 0;
 	int len = 0;
-	
+
 	/* Write the number to the buffer. */
 	unsigned int value = number;
 	while (value >= 16) {
@@ -87,7 +102,7 @@ static void printk_write_hex(const unsigned int number)
 		value >>= 4;
 	}
 	buf[++len] = hex_letters[value & 0xF];
-	
+
 	/* Reverse print the buffer. */
 	while (len) {
 		VGACon_PutChar(buf[len--]);
