@@ -31,6 +31,7 @@ KERNEL_OBJS := Boot/bootstrap.o \
 	Kernel/idt.o \
 	Kernel/io.o \
 	Kernel/main.o \
+	Kernel/memory.o \
 	Kernel/lidt.o \
 	Kernel/lgdt.o \
 	Kernel/panic.o \

@@ -27,6 +27,10 @@
 #include <driver/keyboard.h>
 #include <driver/timer.h>
 #include <driver/vga.h>
+#include <kernel/memory.h>
+
+extern int kernel_start;
+extern int kernel_after;
 
 /*
 	This is the main routine for the NativeOS Kernel. It will start the
@@ -58,6 +62,6 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	}
 
 	printk("Starting NativeOS...\n");
-
+	
 	for(;;);
 }

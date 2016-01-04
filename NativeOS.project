@@ -13,6 +13,8 @@
       <File Name="Include/kernel/idt.h"/>
       <File Name="Include/kernel/multiboot.h"/>
       <File Name="Include/kernel/isrdef.h"/>
+      <File Name="Include/kernel/paging.h"/>
+      <File Name="Include/kernel/memory.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Description/>
@@ -34,6 +36,8 @@
       <File Name="Kernel/driver/keyboard.c"/>
       <File Name="Kernel/driver/timer.c"/>
     </VirtualDirectory>
+    <File Name="Kernel/paging.c"/>
+    <File Name="Kernel/memory.c"/>
   </VirtualDirectory>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
@@ -63,8 +67,8 @@
       <PreBuild/>
       <PostBuild/>
       <CustomBuild Enabled="yes">
-        <Target Name="QEMU">make qemu</Target>
-        <Target Name="GRUB Install">make grubinstall</Target>
+        <Target Name="QEMU">PATH=/opt/local/bin:$PATH make qemu</Target>
+        <Target Name="GRUB Install">PATH=/opt/local/bin:$PATH make grubinstall</Target>
         <RebuildCommand/>
         <CleanCommand>make clean</CleanCommand>
         <BuildCommand>make</BuildCommand>
