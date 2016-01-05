@@ -4,21 +4,31 @@
 # already created and initialized with GRUB. If the disk does not exists,
 # please, run mkfloppies.sh first.
 
-tput setaf 2
+# Will attempt to quietly execute the command given as an argument ($*)
+# unless the command fails. If the command fails, will print stdout and
+# stderr to the screen.
+function quiet_exec {
+	OUTPUT=$($* 2>&1) && return 0 || { echo $OUTPUT; return 1; }
+}
+
+# Change the color of the terminal
+quiet_exec tput setaf 2 || exit 1
 
 # Copy kernel files...
 echo '* Copying kernel files...'
 echo 'drive n: file="nativeos.img" 1.44M filter' > mtoolsrc
-MTOOLSRC=mtoolsrc mmd -D o n:/system >/dev/null 2>&1
-MTOOLSRC=mtoolsrc mcopy -D o ../nativeos.elf n:/system/nativeos.exe >/dev/null 2>&1
+export MTOOLSRC=mtoolsrc
+quiet_exec mmd -D o n:/system || exit 1
+quiet_exec mcopy -D o ../nativeos.elf n:/system/nativeos.exe || exit 1
 
 # Cleaning up...
 echo '* Cleaning up...'
-rm mtoolsrc
+quiet_exec rm -f mtoolsrc || exit 1
+unset MTOOLSRC
 
-tput setaf 3
+quiet_exec tput setaf 3 || exit 1
 
 echo ""
 echo "Done! NativeOS disk has been updated. Enjoy!"
 
-tput sgr0
+quiet_exec tput sgr0 || exit 1

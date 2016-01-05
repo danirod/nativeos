@@ -8,34 +8,44 @@
 # - The second one is a helper GRUB boot disk used to install the
 #   GRUB bootloader onto the NativeOS disk.
 
-tput setaf 2
+# Will attempt to quietly execute the command given as an argument ($*)
+# unless the command fails. If the command fails, will print stdout and
+# stderr to the screen.
+function quiet_exec {
+	OUTPUT=$($* 2>&1) && return 0 || { echo $OUTPUT; return 1; }
+}
+
+# Change the color of the terminal.
+quiet_exec tput setaf 2 || exit 1
 
 # Create the GRUB bootdisk
 echo "* Creating a GRUB bootdisk..."
-dd if=/dev/zero of=grubdisk.img bs=512 count=2880 >/dev/null 2>&1
-dd if=grub/stage1 of=grubdisk.img conv=notrunc count=1 >/dev/null 2>&1
-dd if=grub/stage2 of=grubdisk.img conv=notrunc seek=1 >/dev/null 2>&1
+quiet_exec dd if=/dev/zero of=grubdisk.img bs=512 count=2880 || exit 1
+quiet_exec dd if=grub/stage1 of=grubdisk.img conv=notrunc count=1 || exit 1
+quiet_exec dd if=grub/stage2 of=grubdisk.img conv=notrunc seek=1 || exit 1
 
 # Create the NativeOS disk and copy the files on it.
 # This requires mtools to be installed in the computer.
 # mtools are a set of UNIX tools that works with FAT floppies.
 echo "* Creating the NativeOS disk..."
-dd if=/dev/zero of=nativeos.img bs=512 count=2880 >/dev/null 2>&1
+quiet_exec dd if=/dev/zero of=nativeos.img bs=512 count=2880 || exit 1
 echo 'drive n: file="nativeos.img" 1.44M filter' > mtoolsrc
-MTOOLSRC=mtoolsrc mformat n: >/dev/null 2>&1
+export MTOOLSRC=mtoolsrc
+quiet_exec mformat n: || exit 1
 
 echo "* Creating bootstrap distribution..."
-MTOOLSRC=mtoolsrc mmd n:/boot >/dev/null 2>&1
-MTOOLSRC=mtoolsrc mmd n:/boot/grub >/dev/null 2>&1
-MTOOLSRC=mtoolsrc mcopy grub/stage1 n:/boot/grub >/dev/null 2>&1
-MTOOLSRC=mtoolsrc mcopy grub/stage2 n:/boot/grub >/dev/null 2>&1
-MTOOLSRC=mtoolsrc mcopy grub/menu.lst n:/boot/grub >/dev/null 2>&1
+quiet_exec mmd n:/boot || exit 1
+quiet_exec mmd n:/boot/grub || exit 1
+quiet_exec mcopy grub/stage1 n:/boot/grub || exit 1
+quiet_exec mcopy grub/stage2 n:/boot/grub || exit 1
+quiet_exec mcopy grub/menu.lst n:/boot/grub || exit 1
 
 # Clean up...
 echo "* Cleaning up..."
-rm mtoolsrc
+quiet_exec rm mtoolsrc || exit 1
+unset MTOOLSRC
 
-tput setaf 3
+quiet_exec tput setaf 3 || exit 1
 
 # Done. You still have to make the NativeOS disk bootable manually.
 echo ""
@@ -53,4 +63,4 @@ echo ""
 echo "This will install GRUB in the NativeOS floppy disk image, making it"
 echo "actually bootable after a kernel image has been installed on it."
 
-tput sgr0
+quiet_exec tput sgr0 || exit 1
