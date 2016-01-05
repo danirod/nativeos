@@ -1,95 +1,112 @@
 NativeOS
 ========
 
-	NativeOS is a hobbyist kernel and operating system for the x86 platform.
-	It is designed as a project to learn more about how the x86 processor
-	work and how operating systems work. My intention is purely educational.
-	The source code is open in the hope that it helps other people too.
+    NativeOS is a hobbyist kernel and operating system for the x86
+    platform. It is designed as a project to learn more about how the x86
+    processor work and how operating systems work. My intention is purely
+    educational. The source code is open in the hope that it helps other
+    people too.
 
 Building NativeOS
 
-	NativeOS requires the i386-elf-gcc cross-compiler installed in the machine.
-	The build process has been tested under Linux and MacOS X although I'm
-	testing this in the near future in other platforms such as FreeBSD or
-	Microsoft Windows.
+    NativeOS requires the i386-elf-gcc cross-compiler installed in the
+    machine to compile. The build process has already been tested under
+    Linux, MacOS X and Windows and it works on all the platforms.
 
-	You can get more information on how to build the i386-elf-gcc on my
-	website at http://www.danirod.es/unix/i386-elf-gcc-on-mac.html. Make sure
-	you have the i386-elf-* binaries on your PATH before running make.
+    You must compile the i386-elf-binutils and i386-elf-gcc. Download
+    GNU Binutils and GNU GCC and compile them targetting the i386-elf
+    platform. Alternatively, you can get some precompiled packages at
+    <https://github.com/danirod/i386-elf-toolchain/releases> for Linux,
+    Windows and MacOS X.
 
-	You will also need the NASM compiler to compile the assembly source code
-	files. NASM or GAS? At the moment I'm happy with NASM and I prefer
-	Intel syntax over AT&T syntax but honestly I just don't care. I'm not
-	interested in losing time porting my .s files to GAS but I wouldn't mind
-	either.
+    MS-Windows users should download and install a POSIX environment
+    such as Cygwin or MSYS2 in order to get all the tools that would
+    allow them to build the kernel image, such as make. Please note
+    that although MS-Windows is a supported host, it is not tested
+    so often, and a real UNIX or UNIX-like environment such as GNU/Linux
+    or MacOS X is recommended, even on a virtual machine.
 
-	GNU Make is also required to run the Makefile file.
+    You will also need the NASM compiler to compile the assembly source
+    code files. No port of the sources has been done to GAS at the moment
+    and I'm not actively expecting as I'm comfortable with the Intel
+    syntax, but I just don't care and I might just port the scripts to
+    GAS in the future to reduce the number of tools this project depends
+    on.
 
-	To build the kernel image just run the following command:
+    GNU Make is also required to run the Makefile file.
 
-		$ make
+    To build the kernel image just run the following command:
 
-	This will build the kernel into "nativeos.elf" file. NativeOS kernel uses
-	the ELF format and it supports the Multiboot specification, so it can be
-	deployed in any machine that uses a Multiboot bootloader (such as GRUB)
-	and executed.
+        $ make
 
-Creating a virtual drive
+    This will build the kernel into "nativeos.elf" file. NativeOS kernel
+    uses the ELF format and it supports the Multiboot specification, so it
+    can be deployed in any machine that uses a Multiboot bootloader (such
+    as GRUB) and executed.
 
-	For development purposes it is more useful to have a virtual drive where
-	NativeOS is installed so that you can modify the kernel and start right
-	on a virtual machine such as QEMU or Bochs.
 
-	Since the kernel is so small, NativeOS can be installed at the moment
-	on a floppy disk. You can use the tools at the Tools/ folder:
+Creating a CD image
 
-	* mkfloppies: will create the NativeOS floppy disk and the GRUB bootdisk.
-	  You need the second disk as a helper disk to make the NativeOS bootable
-	  since the program cannot automatically install GRUB to the NativeOS
-	  disk (unless you use GRUB Legacy, which I doubt since most Linux
-	  distributions use GRUB2 nowadays).
+    You can use some of the GRUB Command Line Tools to generate ISO files.
+    There is already a rule in the Makefile file to generate a CD-ROM using
+    GRUB.
 
-	  Run mkfloppies and follow the instructions that will appear on the
-	  screen to make the NativeOS virtual disk bootable.
+    You need the GRUB Command Line Tools installed with support for the
+    i386-elf platform. If you are using GNU/Linux, you probably already
+    have support for that platform, but othwersie you might have to
+    add it. Instructions for building the GRUB Command Line Tools are given
+    below.
 
-	* kerinstall: this program will transfer the NativeOS kernel that has
-	  been previously compiled as well as any other support file required by
-	  the kernel into the NativeOS floppy disk. After copying the files,
-	  you can run the floppy disk on your virtual machine to start NativeOS.
+    To create a NativeOS ISO image, run the following command:
+    
+        $ make cdrom
 
-	There are two Make rules that will help you creating and updating
-	floppy disks:
+    MacOS X and Windows users can install the GRUB Command Line tools by
+    following the instructions given in the following address:
+    <http://wiki.osdev.org/GRUB_2#Installing_GRUB2_on_Mac_OS_X>.
+    (Instructions are the same for Windows).
 
-		$ make grubinstall
+    NOTE: You'll be getting the GRUB Command Line Tools here. This is
+    definitely NOT the same as installing the GRUB Bootloader on your
+    host PC, although the command line tools allow you to do that, so
+    care must be taken in order to avoid running any dangerous command.
 
-	This one will create the floppy disks and start QEMU for you. When you
-	see the GRUB shell, execute the following commands:
+    Windows users can find a precompiled version of the GRUB Command Line
+    tools at <https://github.com/danirod/i386-elf-toolchain/releases>.
+    In any way you will need GNU xorriso to generate the ISO files.
+    (There is already a precompiled version of xorriso for Windows in
+    the link too.)
 
-		> root (fd1)
-		> setup (fd1)
 
-	GRUB is now installed on your NativeOS floppy drive. Close the VM.
+Running NativeOS
+    
+    A virtual machine is the safest way for running and testing NativeOS.
+    I don't recommend running this on your host PC unless you know what
+    you are doing and you have inspected the source code. Also, take a
+    look at the disclaimer below before attempting to run anything that
+    you could regret later.
 
-	The other rule is:
+    The Makefile already has some rules to run the NativeOS ISO file with
+    QEMU. It is even possible to run QEMU in debug mode and to remotely
+    attach GDB in order to debug the kernel image.
 
-		$ make qemu
+    Run the following commands:
 
-	This will recompile the kernel (using make) and copy the kernel image
-	to your floppy disk. Then it will start QEMU. If you don't want to
-	start QEMU, just issue:
+        $ make qemu         # Executes qemu-system-i386
+        $ make qemu-gdb     # Executes qemu-system-i386 in debug mode
 
-		$ make floppy
-
-	IF YOU GET AN INFINITE LOOP WHEN YOU START QEMU, make sure you actually
-	installed GRUB in the NativeOS disk. Run make grubinstall to fix it.
+    For more information on GDB debugging with QEMU, see the QEMU
+    manual or the following article: <http://wiki.osdev.org/QEMU>.
 
 License and disclaimer
 
-	NativeOS is licensed under the terms of the GNU General Public License v3.
-	See the COPYING file for more information. Old NativeOS files will
-	probably not have the GPL header on it. I'm working on that.
+    Copyright (C) 2015-2016 Dani Rodríguez
 
-	NativeOS is provided AS IS with no extra support. Working with kernels
-	and OS and bootloaders is fun, but I'm not resposible for anything wrong
-	you do with it. If you break your hard drive or your computer because
-	of using the wrong command, that is not my fault.
+    NativeOS is licensed under the terms of the GNU General Public License v3.
+    See the COPYING file for more information. Old NativeOS files will
+    probably not have the GPL header on it. I'm working on that.
+
+    NativeOS is provided AS IS with no extra support. Working with kernels
+    and OS and bootloaders is fun, but I'm not resposible for anything wrong
+    you do with it. If you break your hard drive or your computer because
+    of using the wrong command, that is not my fault.

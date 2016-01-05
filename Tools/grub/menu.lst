@@ -1,6 +1,0 @@
-timeout 0
-default 0
-title NativeOS
-root (fd0)
-kernel /system/nativeos.exe
-

@@ -40,6 +40,16 @@ KERNEL_OBJS := Boot/bootstrap.o \
 	Kernel/driver/timer.o \
 	Kernel/driver/vga.o
 
+CDROM_ISO = nativeos.iso
+GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
+
+# Mark a few targets as phony. Otherwise they might not always run.
+.PHONY: $(CDROM_ISO) qemu qemu-gdb clean
+
+kernel: $(KERNEL_IMG)
+	
+cdrom: $(CDROM_ISO)
+
 # Kernel image distibution
 $(KERNEL_IMG): $(KERNEL_OBJS)
 	$(LD) $(LDFLAGS) -o $@ $^
@@ -52,20 +62,23 @@ $(KERNEL_IMG): $(KERNEL_OBJS)
 %.s: %.c
 	$(CC) -S $(CFLAGS) -o $@ $<
 
-# Floppies
-floppy: $(KERNEL_IMG) Tools/nativeos.img
-	cd Tools; ./kerinstall
+# CD-ROM
+$(CDROM_ISO): nativeos.elf
+	rm -rf cdrom
+	cp -R Tools/cdrom .
+	cp nativeos.elf cdrom/boot/nativeos.exe
+	grub-mkrescue -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ cdrom
 
-Tools/nativeos.img:
-	cd Tools; ./mkfloppies
+# Execute the virtual ISO file through QEMU.
+qemu: nativeos.iso
+	qemu-system-i386 -cdrom nativeos.iso
 
-qemu: floppy
-	qemu-system-i386 -fda Tools/nativeos.img -monitor stdio
-
-grubinstall: Tools/nativeos.img
-	qemu-system-i386 -fda Tools/grubdisk.img -fdb Tools/nativeos.img
+# Special variant of QEMU designed for debugging sessions.
+qemu-gdb: nativeos.iso
+	qemu-system-i386 -cdrom nativeos.iso -s -S
 
 # Clean objective
 clean:
-	rm -f $(KERNEL_IMG) $(KERNEL_OBJS) Tools/nativeos.img Tools/grubdisk.img
+	rm -rf cdrom
+	rm -f $(KERNEL_IMG) $(KERNEL_OBJS) nativeos.iso
 

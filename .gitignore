@@ -1,4 +1,8 @@
 *.o
-Tools/*.img
 nativeos.elf
+
+# CD-ROM
+*.iso
+cdrom/
+
 .codelite/
