@@ -23,15 +23,32 @@
 #ifndef KERNEL_MEMORY_H_
 #define KERNEL_MEMORY_H_
 
-/**
- * @brief Dynamically allocate a memory chunk.
- * 
- * This function will return a memory region that is dynamically
- * allocated. It is guaranteed that this function will not return
- * twice the same memory region.
- * 
- * @param siz  how many bytes to allocate.
+/** 
+ * @brief Allocate a memory buffer (the traditional way).
+ * @param size how many bytes to allocate.
+ * @return the pointer to the memory buffer.
  */
-void *kmalloc(unsigned int siz);
+void *kmalloc(unsigned int size);
+/** 
+ * @brief Allocate a memory buffer aligned to the bounds of a new page.
+ * @param size how many bytes to allocate.
+ * @return the pointer to the memory buffer.
+ */
+void *kmalloc_al(unsigned int size);
+/** 
+ * @brief Allocate a memory buffer.
+ * @param size how many bytes to allocate.
+ * @param phys the memory address the buffer starts in.
+ * @return a pointer to the memory buffer.
+ */
+void *kmalloc_py(unsigned int size, unsigned int *phys);
+
+/** 
+ * @brief Allocate a memory buffer aligned to the bounds of a new page.
+ * @param size how many bytes to allocate.
+ * @param phys the memory address the buffer starts in.
+ * @return a pointer to the memory buffer.
+ */
+void *kmalloc_ap(unsigned int size, unsigned int *phys);
 
 #endif // KERNEL_MEMORY_H_

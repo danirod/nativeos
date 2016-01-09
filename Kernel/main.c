@@ -28,9 +28,27 @@
 #include <driver/timer.h>
 #include <driver/vga.h>
 #include <kernel/memory.h>
+#include <kernel/paging.h>
 
 extern int kernel_start;
 extern int kernel_after;
+
+/** 
+ * @brief Calculate the amount of memory that this computer has.
+ * @param multiboot_info Multiboot structure (it knows everything).
+ * @return the amount of KB this PC has or -1 if we cannot know.
+ */
+static int count_memory(multiboot_info_t *multiboot_info)
+{
+    if (multiboot_info->flags & 0x01) {
+        unsigned int start = multiboot_info->mem_lower;
+        /* Multiboot reports the ending area minus 1 MB. Increment it. */
+        unsigned int end = multiboot_info->mem_upper + 1024;
+        return end - start;
+    } else {
+        return -1; /* We cannot know. */
+    }
+}
 
 /*
 	This is the main routine for the NativeOS Kernel. It will start the
@@ -60,6 +78,9 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	if (magic_number != 0x2BADB002) {
 		kpanic(0x88, "Wrong magic number");
 	}
+
+    unsigned int memory_amount = count_memory(multiboot_ptr);
+    frames_init(memory_amount);
 
 	printk("Starting NativeOS...\n");
 	

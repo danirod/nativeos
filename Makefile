@@ -38,7 +38,8 @@ KERNEL_OBJS := Boot/bootstrap.o \
 	Kernel/printk.o \
 	Kernel/driver/keyboard.o \
 	Kernel/driver/timer.o \
-	Kernel/driver/vga.o
+	Kernel/driver/vga.o \
+    Kernel/paging.o
 
 CDROM_ISO = nativeos.iso
 GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
