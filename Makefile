@@ -20,14 +20,14 @@ AS = nasm
 LD = i386-elf-gcc
 
 # Tool flags
-CFLAGS = -nostdlib --freestanding -fno-builtin -g -IInclude/
+CFLAGS = -nostdlib --freestanding -fno-builtin -g -Iinclude/
 ASFLAGS = -f elf
-LDFLAGS = -nostdlib -T linker.ld
+LDFLAGS = -nostdlib
 
 # All the objects that are part of the kernel.
-KERNEL_OBJS = $(patsubst %.c,%.o,$(wildcard Kernel/*.c)) \
-        $(patsubst %.s,%.o,$(wildcard Kernel/*.s)) \
-        $(patsubst %.c,%.o,$(wildcard Kernel/**/*.c))
+KERNEL_OBJS = $(patsubst %.c,%.o,$(wildcard kernel/*.c)) \
+        $(patsubst %.s,%.o,$(wildcard kernel/*.s)) \
+        $(patsubst %.c,%.o,$(wildcard kernel/**/*.c))
 
 # It might not work on some platforms unless this is done.
 GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
@@ -56,7 +56,7 @@ cdrom: nativeos.iso
 ################################################################################
 # Build the kernel image
 nativeos.elf: $(KERNEL_OBJS)
-	$(LD) $(LDFLAGS) -o $@ $^
+	$(LD) $(LDFLAGS) -T kernel/linker.ld -o $@ $^
 
 ################################################################################
 # CD-ROM PACKING
