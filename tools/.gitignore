@@ -1,0 +1,3 @@
+# This is where the i386-elf toolchain gets downloaded to.
+toolchain/
+

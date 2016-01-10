@@ -64,7 +64,7 @@ nativeos.elf: $(KERNEL_OBJS)
 # Build the ISO image for NativeOS (requires grub)
 nativeos.iso: nativeos.elf
 	rm -rf cdrom
-	cp -R Tools/cdrom .
+	cp -R tools/cdrom .
 	cp nativeos.elf cdrom/boot/nativeos.exe
 	grub-mkrescue -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ cdrom
 
