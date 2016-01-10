@@ -24,62 +24,66 @@ CFLAGS = -nostdlib --freestanding -fno-builtin -g -IInclude/
 ASFLAGS = -f elf
 LDFLAGS = -nostdlib -T linker.ld
 
-# Kernel. Add every new unit to KERNEL_OBJS. It works. Ew, tho.
-KERNEL_IMG := nativeos.elf
-KERNEL_OBJS := Boot/bootstrap.o \
-	Kernel/gdt.o \
-	Kernel/idt.o \
-	Kernel/io.o \
-	Kernel/main.o \
-	Kernel/memory.o \
-	Kernel/lidt.o \
-	Kernel/lgdt.o \
-	Kernel/panic.o \
-	Kernel/printk.o \
-	Kernel/driver/keyboard.o \
-	Kernel/driver/timer.o \
-	Kernel/driver/vga.o \
-    Kernel/paging.o
+# All the objects that are part of the kernel.
+KERNEL_OBJS = $(patsubst %.c,%.o,$(wildcard Kernel/*.c)) \
+        $(patsubst %.s,%.o,$(wildcard Kernel/*.s)) \
+        $(patsubst %.c,%.o,$(wildcard Kernel/**/*.c))
 
-CDROM_ISO = nativeos.iso
+# It might not work on some platforms unless this is done.
 GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
 
-# Mark a few targets as phony. Otherwise they might not always run.
-.PHONY: $(CDROM_ISO) qemu qemu-gdb clean
+# Mark some targets as phony. Otherwise they might not always work.
+.PHONY: qemu qemu-gdb clean
 
-kernel: $(KERNEL_IMG)
+################################################################################
+# ALIASES
+################################################################################
+kernel: nativeos.elf
 	
-cdrom: $(CDROM_ISO)
+cdrom: nativeos.iso
 
-# Kernel image distibution
-$(KERNEL_IMG): $(KERNEL_OBJS)
-	$(LD) $(LDFLAGS) -o $@ $^
-
-# Object file generation
+################################################################################
+# COMMON BUILD TARGETS
+################################################################################
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
+
 %.o: %.s
 	$(AS) $(ASFLAGS) -o $@ $<
-%.s: %.c
-	$(CC) -S $(CFLAGS) -o $@ $<
 
-# CD-ROM
-$(CDROM_ISO): nativeos.elf
+################################################################################
+# KERNEL IMAGE
+################################################################################
+# Build the kernel image
+nativeos.elf: $(KERNEL_OBJS)
+	$(LD) $(LDFLAGS) -o $@ $^
+
+################################################################################
+# CD-ROM PACKING
+################################################################################
+# Build the ISO image for NativeOS (requires grub)
+nativeos.iso: nativeos.elf
 	rm -rf cdrom
 	cp -R Tools/cdrom .
 	cp nativeos.elf cdrom/boot/nativeos.exe
 	grub-mkrescue -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ cdrom
 
-# Execute the virtual ISO file through QEMU.
+################################################################################
+# QEMU TARGETS
+################################################################################
+# Create an ISO file and run it through QEMU.
 qemu: nativeos.iso
 	qemu-system-i386 -cdrom nativeos.iso
 
-# Special variant of QEMU designed for debugging sessions.
+# Special variant of QEMU made for debugging the kernel image.
 qemu-gdb: nativeos.iso
 	qemu-system-i386 -cdrom nativeos.iso -s -S
 
-# Clean objective
+################################################################################
+# MISC RULES
+################################################################################
+# Clean the distribution and remove any generated file.
 clean:
 	rm -rf cdrom
-	rm -f $(KERNEL_IMG) $(KERNEL_OBJS) nativeos.iso
+	rm -f nativeos.elf $(KERNEL_OBJS) nativeos.iso
 

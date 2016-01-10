@@ -15,7 +15,7 @@
 ; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
 ;
-; File: bootstrap.s
+; File: boot.s
 ; Description: bootstrap code
 
 ; Magic number used by the multiboot bootloader.

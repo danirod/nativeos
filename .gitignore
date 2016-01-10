@@ -6,3 +6,5 @@ nativeos.elf
 cdrom/
 
 .codelite/
+*.project
+*.workspace
