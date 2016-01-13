@@ -1,3 +1,5 @@
 # This is where the i386-elf toolchain gets downloaded to.
 toolchain/
+i386-elf-*.zip
+i386-elf-*.tar.bz2
 

@@ -1,0 +1,7 @@
+language: c
+before_install:
+- tools/download-elf-tools
+- sudo apt-get -qq update
+- sudo apt-get install -y nasm
+script: "PATH=$PWD/tools/toolchain/bin:$PATH make"
+

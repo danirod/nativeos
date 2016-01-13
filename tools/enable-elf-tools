@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Use this script to enable the toolchain that you previously downloaded.
+cur_dir=`dirname $0`
+full_path=`cd $cur_dir && pwd`
+
+# This modifies PATH
+export PATH=$full_path/toolchain/bin:$PATH
+
+

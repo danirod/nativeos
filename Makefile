@@ -15,9 +15,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Tools. The i386-elf toolset is required to build this software
-CC = i386-elf-gcc
+ifneq (, $(wildcard tools/toolchain/.))
+    # tools/toolchain is enabled. Use it as compiler.
+    CC = tools/toolchain/bin/i386-elf-gcc
+    LD = tools/toolchain/bin/i386-elf-gcc
+else
+    # toolchain does not exist. Check if the user already installed it.
+    CC = i386-elf-gcc
+    LD = i386-elf-gcc
+endif
+
 AS = nasm
-LD = i386-elf-gcc
 
 # Tool flags
 CFLAGS = -nostdlib --freestanding -fno-builtin -g -Iinclude/
@@ -31,6 +39,17 @@ KERNEL_OBJS = $(patsubst %.c,%.o,$(wildcard kernel/*.c)) \
 
 # It might not work on some platforms unless this is done.
 GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
+
+# Check that we have the required software.
+ifeq (, $(shell which $(CC)))
+    $(error "No $(CC) compiler in PATH. Is the toolchain compiler enabled?")
+endif
+ifeq (, $(shell which $(AS)))
+    $(error "No $(AS) compiler in PATH. Have you already installed NASM?")
+endif
+ifeq (, $(shell which $(LD)))
+    $(error "No $(LD) compiler in PATH. Is the toolchain compiler enabled?")
+endif
 
 # Mark some targets as phony. Otherwise they might not always work.
 .PHONY: qemu qemu-gdb clean
