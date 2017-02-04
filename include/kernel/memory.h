@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,34 +21,42 @@
  */
 
 #ifndef KERNEL_MEMORY_H_
-#define KERNEL_MEMORY_H_
+#define KERNEL_MEMORY_H_ 
+
+#define NULL 0
+#define MEM_BLOCK_SIZE sizeof(struct memory_block)
+
+struct memory_block {
+    char free;
+    unsigned int size;
+    struct memory_block* next;
+};
 
 /** 
  * @brief Allocate a memory buffer (the traditional way).
  * @param size how many bytes to allocate.
  * @return the pointer to the memory buffer.
  */
-void *kmalloc(unsigned int size);
-/** 
- * @brief Allocate a memory buffer aligned to the bounds of a new page.
- * @param size how many bytes to allocate.
- * @return the pointer to the memory buffer.
- */
-void *kmalloc_al(unsigned int size);
-/** 
- * @brief Allocate a memory buffer.
- * @param size how many bytes to allocate.
- * @param phys the memory address the buffer starts in.
- * @return a pointer to the memory buffer.
- */
-void *kmalloc_py(unsigned int size, unsigned int *phys);
+void* kmalloc(unsigned int size);
 
-/** 
- * @brief Allocate a memory buffer aligned to the bounds of a new page.
- * @param size how many bytes to allocate.
- * @param phys the memory address the buffer starts in.
- * @return a pointer to the memory buffer.
+/**
+ * @brief Free memory block (after free can be reused)
+ * @param addr Adress of the pointer to the block + MEM_BLOCK_SIZE
  */
-void *kmalloc_ap(unsigned int size, unsigned int *phys);
+void kfree(unsigned char* addr);
 
-#endif // KERNEL_MEMORY_H_
+/**
+ * @brief Clear x bytes starting at z position of memory
+ * @param addr base addres to start clearing
+ * @param size number of bytes to clear
+ */
+void kzero_memory(unsigned char* addr, unsigned int size);
+
+/**
+ * @brief Find free memory blocks
+ * @param size requires size for the block
+ * @return pointer to block if exists else 0 (NULL)
+ */
+void* kfind_free_block(unsigned int size);
+
+#endif

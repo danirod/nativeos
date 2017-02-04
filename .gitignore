@@ -4,7 +4,14 @@ nativeos.elf
 # CD-ROM
 *.iso
 ./cdrom/
+cdrom/*
 
 .codelite/
 *.project
 *.workspace
+
+# VS-Code
+.vscode/*
+
+# Run script
+run.sh

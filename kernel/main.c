@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,10 +79,26 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 		kpanic(0x88, "Wrong magic number");
 	}
 
-    unsigned int memory_amount = count_memory(multiboot_ptr);
+	unsigned int memory_amount = count_memory(multiboot_ptr);
+
+	/* Set all unused memory to 0 (NULL) */
+	kzero_memory(&kernel_after, memory_amount);
+
     frames_init(memory_amount);
 
-	printk("Starting NativeOS...\n");
+	printk("Memory amount = %d, MEM_BLOCK_SIZE = %d\n", memory_amount, MEM_BLOCK_SIZE);
+
+	printk("Starting NativeOS...\n\n");
+
+	/*
+	// kmalloc() and kfree() tests
+	int* _int = kmalloc(sizeof(int) * 2);
+	_int[0] = 10;
+	_int[1] = 13;
+	printk("%d [%d], %d [%d]\n", _int[0], &_int[0], _int[1], &_int[1]);
+	kfree(_int);
+	int* _int2 = kmalloc(sizeof(int) * 2);
+	*/
 	
 	for(;;);
 }

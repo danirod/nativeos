@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,9 @@
  * File: kernel/memory.c
  * Description: memory primitives and structures
  */
- 
+
 #include <kernel/memory.h>
+//#include <kernel/io.h>
 
 /**
  * Defined in linker.ld: will point to the end memory address
@@ -35,6 +36,35 @@ extern char kernel_after;
  * time kmalloc is called.
  */
 static unsigned char* next_address = &kernel_after;
+struct memory_block* last;
+
+void kzero_memory(unsigned char* addr, unsigned int size)
+{
+    //printk("clearing %d bytes from %d\n", size, addr);
+    for (int i = 0; i < size; i++) {
+        *(addr + i) = NULL;
+    }
+}   
+
+void* kfind_free_block(unsigned int size)
+{
+    struct memory_block* current = &kernel_after;
+    char found = 0;
+
+    while (current && !(current->free && size <= current->size))
+        current = current->next;
+
+    return current;
+}
+
+void kfree(unsigned char* addr)
+{
+    /* Remove the offset from the base pointer to the block */
+    struct memory_block* block = (unsigned char*)addr - MEM_BLOCK_SIZE;
+    //printk("FREEING %d, %d at %d\n", block->free, block->size, block);
+    kzero_memory(addr, block->size);
+    block->free = 1;
+}
 
 /** 
  * @brief Allocate a memory region in kernel mode.
@@ -44,62 +74,41 @@ static unsigned char* next_address = &kernel_after;
  * to the function.
  * 
  * @param size how many bytes do we want to reserve.
- * @param align should the buffer be aligned in a page?
- * @param phys if this is not NULL, return the address here too.
  * 
  * @return pointer to a valid buffer that has been allocated.
  */
-static void *kmalloc_real(unsigned int size, int align, unsigned int *phys) {
-    /* If the user wants to align this page, do it. */
-    if (align && ((unsigned int) next_address & 0xFFF)) {
-        next_address = ((unsigned int) next_address & 0xFFFFF000) + 0x1000;
+static void* kmalloc_real(unsigned int size)
+{
+    if (size == 0)
+        return NULL;
+
+    struct memory_block* block;
+    void* return_value = NULL; 
+
+    if (!(block = kfind_free_block(size))) {
+        //printk("ANY EXISTING FREE BLOCK FOUND\n");
+        block = next_address; 
+
+        block->free = 0;
+        block->size = size;
+
+        //printk("kmalloc block at %d\n", block);
+        //printk("kmalloc %d + %d = %d\n", block, MEM_BLOCK_SIZE, (unsigned char*)block + MEM_BLOCK_SIZE);
+
+        next_address += MEM_BLOCK_SIZE + size;
+        return_value = (unsigned char*)block + MEM_BLOCK_SIZE;
     }
+    //else printk("ONE EXISTING FREE BLOCK FOUND\n");
 
-    /* If the user requests the physical memory address, do it. */
-    if (phys) {
-        *phys = next_address;
-    }
+    if (last != NULL)
+        last->next = block;  
+    last = block;
 
-    /* Allocate the buffer using a linear system. */
-    unsigned char* address_to_return = next_address;
-    next_address += size;
-    return address_to_return;
+    /* ADD OFFSET TO THE BLOCK TO PRESERVE BLOCK INFO */
+    return (unsigned char*)block + MEM_BLOCK_SIZE;
 }
 
-/** 
- * @brief Allocate a memory buffer (the traditional way).
- * @param size how many bytes to allocate.
- * @return the pointer to the memory buffer.
- */
-void *kmalloc(unsigned int size) {
-    return kmalloc_real(size, 0, 0);
-}
-
-/** 
- * @brief Allocate a memory buffer aligned to the bounds of a new page.
- * @param size how many bytes to allocate.
- * @return the pointer to the memory buffer.
- */
-void *kmalloc_al(unsigned int size) {
-    return kmalloc_real(size, 1, 0);
-}
-
-/** 
- * @brief Allocate a memory buffer.
- * @param size how many bytes to allocate.
- * @param phys the memory address the buffer starts in.
- * @return a pointer to the memory buffer.
- */
-void *kmalloc_py(unsigned int size, unsigned int *phys) {
-    return kmalloc_real(size, 0, phys);
-}
-
-/** 
- * @brief Allocate a memory buffer aligned to the bounds of a new page.
- * @param size how many bytes to allocate.
- * @param phys the memory address the buffer starts in.
- * @return a pointer to the memory buffer.
- */
-void *kmalloc_ap(unsigned int size, unsigned int *phys) {
-    return kmalloc_real(size, 1, phys);
+void* kmalloc(unsigned int size)
+{
+    return kmalloc_real(size);
 }
