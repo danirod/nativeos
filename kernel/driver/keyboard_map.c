@@ -31,6 +31,7 @@ void keyboard_map()
 		keyboard_dict_shift[i] = 
 		keyboard_dict_mayus[i] = '\0';
 	}
+	
 	keyboard_dict[2] = '1';
 	keyboard_dict[3] = '2';
 	keyboard_dict[4] = '3';

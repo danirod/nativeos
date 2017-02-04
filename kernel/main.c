@@ -81,7 +81,7 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 
 	unsigned int memory_amount = count_memory(multiboot_ptr);
 
-	/* Set all unused memory to 0 (NULL) */
+	/* Set all unused memory to 0 (NULL) */ 
 	kzero_memory(&kernel_after, memory_amount);
 
     frames_init(memory_amount);

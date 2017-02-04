@@ -166,4 +166,5 @@ void printk(char* fmt, ...)
 			}
 		}
 	}
+	VGACon_LockRetn();
 }
