@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,9 @@ static unsigned short *baseAddr;
 
 /* Current character position. */
 static int cursorX, cursorY;
+
+/* Last locked pos in console (don't delete characters after \n) */
+int last_locked_pos = 0;
 
 /* Current foreground and background color. */
 static unsigned char fgColor, bgColor;
@@ -197,6 +200,7 @@ void VGACon_PutChar(char ch)
 				cursorY = CONSOLE_ROWS - 1;
 			}
 			UpdateFramebufferCursor();
+			VGACon_LockRetn();
 			break;
 		default:
 			/* Place the character in the frame buffer. */
@@ -263,4 +267,32 @@ void VGACon_Clrscr()
 	register int i;
 	for (i = 0; i < CONSOLE_SIZE; i++)
 		*(baseAddr + i) = VGA_ENTRY(0, fgColor, bgColor);
+}
+
+/* Delete last char */
+void VGACon_Retn()
+{
+	register int pos;
+
+	int _cursorX = cursorX, _cursorY = cursorY;
+
+	if (--_cursorX < 0) {
+		_cursorY -= 1;
+		_cursorX = CONSOLE_COLS - 1;
+	}
+
+	pos = _cursorY * CONSOLE_COLS + _cursorX;
+
+	if (pos >= last_locked_pos) {
+		cursorX = _cursorX;
+		cursorY = _cursorY;
+		
+		*(baseAddr + pos) = VGA_ENTRY('\0', fgColor, bgColor);
+	}
+} 
+
+/* Lock retn before next position */
+void VGACon_LockRetn()
+{
+	last_locked_pos = cursorY * CONSOLE_COLS + cursorX;
 }

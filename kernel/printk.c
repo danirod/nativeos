@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

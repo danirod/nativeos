@@ -86,9 +86,8 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 
     frames_init(memory_amount);
 
-	printk("Memory amount = %d, MEM_BLOCK_SIZE = %d\n", memory_amount, MEM_BLOCK_SIZE);
-
-	printk("Starting NativeOS...\n\n");
+	printk("Memory amount = %d\n", memory_amount);
+	printk("Starting NativeOS...\n\n>");
 
 	/*
 	// kmalloc() and kfree() tests
