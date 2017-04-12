@@ -24,6 +24,7 @@
 #include <kernel/gdt.h>
 #include <kernel/idt.h>
 #include <kernel/multiboot.h>
+#include <driver/com.h>
 #include <driver/keyboard.h>
 #include <driver/timer.h>
 #include <driver/vga.h>
@@ -83,6 +84,19 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
     frames_init(memory_amount);
 
 	printk("Starting NativeOS...\n");
-	
-	for(;;);
+
+	/* Init serial port. */
+	serial_init(COM_PORT_1, 12); // 115200 / 12 = 9600 bps
+	int baud_rate = serial_get_baud_rate(COM_PORT_1);
+	printk("Serial port is now enabled on port COM1 ");
+	printk("(speed %d bps)\n", (115200 / baud_rate));
+
+	/* Dumb echo system for bytes read through COM1. */
+	for(;;) {
+		while (serial_get_recv_status(COM_PORT_1)) {
+			unsigned char byte = serial_recv_byte(COM_PORT_1);
+			serial_send_byte(COM_PORT_1, byte);
+			printk("%c", byte);
+		}
+	}
 }

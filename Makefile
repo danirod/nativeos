@@ -92,11 +92,11 @@ nativeos.iso: nativeos.elf
 ################################################################################
 # Create an ISO file and run it through QEMU.
 qemu: nativeos.iso
-	qemu-system-i386 -cdrom nativeos.iso
+	qemu-system-i386 -cdrom nativeos.iso -serial stdio
 
 # Special variant of QEMU made for debugging the kernel image.
 qemu-gdb: nativeos.iso
-	qemu-system-i386 -cdrom nativeos.iso -s -S
+	qemu-system-i386 -cdrom nativeos.iso -serial stdio -s -S
 
 ################################################################################
 # MISC RULES
