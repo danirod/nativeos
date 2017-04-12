@@ -198,6 +198,11 @@ void VGACon_PutChar(char ch)
 			}
 			UpdateFramebufferCursor();
 			break;
+		case '\r':
+			/* Line feed */
+			cursorX = 0;
+			UpdateFramebufferCursor();
+			break;
 		default:
 			/* Place the character in the frame buffer. */
 			pos = cursorY * CONSOLE_COLS + cursorX;
