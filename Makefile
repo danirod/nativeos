@@ -14,6 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Build flags
+ARCH = x86
+
 # Tools. The i386-elf toolset is required to build this software
 ifneq (, $(wildcard tools/toolchain/.))
     # tools/toolchain is enabled. Use it as compiler.
@@ -32,10 +35,24 @@ CFLAGS = -nostdlib --freestanding -fno-builtin -g -Iinclude/
 ASFLAGS = -f elf
 LDFLAGS = -nostdlib
 
-# All the objects that are part of the kernel.
-KERNEL_OBJS = $(patsubst %.c,%.o,$(wildcard kernel/*.c)) \
-        $(patsubst %.s,%.o,$(wildcard kernel/*.s)) \
-        $(patsubst %.c,%.o,$(wildcard kernel/**/*.c))
+# Compilation units that don't depend on system architecture.
+S_BASE_SOURCES = $(shell find kernel -not -path 'kernel/arch*' -name '*.s')
+C_BASE_SOURCES = $(shell find kernel -not -path 'kernel/arch*' -name '*.c')
+
+# Compilation units that depend on the current system architecture.
+S_ARCH_SOURCES = $(shell find kernel -path 'kernel/arch/$(ARCH)/*' -name '*.s')
+C_ARCH_SOURCES = $(shell find kernel -path 'kernel/arch/$(ARCH)/*' -name '*.c')
+
+# All compilation units. Note S_BASE_SOURCES has priority. This is because
+# we need the bootloader to be early in the compilation list in order to
+# properly link the binary.
+S_SOURCES = $(S_BASE_SOURCES) $(S_ARCH_SOURCES)
+C_SOURCES = $(C_BASE_SOURCES) $(C_ARCH_SOURCES)
+S_OBJECTS = $(patsubst %.s,%.o,$(S_SOURCES))
+C_OBJECTS = $(patsubst %.c,%.o,$(C_SOURCES))
+KERNEL_OBJS = $(S_OBJECTS) $(C_OBJECTS)
+
+KERNEL_LD = kernel/arch/$(ARCH)/linker.ld
 
 # It might not work on some platforms unless this is done.
 GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
@@ -75,7 +92,7 @@ cdrom: nativeos.iso
 ################################################################################
 # Build the kernel image
 nativeos.elf: $(KERNEL_OBJS)
-	$(LD) $(LDFLAGS) -T kernel/linker.ld -o $@ $^
+	$(LD) $(LDFLAGS) -T $(KERNEL_LD) -o $@ $^
 
 ################################################################################
 # CD-ROM PACKING
