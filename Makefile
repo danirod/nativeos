@@ -40,30 +40,41 @@ ifeq (, $(shell which $(LD)))
     $(error "No $(LD) compiler in PATH. Is the toolchain compiler enabled?")
 endif
 
+# Directories
+KERNEL_PATH = kernel
+INCLUDE_PATH = include
+BUILD_PATH = out
+
 # Tool flags
-CFLAGS = -nostdlib --freestanding -fno-builtin -g -Iinclude/
+CFLAGS = -nostdlib --freestanding -fno-builtin -g -I$(INCLUDE_PATH)/
 ASFLAGS = -f elf
 LDFLAGS = -nostdlib
 QEMUARGS = -serial stdio
 QEMU_DEBUGARGS = -s -S
 
 # Compilation units that don't depend on system architecture.
-S_BASE_SOURCES = $(shell find kernel -not -path 'kernel/arch*' -name '*.s')
-C_BASE_SOURCES = $(shell find kernel -not -path 'kernel/arch*' -name '*.c')
+S_BASE_SOURCES = $(shell find $(KERNEL_PATH) -not -path '$(KERNEL_PATH)/arch*' -name '*.s')
+C_BASE_SOURCES = $(shell find $(KERNEL_PATH) -not -path '$(KERNEL_PATH)/arch*' -name '*.c')
 
 # Compilation units that depend on the current system architecture.
-S_ARCH_SOURCES = $(shell find kernel -path 'kernel/arch/$(ARCH)/*' -name '*.s')
-C_ARCH_SOURCES = $(shell find kernel -path 'kernel/arch/$(ARCH)/*' -name '*.c')
+S_ARCH_SOURCES = $(shell find $(KERNEL_PATH) -path '$(KERNEL_PATH)/arch/$(ARCH)/*' -name '*.s')
+C_ARCH_SOURCES = $(shell find $(KERNEL_PATH) -path '$(KERNEL_PATH)/arch/$(ARCH)/*' -name '*.c')
 
 # All compilation units. Note S_BASE_SOURCES has priority. This is because
 # we need the bootloader to be early in the compilation list in order to
 # properly link the binary.
 S_SOURCES = $(S_BASE_SOURCES) $(S_ARCH_SOURCES)
 C_SOURCES = $(C_BASE_SOURCES) $(C_ARCH_SOURCES)
-S_OBJECTS = $(patsubst %.s,%.o,$(S_SOURCES))
-C_OBJECTS = $(patsubst %.c,%.o,$(C_SOURCES))
+S_OBJECTS = $(patsubst %.s, $(BUILD_PATH)/%.o ,$(S_SOURCES))
+C_OBJECTS = $(patsubst %.c, $(BUILD_PATH)/%.o, $(C_SOURCES))
 KERNEL_OBJS = $(S_OBJECTS) $(C_OBJECTS)
-KERNEL_LD = kernel/arch/$(ARCH)/linker.ld
+
+KERNEL_LD = $(KERNEL_PATH)/arch/$(ARCH)/linker.ld
+KERNEL_IMAGE = $(BUILD_PATH)/nativeos.elf
+
+# These variables are used when building the distribution disk.
+NATIVE_DISK = $(BUILD_PATH)/nativeos.iso
+NATIVE_DISK_KERNEL = nativeos.exe
 
 # It might not work on some platforms unless this is done.
 GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
@@ -72,32 +83,35 @@ GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
 .PHONY: qemu qemu-gdb clean
 
 # Main build targets.
-kernel: nativeos.elf
-cdrom: nativeos.iso
+kernel: $(KERNEL_IMAGE)
+cdrom: $(NATIVE_DISK)
 
 # Common build targets.
-%.o: %.c
+$(BUILD_PATH)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) -o $@ $<
-%.o: %.s
+
+$(BUILD_PATH)/%.o: %.s
+	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 # Kernel ELF binary image.
-nativeos.elf: $(KERNEL_OBJS)
+$(KERNEL_IMAGE): $(KERNEL_OBJS)
 	$(LD) $(LDFLAGS) -T $(KERNEL_LD) -o $@ $^
 
 # Builds CD-ROM.
-nativeos.iso: nativeos.elf
-	rm -rf cdrom
-	cp -R tools/cdrom .
-	cp nativeos.elf cdrom/boot/nativeos.exe
-	grub-mkrescue -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ cdrom
+$(NATIVE_DISK): $(KERNEL_IMAGE)
+	rm -rf $(BUILD_PATH)/cdrom
+	cp -R tools/cdrom $(BUILD_PATH)
+	cp $(KERNEL_IMAGE) $(BUILD_PATH)/cdrom/boot/$(NATIVE_DISK_KERNEL)
+	grub-mkrescue -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ $(BUILD_PATH)/cdrom
 
 # Create an ISO file and run it through QEMU.
-qemu: nativeos.iso
+qemu: $(NATIVE_DISK)
 	$(QEMU) -cdrom $^ $(QEMUARGS)
 
 # Special variant of QEMU made for debugging the kernel image.
-qemu-gdb: nativeos.iso
+qemu-gdb: $(NATIVE_DISK)
 	$(QEMU) -cdrom $^ $(QEMUARGS) $(QEMU_DEBUGARGS)
 
 ################################################################################
@@ -105,5 +119,5 @@ qemu-gdb: nativeos.iso
 ################################################################################
 # Clean the distribution and remove any generated file.
 clean:
-	rm -rf cdrom
-	rm -f nativeos.elf $(KERNEL_OBJS) nativeos.iso
+	rm -rf $(BUILD_PATH)/cdrom
+	rm -f $(KERNEL_IMAGE) $(NATIVE_DISK) $(KERNEL_OBJS)

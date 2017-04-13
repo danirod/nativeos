@@ -1,9 +1,4 @@
-*.o
-nativeos.elf
-
-# CD-ROM
-*.iso
-cdrom/
+out/
 
 .codelite/
 *.project
