@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * File: paging.h
+ * File: arch/x86/paging.h
  * Description: pagination and virtualization
  */
 
-#ifndef KERNEL_PAGING_H_
-#define KERNEL_PAGING_H_
+#ifndef ARCH_X86_PAGING_H_
+#define ARCH_X86_PAGING_H_
 
 /** 
  * @brief Data structure that represents an entry in the page table.
@@ -98,4 +98,4 @@ int frame_first_free();
  */
 void frame_free(unsigned int frame_no);
 
-#endif // KERNEL_PAGING_H_
+#endif // ARCH_X86_PAGING_H_

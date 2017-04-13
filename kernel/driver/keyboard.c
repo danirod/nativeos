@@ -20,9 +20,9 @@
  * Description: keyboard driver.
  */
 
+#include <arch/x86/idt.h>
+#include <arch/x86/io.h>
 #include <driver/keyboard.h>
-#include <kernel/idt.h>
-#include <kernel/io.h>
 
 /* This is the handler for the keyboard driver. */
 static void keyboard_int_handler(struct idt_data* data)

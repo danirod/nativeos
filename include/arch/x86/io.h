@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * File: kernel/io.h
+ * File: arch/x86/io.h
  * Description: IO routines
  */
 
-#ifndef KERNEL_IO_H_
-#define KERNEL_IO_H_
+#ifndef ARCH_X86_IO_H_
+#define ARCH_X86_IO_H_
 
 /* Put some data out using some port. */
 void IO_OutP(unsigned short port, unsigned char data);
@@ -29,4 +29,4 @@ void IO_OutP(unsigned short port, unsigned char data);
 /* Read some data from some address. */
 unsigned char IO_InP(unsigned short port);
 
-#endif // KERNEL_IO_H_
+#endif // ARCH_X86_IO_H_

@@ -16,15 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * File: idt.c
+ * File: arch/x86/idt.c
  * Description: set up the IDT table
  */
 
-#include <kernel/io.h>
-#include <kernel/idt.h>
+#include <arch/x86/io.h>
+#include <arch/x86/idt.h>
+#include <arch/x86/isrdef.h>
 #include <driver/vga.h>
 #include <kernel/kernel.h>
-#include <kernel/isrdef.h>
 
 /* Table of contents for the IDT structure. */
 struct idt_table idt_toc;

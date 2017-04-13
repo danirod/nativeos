@@ -16,13 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * File: paging.c
+ * File: arch/x86/paging.c
  * Description: pagination and virtualization
  */
 
-#include <kernel/memory.h>
-#include <kernel/paging.h>
+#include <arch/x86/paging.h>
 #include <kernel/kernel.h>
+#include <kernel/memory.h>
 
 /**
  * This is the bitmap that will reference every possible frame in this

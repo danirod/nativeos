@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * File: kernel/gdt.h
+ * File: arch/x86/gdt.h
  * Description: kernel gdt include
  */
 
-#ifndef KERNEL_GDT_H_
-#define KERNEL_GDT_H_
+#ifndef ARCH_X86_GDT_H_
+#define ARCH_X86_GDT_H_
 
 /* Represents the GDT table, this is the pointer used by LGDT */
 struct gdt {
@@ -42,4 +42,4 @@ struct gdt_entry {
 /* Set up the GDT table. */
 void gdt_init();
 
-#endif // KERNEL_GDT_H_
+#endif // ARCH_X86_GDT_H_

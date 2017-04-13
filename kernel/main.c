@@ -20,16 +20,16 @@
  * Description: main kernel routine for the NativeOS Kernel.
  */
 
+#include <arch/x86/gdt.h>
+#include <arch/x86/idt.h>
+#include <arch/x86/paging.h>
 #include <kernel/kernel.h>
-#include <kernel/gdt.h>
-#include <kernel/idt.h>
+#include <kernel/memory.h>
 #include <kernel/multiboot.h>
 #include <driver/com.h>
 #include <driver/keyboard.h>
 #include <driver/timer.h>
 #include <driver/vga.h>
-#include <kernel/memory.h>
-#include <kernel/paging.h>
 
 extern int kernel_start;
 extern int kernel_after;

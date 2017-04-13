@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * File: kernel/isrdef.h
+ * File: arch/x86/isrdef.h
  * Description: ISR definitions - warning, boring file
  */
 
-#ifndef KERNEL_ISRDEF_H_
-#define KERNEL_ISRDEF_H_
+#ifndef ARCH_X86_ISRDEF_H_
+#define ARCH_X86_ISRDEF_H_
 
 /*
  * How many interrupts are supported at this moment:
@@ -88,4 +88,4 @@ extern void isr_47(void);
 /* Interrupt table. */
 extern unsigned int isr_vector[INTERRUPTS];
 
-#endif // KERNEL_ISRDEF_H_
+#endif // ARCH_X86_ISRDEF_H_

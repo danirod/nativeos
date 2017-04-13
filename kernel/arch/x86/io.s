@@ -1,7 +1,7 @@
 ; This file is part of NativeOS.
 ; Copyright (C) 2015 Dani Rodríguez
 ;
-; io.s - This unit provides functions for port input and output
+; arch/x86/io.s - This unit provides functions for port input and output
 
 global IO_OutP
 global IO_InP

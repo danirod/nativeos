@@ -20,8 +20,8 @@
  * Description: serial port driver
  */
 
+#include <arch/x86/io.h>
 #include <driver/com.h>
-#include <kernel/io.h>
 
 /**
  * Flips DLAB bit on. Call this before doing operations with baud rates.

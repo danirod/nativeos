@@ -23,7 +23,7 @@
 #ifndef KERNEL_KERNEL_H_
 #define KERNEL_KERNEL_H_
 
-#include <kernel/idt.h>
+#include <arch/x86/idt.h>
 
 /* printk: like printf, but for the kernel and with less placeholders. */
 void printk(char* fmt, ...);
