@@ -34,6 +34,8 @@
 extern int kernel_start;
 extern int kernel_after;
 
+#define LOG(msg) (serial_send_str(COM_PORT_1, msg));
+
 /** 
  * @brief Calculate the amount of memory that this computer has.
  * @param multiboot_info Multiboot structure (it knows everything).
@@ -63,6 +65,10 @@ static int count_memory(multiboot_info_t *multiboot_info)
 */
 void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 {
+	serial_init(COM_PORT_1, 3);
+	LOG("NativeOS x86\n");
+	LOG("Serial logging interface is now enabled on port COM1\n");
+
 	gdt_init();
 	idt_init();
 
@@ -77,26 +83,20 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 
 	/* Check that the magic code is valid. */
 	if (magic_number != 0x2BADB002) {
-		kpanic(0x88, "Wrong magic number");
+		LOG("PANIC: Wrong multiboot magic number! Check your bootloader.\n");
+		for(;;);
 	}
 
     unsigned int memory_amount = count_memory(multiboot_ptr);
     frames_init(memory_amount);
 
-	printk("Starting NativeOS...\n");
-
-	/* Init serial port. */
-	serial_init(COM_PORT_1, 12); // 115200 / 12 = 9600 bps
-	int baud_rate = serial_get_baud_rate(COM_PORT_1);
-	printk("Serial port is now enabled on port COM1 ");
-	printk("(speed %d bps)\n", (115200 / baud_rate));
+	LOG("NativeOS is starting...\n");
 
 	/* Dumb echo system for bytes read through COM1. */
 	for(;;) {
 		while (serial_get_recv_status(COM_PORT_1)) {
 			unsigned char byte = serial_recv_byte(COM_PORT_1);
 			serial_send_byte(COM_PORT_1, byte);
-			printk("%c", byte);
 		}
 	}
 }

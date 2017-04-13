@@ -95,3 +95,10 @@ void serial_send_byte(unsigned short device, unsigned char byte)
 {
 	IO_OutP(COM_REGISTER_RX_TX(device), byte);
 }
+
+void serial_send_str(unsigned short device, char* string)
+{
+	for (char* ch = string; *ch; ch++) {
+		IO_OutP(COM_REGISTER_RX_TX(device), *ch);
+	}
+}

@@ -53,5 +53,6 @@ unsigned short serial_get_baud_rate(unsigned short device);
 int serial_get_recv_status(unsigned short device);
 unsigned char serial_recv_byte(unsigned short device);
 void serial_send_byte(unsigned short device, unsigned char byte);
+void serial_send_str(unsigned short device, char* string);
 
 #endif // DRIVER_COM_H_
