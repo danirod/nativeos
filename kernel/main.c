@@ -29,6 +29,7 @@
 #include <driver/com.h>
 #include <driver/keyboard.h>
 #include <driver/timer.h>
+#include <driver/vbe.h>
 #include <driver/vga.h>
 
 extern int kernel_start;
@@ -71,6 +72,7 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 
 	gdt_init();
 	idt_init();
+	vbe_init(multiboot_ptr);
 
 	int i;
 	for (i = 0; i < 16; i++)
@@ -80,6 +82,33 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	VGACon_Init();
 	keyboard_init();
 	timer_init();
+
+	for (int y = 0; y < 480; y++) {
+		for (int x = 0; x < 80; x++) {
+			vbe_putpixel(x, y, 255, 255, 255);
+		}
+		for (int x = 80; x < 160; x++) {
+			vbe_putpixel(x, y, 255, 255, 0);
+		}
+		for (int x = 160; x < 240; x++) {
+			vbe_putpixel(x, y, 0, 255, 255);
+		}
+		for (int x = 240; x < 320; x++) {
+			vbe_putpixel(x, y, 0, 255, 0);
+		}
+		for (int x = 320; x < 400; x++) {
+			vbe_putpixel(x, y, 255, 0, 255);
+		}
+		for (int x = 400; x < 480; x++) {
+			vbe_putpixel(x, y, 255, 0, 0);
+		}
+		for (int x = 480; x < 560; x++) {
+			vbe_putpixel(x, y, 0, 0, 255);
+		}
+		for (int x = 560; x < 640; x++) {
+			vbe_putpixel(x, y, 0, 0, 0);
+		}
+	}
 
 	/* Check that the magic code is valid. */
 	if (magic_number != 0x2BADB002) {

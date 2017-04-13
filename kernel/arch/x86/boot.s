@@ -22,7 +22,7 @@
 MULTIBOOT_MAGIC_NUMBER	equ 0x1BADB002
 
 ; Ask for memory alignment and memory information.
-MULTIBOOT_FLAGS			equ 0x00000003
+MULTIBOOT_FLAGS			equ 0x00000007
 
 ; Provide a valid checksum.
 MULTIBOOT_CHECKSUM		equ -(MULTIBOOT_MAGIC_NUMBER + MULTIBOOT_FLAGS)
@@ -41,6 +41,9 @@ MultibootHeader:
 	dd MULTIBOOT_MAGIC_NUMBER
 	dd MULTIBOOT_FLAGS
 	dd MULTIBOOT_CHECKSUM
+	dd 0, 0, 0, 0, 0
+	dd 0, 640, 480, 32
+
 Bootstrap:
 	; Set up the stack.
 	mov esp, Stack + STACK_SIZE
