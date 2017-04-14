@@ -14,10 +14,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file
+ * @brief NativeOS main initialization code
  *
- *
- * File: main.c
- * Description: main kernel routine for the NativeOS Kernel.
+ * If you are reading this because you want to understand what happens when
+ * NativeOS starts -- this is not the actual entrypoint. The main entrypoint
+ * is the Bootstrap function located in boot.s. It contains some initialization
+ * routines that can only be done in Assembly such as setting up the stack
+ * before calling kmain. However, virtually you can consider the kmain function
+ * the main entrypoint for NativeOS.
  */
 
 #include <arch/x86/gdt.h>
@@ -82,6 +90,6 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 
 	LOG("NativeOS has started.\n");
 	LOG("However, there is nothing to do.\n");
-	
+
 	for (;;);
 }
