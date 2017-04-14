@@ -54,34 +54,53 @@ static int count_memory(multiboot_info_t *multiboot_info)
     }
 }
 
-/*
-	This is the main routine for the NativeOS Kernel. It will start the
-	system and jump to user mode so that the init process can run.
-	At the moment no information is gathered from multiboot but I expect
-	this to change in the near future.
-
-	Multiboot will provide two arguments here: one is the magic number,
-	which must be 0x2BADB002, and the other one is the data structure with
-	information that might be required for some things.
-*/
+/**
+ * @brief Main routine for the NativeOS Kernel.
+ *
+ * This function can be considered the main entrypoint after the bootstrap
+ * function in boot.s extracts the multiboot data from the processor registers
+ * and places them onto the stack in order to provide them as arguments.
+ * This kernel will assume that it has been loaded by a multiboot compatible
+ * bootloader such as GRUB. There is some checking to assert that but little
+ * effort is made.
+ *
+ * According to section 3.2 of the Multiboot 0.6.96 specification, available
+ * at https://www.gnu.org/software/grub/manual/multiboot/multiboot.html,
+ * the magic number value must equal 0x2BADB002. The structure will contain
+ * values that are set by the bootloader as described on section 3.3 of the
+ * specification.
+ *
+ * @param magic_number the magic number provided by the bootloader.
+ * @param multiboot_ptr a pointer to a multiboot structure.
+ */
 void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 {
+	// Serial port will act as an early logging device.
 	serial_init(COM_PORT_1, 3);
-	LOG("NativeOS x86\n");
-	LOG("Serial logging interface is now enabled on port COM1\n");
 
+	// Init hardware.
 	gdt_init();
 	idt_init();
+	keyboard_init();
+	timer_init();
+
+	// Check the magic number is valid. On why this check is made here and not
+	// at the beginning of the function: we can defer the check until we
+	// actually need to use the *multiboot_ptr structure. Even if the kernel
+	// wasn't loaded using a multiboot compatible bootloader, anything done
+	// until now (enabling ports and setting up early hardware drivers) would
+	// be valid code because it doesn't depend on the multiboot structure.
+	if (magic_number != 0x2BADB002) {
+		LOG("PANIC: Wrong multiboot magic number! Check your bootloader.\n");
+		for(;;);
+	}
+
+	// Init VBE framebuffer.
 	vbe_init(multiboot_ptr);
 
 	int i;
 	for (i = 0; i < 16; i++)
 		idt_set_handler(i, &bsod);
-
-	/* Set up the core drivers. */
-	VGACon_Init();
-	keyboard_init();
-	timer_init();
 
 	for (int y = 0; y < 480; y++) {
 		for (int x = 0; x < 80; x++) {
@@ -108,12 +127,6 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 		for (int x = 560; x < 640; x++) {
 			vbe_putpixel(x, y, 0, 0, 0);
 		}
-	}
-
-	/* Check that the magic code is valid. */
-	if (magic_number != 0x2BADB002) {
-		LOG("PANIC: Wrong multiboot magic number! Check your bootloader.\n");
-		for(;;);
 	}
 
     unsigned int memory_amount = count_memory(multiboot_ptr);
