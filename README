@@ -15,9 +15,7 @@ Building NativeOS
 
     You must compile the i386-elf-binutils and i386-elf-gcc. Download
     GNU Binutils and GNU GCC and compile them targetting the i386-elf
-    platform. Alternatively, you can get some precompiled packages at
-    <https://github.com/danirod/i386-elf-toolchain/releases> for Linux,
-    Windows and MacOS X.
+    platform.
 
     MS-Windows users should download and install a POSIX environment
     such as Cygwin or MSYS2 in order to get all the tools that would

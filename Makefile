@@ -23,21 +23,15 @@ LD = i386-elf-gcc
 AS = nasm
 QEMU = qemu-system-i386
 
-ifneq (, $(wildcard tools/toolchain/.))
-    # tools/toolchain is enabled. Use it as compiler.
-    CC = tools/toolchain/bin/i386-elf-gcc
-    LD = tools/toolchain/bin/i386-elf-gcc
-endif
-
 # Check that we have the required software.
 ifeq (, $(shell which $(CC)))
-    $(error "No $(CC) compiler in PATH. Is the toolchain compiler enabled?")
-endif
-ifeq (, $(shell which $(AS)))
-    $(error "No $(AS) compiler in PATH. Have you already installed NASM?")
+    $(error "$(CC) not found. Is the toolchain compiler enabled?")
 endif
 ifeq (, $(shell which $(LD)))
-    $(error "No $(LD) compiler in PATH. Is the toolchain compiler enabled?")
+    $(error "$(LD) not found. Is the toolchain compiler enabled?")
+endif
+ifeq (, $(shell which $(AS)))
+    $(error "$(AS) not found. Have you installed NASM?")
 endif
 
 # Directories
