@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2017 Dani Rodríguez
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,10 +14,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file
+ * @brief memory primitive functions and other structures
  *
- *
- * File: kernel/memory.c
- * Description: memory primitives and structures
+ * This module contains function implementations designed to work with memory in kernel.
+ * They are not very clean. They should probably move into new modules such as a future
+ * libk or mm. Current memory management in NativeOS is very poor. The system allocates
+ * memory linearly but there is no cleanup system and the current implementation is
+ * prone to fragmentation due to page aligning.
  */
  
 #include <kernel/memory.h>
@@ -50,15 +57,24 @@ static unsigned char* next_address = &kernel_after;
  * @return pointer to a valid buffer that has been allocated.
  */
 static void *kmalloc_real(unsigned int size, int align, unsigned int *phys) {
-    /* If the user wants to align this page, do it. */
-    if (align && ((unsigned int) next_address & 0xFFF)) {
-        next_address = ((unsigned int) next_address & 0xFFFFF000) + 0x1000;
-    }
+	/*
+	 * If the user wants to align the allocated area to a page do it.
+	 * XXX: This implementation will introduce fragmentation if lots of small
+	 * allocations are made aligned to a page.
+	 */
+	if (align && ((unsigned int) next_address & 0xFFF)) {
+		unsigned int this_page_addr = (unsigned int) next_address & ~(0xFFF);
+		next_address = (unsigned char *) this_page_addr + 0x1000;
+	}
 
-    /* If the user requests the physical memory address, do it. */
-    if (phys) {
-        *phys = next_address;
-    }
+	/*
+	 * If the physical address for the allocated data has been requested, place the
+	 * physical address into the int variable pointed by phys. Note that this is not
+	 * the same as returning a pointer. Outside this function, phys may be an int var.
+	 */
+	if (phys) {
+		*phys = (unsigned int) next_address;
+	}
 
     /* Allocate the buffer using a linear system. */
     unsigned char* address_to_return = next_address;

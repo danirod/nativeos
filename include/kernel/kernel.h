@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2017 Dani Rodríguez
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,16 +14,26 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * File: kernel/kernel.h
- * Description: main kernel include file
+ */
+
+/**
+ * @file
+ * @brief Kernel global routines
  */
 
 #ifndef KERNEL_KERNEL_H_
 #define KERNEL_KERNEL_H_
 
 #include <arch/x86/idt.h>
+
+/**
+ * @brief Halts the system
+ *
+ * Call this function to stop the kernel execution. Please note that this function
+ * does not return because processor interrupts are disabled before entering an infinite
+ * loop. The only way to restore program execution is to restart the system.
+ */
+void kdie();
 
 /* printk: like printf, but for the kernel and with less placeholders. */
 void printk(char* fmt, ...);
