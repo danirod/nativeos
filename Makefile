@@ -113,5 +113,5 @@ qemu-gdb: $(NATIVE_DISK)
 ################################################################################
 # Clean the distribution and remove any generated file.
 clean:
-	rm -rf $(BUILD_PATH)/cdrom
-	rm -f $(KERNEL_IMAGE) $(NATIVE_DISK) $(KERNEL_OBJS)
+	rm -rvf $(BUILD_PATH)
+	rm -vf $(NATIVE_DISK) $(KERNEL_IMAGE)
