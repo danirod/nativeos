@@ -24,13 +24,10 @@
 
 void keyboard_map()
 {
-	int i;
-	for (i = 0; i < 128; i++) {
-		keyboard_dict[i] = 
-		keyboard_dict_altgr[i] = 
-		keyboard_dict_shift[i] = 
-		keyboard_dict_mayus[i] = '\0';
-	}
+	kmemset(keyboard_dict, '\0', 128);
+	kmemset(keyboard_dict_altgr, '\0', 128);
+	kmemset(keyboard_dict_shift, '\0', 128);
+	kmemset(keyboard_dict_mayus, '\0', 128);
 	
 	keyboard_dict[2] = '1';
 	keyboard_dict[3] = '2';

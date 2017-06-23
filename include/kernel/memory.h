@@ -26,6 +26,13 @@
 #define NULL 0
 #define MEM_BLOCK_SIZE sizeof(struct memory_block)
 
+/**
+ * @brief Clear x bytes starting at z position of memory
+ * @param addr base addres to start clearing
+ * @param size number of bytes to clear
+ */
+#define kzero_memory(addr, size) (kmemset((addr), 0, (size)))
+
 struct memory_block {
     char free;
     unsigned int size;
@@ -43,14 +50,7 @@ void* kmalloc(unsigned int size);
  * @brief Free memory block (after free can be reused)
  * @param addr Adress of the pointer to the block + MEM_BLOCK_SIZE
  */
-void kfree(unsigned char* addr);
-
-/**
- * @brief Clear x bytes starting at z position of memory
- * @param addr base addres to start clearing
- * @param size number of bytes to clear
- */
-void kzero_memory(unsigned char* addr, unsigned int size);
+void kfree(void* addr);
 
 /**
  * @brief Find free memory blocks
@@ -58,5 +58,13 @@ void kzero_memory(unsigned char* addr, unsigned int size);
  * @return pointer to block if exists else 0 (NULL)
  */
 void* kfind_free_block(unsigned int size);
+
+/**
+ * @brief Set byte to a memory region
+ * @param position, pointer to memory region start
+ * @param byte, new value to set
+ * @param nbytes, number of bytes to set starting from position
+ */
+void kmemset(void* poistion, char byte, unsigned int nbytes);
 
 #endif

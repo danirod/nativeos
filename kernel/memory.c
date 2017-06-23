@@ -35,34 +35,34 @@ extern char kernel_after;
  * time kmalloc is executed. It has to be incremented every
  * time kmalloc is called.
  */
-static unsigned char* next_address = &kernel_after;
+static void* next_address = &kernel_after;
 struct memory_block* last;
-
-void kzero_memory(unsigned char* addr, unsigned int size)
-{
-    //printk("clearing %d bytes from %d\n", size, addr);
-    for (int i = 0; i < size; i++) {
-        *(addr + i) = NULL;
-    }
-}   
 
 void* kfind_free_block(unsigned int size)
 {
     struct memory_block* current = &kernel_after;
+    struct memory_block* best_block = NULL; /* Block with block.size >= size and (block.size - size) closest to 0 */
     char found = 0;
 
-    while (current && !(current->free && size <= current->size))
+    while (current) {
+        if (current->free && size <= current->size && (!best_block || current->size < best_block->size)) {
+            best_block = current;
+            // printk("Best block: %d\n", (int)best_block);
+        }
         current = current->next;
+    }
 
-    return current;
+    return best_block;
 }
 
-void kfree(unsigned char* addr)
+void kfree(void* addr)
 {
     /* Remove the offset from the base pointer to the block */
-    struct memory_block* block = (unsigned char*)addr - MEM_BLOCK_SIZE;
-    //printk("FREEING %d, %d at %d\n", block->free, block->size, block);
-    kzero_memory(addr, block->size);
+    struct memory_block* block = addr - MEM_BLOCK_SIZE;
+    // printk("FREEING block { %d, %d }  at %d\n", block->free, block->size, block);
+
+    /* Clear memory it's unnecesary */
+    // kzero_memory(addr, block->size);
     block->free = 1;
 }
 
@@ -77,38 +77,43 @@ void kfree(unsigned char* addr)
  * 
  * @return pointer to a valid buffer that has been allocated.
  */
-static void* kmalloc_real(unsigned int size)
+void* kmalloc(unsigned int size)
 {
     if (size == 0)
         return NULL;
 
-    struct memory_block* block;
-    void* return_value = NULL; 
+    struct memory_block* block = kfind_free_block(size); 
 
-    if (!(block = kfind_free_block(size))) {
-        //printk("ANY EXISTING FREE BLOCK FOUND\n");
-        block = next_address; 
+    if (!block) {
+        block = (struct memory_block*)next_address; 
 
-        block->free = 0;
         block->size = size;
 
-        //printk("kmalloc block at %d\n", block);
-        //printk("kmalloc %d + %d = %d\n", block, MEM_BLOCK_SIZE, (unsigned char*)block + MEM_BLOCK_SIZE);
+        // printk("New block CREATED of size %d\n", size);
 
         next_address += MEM_BLOCK_SIZE + size;
-        return_value = (unsigned char*)block + MEM_BLOCK_SIZE;
     }
-    //else printk("ONE EXISTING FREE BLOCK FOUND\n");
-
-    if (last != NULL)
-        last->next = block;  
+    
+    if (last) 
+        last->next = block; 
     last = block;
+    block->free = 0;
 
-    /* ADD OFFSET TO THE BLOCK TO PRESERVE BLOCK INFO */
-    return (unsigned char*)block + MEM_BLOCK_SIZE;
+    /*
+    printk("kmalloc block at %d\n", block);
+    printk("kmalloc %d + %d = %d\n", block, MEM_BLOCK_SIZE, (unsigned char*)block + MEM_BLOCK_SIZE);
+    printk("kmalloc size = %d\n", size);
+    */
+
+    /* Add offset to the block to preserve block info */
+    return (void*)block + MEM_BLOCK_SIZE;
 }
 
-void* kmalloc(unsigned int size)
+void kmemset(void* position, char byte, unsigned int nbytes)
 {
-    return kmalloc_real(size);
+    void* end = position + nbytes;
+    while (position < end) {
+        *(char*)(position) = byte; 
+        position++;
+    }
 }

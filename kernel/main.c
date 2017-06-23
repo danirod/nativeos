@@ -89,15 +89,23 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	printk("Memory amount = %d\n", memory_amount);
 	printk("Starting NativeOS...\n\n>");
 
+	/* Check if kfree really is freeing the memory */
 	/*
-	// kmalloc() and kfree() tests
+	printk("\n\n");
 	int* _int = kmalloc(sizeof(int) * 2);
-	_int[0] = 10;
-	_int[1] = 13;
-	printk("%d [%d], %d [%d]\n", _int[0], &_int[0], _int[1], &_int[1]);
+	// int* _int4 = kmalloc(sizeof(int) * 2);
+	// printk("%d [%d], %d [%d]\n", _int4[0], &_int4[0], _int4[1], &_int4[1]);
+	_int[0] = 0xAAAA;
+	_int[1] = 0xBBBB;
+	printk("%x [%d], %x [%d]\n", _int[0], &_int[0], _int[1], &_int[1]);
 	kfree(_int);
-	int* _int2 = kmalloc(sizeof(int) * 2);
+	printk("Free ended\n");
+	int* _int2 = kmalloc(sizeof(int) * 3);
+	_int2[0] = 0xCCCC;
+	_int2[1] = 0xDDDD;
+	printk("%x [%d], %x [%d]\n", _int2[0], &_int2[0], _int2[1], &_int2[1]);
 	*/
+	
 	
 	for(;;);
 }
