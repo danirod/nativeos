@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2017 Dani Rodríguez
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * File: paging.c
+ * File: arch/x86/paging.c
  * Description: pagination and virtualization
  */
 
-#include <kernel/memory.h>
-#include <kernel/paging.h>
+#include <arch/x86/paging.h>
 #include <kernel/kernel.h>
+#include <kernel/memory.h>
+#include <kernel/multiboot.h>
 
 /**
  * This is the bitmap that will reference every possible frame in this
@@ -39,6 +40,23 @@ static unsigned int bitmap_size;
 #define FRAME_INDEX(f) (f / 8)
 #define FRAME_OFFSET(f) (f % 8)
 #define FRAME_NUMBER(i, o) (8 * i + o)
+
+/**
+ * @brief Calculate the amount of memory that this computer has.
+ * @param multiboot_info Multiboot structure (it knows everything).
+ * @return the amount of KB this PC has or -1 if we cannot know.
+ */
+static unsigned int count_memory(multiboot_info_t *multiboot_info)
+{
+    if (multiboot_info->flags & 0x01) {
+        unsigned int start = multiboot_info->mem_lower;
+        /* Multiboot reports the ending area minus 1 MB. Increment it. */
+        unsigned int end = multiboot_info->mem_upper + 1024;
+        return end - start;
+    } else {
+        return 0; /* We cannot know. */
+    }
+}
 
 void frame_set(unsigned int frame_no)
 {
@@ -77,11 +95,12 @@ int frame_first_free()
     return -1; /* There are no frames in this system. */
 }
 
-void frames_init(unsigned int memory_size)
+void frames_init(multiboot_info_t* multiboot_ptr)
 {
 	/* How many frames? A frame is 4 KB. */
+	unsigned int memory_size = count_memory(multiboot_ptr);
 	unsigned int frames = memory_size / 4;
-	
+
 	/* Reserve the bitmap structure. */
 	bitmap_size = frames / 8;
 	frames_bitmap = kmalloc(bitmap_size);

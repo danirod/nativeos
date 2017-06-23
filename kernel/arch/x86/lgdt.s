@@ -1,7 +1,7 @@
 ; This file is part of NativeOS
 ; Copyright (C) 2015 Dani Rodríguez
 ;
-; gdt.s - actually set up the GDT table.
+; arch/x86/gdt.s - actually set up the GDT table.
 
 global gdt_load
 extern gdt_toc;

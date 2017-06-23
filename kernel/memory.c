@@ -14,26 +14,38 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file
+ * @brief memory primitive functions and other structures
  *
- *
- * File: kernel/memory.c
- * Description: memory primitives and structures
+ * This module contains function implementations designed to work with memory in kernel.
+ * They are not very clean. They should probably move into new modules such as a future
+ * libk or mm. Current memory management in NativeOS is very poor. The system allocates
+ * memory linearly but there is no cleanup system and the current implementation is
+ * prone to fragmentation due to page aligning.
  */
 
 #include <kernel/memory.h>
 //#include <kernel/io.h>
 
 /**
- * Defined in linker.ld: will point to the end memory address
- * for the kernel. This is, after this address, there is no
- * more kernel.
+ * @brief First memory position after the kernel image.
+ *
+ * This variable is set by linker.ld. It is a bookmark set by the linker after the
+ * kernel image. This is used to mark the boundaries of the actual ELF kernel image
+ * in order to know when free space is available in the machine to be used by
+ * the kernel as kernel heap.
  */
 extern char kernel_after;
 
 /**
- * This is the memory address that will be returned the next
- * time kmalloc is executed. It has to be incremented every
- * time kmalloc is called.
+ * @brief Next free memory address to be used in allocations
+ *
+ * This is the memory address where the next allocation will happen. Therefore, this
+ * is probably also the value that will be returned as a pointer the next time an
+ * allocation is made.
  */
 static void* next_address = &kernel_after;
 struct memory_block* last;
@@ -66,13 +78,26 @@ void kfree(void* addr)
     block->free = 1;
 }
 
-/** 
- * @brief Allocate a memory region in kernel mode.
+/**
+ * @brief Allocate a memory region in the kernel heap.
  *
- * This is the real implementation of the kmalloc function. You'll usually
- * want to use the wrapper functions that provide the valid arguments
- * to the function.
- * 
+ * Invoking this function should reserve a memory region to be used as a buffer in
+ * some context. The requester must tell the function how much space would it want
+ * and the system should guarantee that no further calls to kmalloc will return
+ * memory buffers that overlap with a previously returned memory buffer unless one of
+ * them has been freed.
+ *
+ * The caller can request the allocated buffer to be page aligned by using the align
+ * parameter. If alignment is requested, the allocated memory area will start on a new
+ * empty 4 kB page, so it's guaranteed that ptr & 0xFFF == 0 for the pointer ptr. This
+ * is needed for virtual memory.
+ *
+ * Sometimes it may be required to know the exact memory location where the buffer has
+ * been allocated. If a pointer to an integer variable is provided on the phys output
+ * parameter, it will be dereferenced and overwritten by the physical memory address
+ * of the allocated buffer on the computer memory. To avoid this behavior simply pass
+ * NULL.
+ *
  * @param size how many bytes do we want to reserve.
  * 
  * @return pointer to a valid buffer that has been allocated.
@@ -83,6 +108,7 @@ void* kmalloc(unsigned int size)
         return NULL;
 
     struct memory_block* block = kfind_free_block(size); 
+
 
     if (!block) {
         block = (struct memory_block*)next_address; 

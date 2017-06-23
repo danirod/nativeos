@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * File: gdt.c
+ * File: arch/x86/gdt.c
  * Description: set up the GDT table.
  */
 
-#include <kernel/gdt.h>
+#include <arch/x86/gdt.h>
 
 /* GDT structures. */
 struct gdt gdt_toc;

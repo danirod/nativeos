@@ -1,7 +1,5 @@
 # NativeOS
 
-[![Build Status](https://travis-ci.org/danirod/NativeOS.svg?branch=master)](https://travis-ci.org/danirod/NativeOS)
-
 NativeOS is a hobbyist kernel and operating system for the x86
 platform. It is designed as a project to learn more about how the x86
 processor work and how operating systems work. My intention is purely
@@ -16,9 +14,7 @@ Linux, MacOS X and Windows and it works on all the platforms.
 
 You must compile the i386-elf-binutils and i386-elf-gcc. Download
 GNU Binutils and GNU GCC and compile them targetting the i386-elf
-platform. Alternatively, you can get some precompiled packages at
-<https://github.com/danirod/i386-elf-toolchain/releases> for Linux,
-Windows and MacOS X.
+platform.
 
 MS-Windows users should download and install a POSIX environment
 such as Cygwin or MSYS2 in order to get all the tools that would
@@ -78,7 +74,7 @@ In any way you will need GNU xorriso to generate the ISO files.
 the link too.)
 
 ## Running NativeOS
-    
+
 A virtual machine is the safest way for running and testing NativeOS.
 I don't recommend running this on your host PC unless you know what
 you are doing and you have inspected the source code. Also, take a
@@ -99,7 +95,7 @@ manual or the following article: <http://wiki.osdev.org/QEMU>.
 
 ## License and disclaimer
 
-Copyright (C) 2015-2016 Dani Rodríguez
+Copyright (C) 2015-2017 Dani Rodríguez
 
 NativeOS is licensed under the terms of the GNU General Public License v3.
 See the COPYING file for more information. Old NativeOS files will

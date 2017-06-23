@@ -14,10 +14,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file
+ * @brief memory primitive functions and other structures
  *
- *
- * File: kernel/memory.h
- * Description: memory primitives and structures
+ * This module contains function implementations designed to work with memory in kernel.
+ * They are not very clean. They should probably move into new modules such as a future
+ * libk or mm. Current memory management in NativeOS is very poor. The system allocates
+ * memory linearly but there is no cleanup system and the current implementation is
+ * prone to fragmentation due to page aligning.
  */
 
 #ifndef KERNEL_MEMORY_H_
@@ -39,8 +46,15 @@ struct memory_block {
     struct memory_block* next;
 };
 
-/** 
- * @brief Allocate a memory buffer (the traditional way).
+
+/**
+ * @brief Allocate a memory buffer in memory
+ *
+ * Calling this function will return a pointer to a memory buffer that can be used for
+ * any purpose. The function will allocate the requested size. Because there is no
+ * memory protection system at this level, it is not guaranteed the results of accessing
+ * locations outside the boundaries of the requested buffer.
+ *
  * @param size how many bytes to allocate.
  * @return the pointer to the memory buffer.
  */

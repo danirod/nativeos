@@ -15,9 +15,7 @@ Building NativeOS
 
     You must compile the i386-elf-binutils and i386-elf-gcc. Download
     GNU Binutils and GNU GCC and compile them targetting the i386-elf
-    platform. Alternatively, you can get some precompiled packages at
-    <https://github.com/danirod/i386-elf-toolchain/releases> for Linux,
-    Windows and MacOS X.
+    platform.
 
     MS-Windows users should download and install a POSIX environment
     such as Cygwin or MSYS2 in order to get all the tools that would
@@ -58,7 +56,7 @@ Creating a CD image
     below.
 
     To create a NativeOS ISO image, run the following command:
-    
+
         $ make cdrom
 
     MacOS X and Windows users can install the GRUB Command Line tools by
@@ -79,7 +77,7 @@ Creating a CD image
 
 
 Running NativeOS
-    
+
     A virtual machine is the safest way for running and testing NativeOS.
     I don't recommend running this on your host PC unless you know what
     you are doing and you have inspected the source code. Also, take a
@@ -100,7 +98,7 @@ Running NativeOS
 
 License and disclaimer
 
-    Copyright (C) 2015-2016 Dani Rodríguez
+    Copyright (C) 2015-2017 Dani Rodríguez
 
     NativeOS is licensed under the terms of the GNU General Public License v3.
     See the COPYING file for more information. Old NativeOS files will

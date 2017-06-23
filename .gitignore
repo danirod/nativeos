@@ -15,3 +15,8 @@ cdrom/*
 
 # Run script
 run.sh
+
+###########
+
+out/
+docs/

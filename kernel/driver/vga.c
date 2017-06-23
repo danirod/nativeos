@@ -20,8 +20,8 @@
  * Description: bogus VGA driver for debug printing
  */
 
+#include <arch/x86/io.h>
 #include <driver/vga.h>
-#include <kernel/io.h>
 
 /* How many characters fit in a row of text. */
 #define CONSOLE_COLS 80
@@ -201,6 +201,11 @@ void VGACon_PutChar(char ch)
 			}
 			UpdateFramebufferCursor();
 			VGACon_LockRetn();
+			break;
+		case '\r':
+			/* Line feed */
+			cursorX = 0;
+			UpdateFramebufferCursor();
 			break;
 		default:
 			/* Place the character in the frame buffer. */

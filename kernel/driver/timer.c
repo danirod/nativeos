@@ -20,8 +20,8 @@
  * Description: PIT controller
  */
 
+#include <arch/x86/idt.h>
 #include <driver/timer.h>
-#include <kernel/idt.h>
 
 /* How many ticks has the system received. */
 static long timer_ticks;

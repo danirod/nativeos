@@ -1,7 +1,7 @@
 ; This file is part of NativeOS
 ; Copyright (C) 2015 Dani Rodríguez
 ;
-; idt.s - actually set up the IDT table.
+; arch/x86/idt.s - actually set up the IDT table.
 
 global idt_load
 extern idt_toc

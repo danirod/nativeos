@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2017 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,29 +18,25 @@
 
 /**
  * @file
- * @brief Kernel global routines
+ * @brief VBE Video framebuffer driver
  */
 
-#ifndef KERNEL_KERNEL_H_
-#define KERNEL_KERNEL_H_
+#include <kernel/multiboot.h>
+#include <driver/vbe.h>
 
-#include <arch/x86/idt.h>
+static vbe_control_info_t *vbe_control;
+static vbe_mode_info_t *vbe_mode;
 
-/**
- * @brief Halts the system
- *
- * Call this function to stop the kernel execution. Please note that this function
- * does not return because processor interrupts are disabled before entering an infinite
- * loop. The only way to restore program execution is to restart the system.
- */
-void kdie();
+static unsigned int* vbe_framebuffer;
 
-/* printk: like printf, but for the kernel and with less placeholders. */
-void printk(char* fmt, ...);
+void vbe_init(multiboot_info_t *multiboot)
+{
+	vbe_control = (vbe_control_info_t *) multiboot->vbe_control_info;
+	vbe_mode = (vbe_mode_info_t *) multiboot->vbe_mode_info;
+	vbe_framebuffer = (unsigned int *) vbe_mode->phys_base_ptr;
+}
 
-/* kpanic: print a kernel panic message and halt the system. */
-void kpanic(int errcode, char* extra);
-
-void bsod(struct idt_data* data);
-
-#endif // KERNEL_KERNEL_H_
+void vbe_putpixel(unsigned short x, unsigned short y, unsigned char r, unsigned char g, unsigned char b)
+{
+	vbe_framebuffer[(vbe_mode->x_resolution * y) + x] = (r << 16 | g << 8 | b << 0 | 0xCC << 24);
+}

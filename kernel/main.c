@@ -14,80 +14,91 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * File: main.c
- * Description: main kernel routine for the NativeOS Kernel.
  */
 
-#include <kernel/kernel.h>
-#include <kernel/gdt.h>
-#include <kernel/idt.h>
-#include <kernel/multiboot.h>
+/**
+ * @file
+ * @brief NativeOS main initialization code
+ *
+ * If you are reading this because you want to understand what happens when
+ * NativeOS starts -- this is not the actual entrypoint. The main entrypoint
+ * is the Bootstrap function located in boot.s. It contains some initialization
+ * routines that can only be done in Assembly such as setting up the stack
+ * before calling kmain. However, virtually you can consider the kmain function
+ * the main entrypoint for NativeOS.
+ */
+
+#include <arch/x86/gdt.h>
+#include <arch/x86/idt.h>
+#include <arch/x86/paging.h>
+#include <driver/com.h>
 #include <driver/keyboard.h>
 #include <driver/timer.h>
-#include <driver/vga.h>
-#include <kernel/memory.h>
-#include <kernel/paging.h>
+#include <driver/vbe.h>
+#include <kernel/kernel.h>
+#include <kernel/multiboot.h>
 
-extern int kernel_start;
-extern int kernel_after;
+#define LOG(msg) (serial_send_str(COM_PORT_1, msg));
 
-/** 
- * @brief Calculate the amount of memory that this computer has.
- * @param multiboot_info Multiboot structure (it knows everything).
- * @return the amount of KB this PC has or -1 if we cannot know.
+/**
+ * @brief Main routine for the NativeOS Kernel.
+ *
+ * This function can be considered the main entrypoint after the bootstrap
+ * function in boot.s extracts the multiboot data from the processor registers
+ * and places them onto the stack in order to provide them as arguments.
+ * This kernel will assume that it has been loaded by a multiboot compatible
+ * bootloader such as GRUB. There is some checking to assert that but little
+ * effort is made.
+ *
+ * According to section 3.2 of the Multiboot 0.6.96 specification, available
+ * at https://www.gnu.org/software/grub/manual/multiboot/multiboot.html,
+ * the magic number value must equal 0x2BADB002. The structure will contain
+ * values that are set by the bootloader as described on section 3.3 of the
+ * specification.
+ *
+ * @param magic_number the magic number provided by the bootloader.
+ * @param multiboot_ptr a pointer to a multiboot structure.
  */
-static int count_memory(multiboot_info_t *multiboot_info)
-{
-    if (multiboot_info->flags & 0x01) {
-        unsigned int start = multiboot_info->mem_lower;
-        /* Multiboot reports the ending area minus 1 MB. Increment it. */
-        unsigned int end = multiboot_info->mem_upper + 1024;
-        return end - start;
-    } else {
-        return -1; /* We cannot know. */
-    }
-}
-
-/*
-	This is the main routine for the NativeOS Kernel. It will start the
-	system and jump to user mode so that the init process can run.
-	At the moment no information is gathered from multiboot but I expect
-	this to change in the near future.
-
-	Multiboot will provide two arguments here: one is the magic number,
-	which must be 0x2BADB002, and the other one is the data structure with
-	information that might be required for some things.
-*/
 void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 {
+	// Serial port will act as an early logging device.
+	serial_init(COM_PORT_1, 3);
+
+	// Init hardware.
 	gdt_init();
 	idt_init();
-
-	int i;
-	for (i = 0; i < 16; i++)
-		idt_set_handler(i, &bsod);
-
-	/* Set up the core drivers. */
-	VGACon_Init();
 	keyboard_init();
 	timer_init();
 
-	/* Check that the magic code is valid. */
+	// Check the magic number is valid. On why this check is made here and not
+	// at the beginning of the function: we can defer the check until we
+	// actually need to use the *multiboot_ptr structure. Even if the kernel
+	// wasn't loaded using a multiboot compatible bootloader, anything done
+	// until now (enabling ports and setting up early hardware drivers) would
+	// be valid code because it doesn't depend on the multiboot structure.
 	if (magic_number != 0x2BADB002) {
-		kpanic(0x88, "Wrong magic number");
+		LOG("PANIC: Wrong multiboot magic number! Check your bootloader.\n");
+		for(;;);
 	}
-
+  
 	unsigned int memory_amount = count_memory(multiboot_ptr);
 
 	/* Set all unused memory to 0 (NULL) */ 
 	kzero_memory(&kernel_after, memory_amount);
 
-    frames_init(memory_amount);
+  frames_init(memory_amount);
 
 	printk("Memory amount = %d\n", memory_amount);
-	printk("Starting NativeOS...\n\n>");
+	printk("Starting NativeOS...\n");
+  
+  vbe_init(multiboot_ptr);
+	frames_init(multiboot_ptr);
+
+	int i;
+	for (i = 0; i < 16; i++)
+		idt_set_handler(i, &bsod);
+
+	printk("NativeOS has started.\n\n>");
 
 	/* Check if kfree really is freeing the memory */
 	/*

@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * File: kernel/idt.h
+ * File: arch/x86/idt.h
  * Description: kernel idt include
  */
 
-#ifndef KERNEL_IDT_H_
-#define KERNEL_IDT_H_
+#ifndef ARCH_X86_IDT_H_
+#define ARCH_X86_IDT_H_
 
 struct idt_table {
 	unsigned short limit; /* Size of the IDT table. */
@@ -54,4 +54,4 @@ typedef void (*local_idt_handler_t)(struct idt_data*);
 /* This function is used to modify the handler associated to a interrupt. */
 void idt_set_handler(unsigned int interrupt_code, local_idt_handler_t handler);
 
-#endif // KERNEL_IDT_H_
+#endif // ARCH_X86_IDT_H_

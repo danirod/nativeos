@@ -14,95 +14,104 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Tools. The i386-elf toolset is required to build this software
-ifneq (, $(wildcard tools/toolchain/.))
-    # tools/toolchain is enabled. Use it as compiler.
-    CC = tools/toolchain/bin/i386-elf-gcc
-    LD = tools/toolchain/bin/i386-elf-gcc
-else
-    # toolchain does not exist. Check if the user already installed it.
-    CC = i386-elf-gcc
-    LD = i386-elf-gcc
+# Build flags
+ARCH = x86
+
+# Tools.
+CC = i386-elf-gcc
+LD = i386-elf-gcc
+AS = nasm
+QEMU = qemu-system-i386
+
+# Check that we have the required software.
+ifeq (, $(shell which $(CC)))
+    $(error "$(CC) not found. Is the toolchain compiler enabled?")
+endif
+ifeq (, $(shell which $(LD)))
+    $(error "$(LD) not found. Is the toolchain compiler enabled?")
+endif
+ifeq (, $(shell which $(AS)))
+    $(error "$(AS) not found. Have you installed NASM?")
 endif
 
-AS = nasm
+# Directories
+KERNEL_PATH = kernel
+INCLUDE_PATH = include
+BUILD_PATH = out
 
 # Tool flags
-CFLAGS = -nostdlib --freestanding -fno-builtin -g -Iinclude/
+CFLAGS = -nostdlib --freestanding -fno-builtin -g -I$(INCLUDE_PATH)/
 ASFLAGS = -f elf
 LDFLAGS = -nostdlib
+QEMUARGS = -serial stdio
+QEMU_DEBUGARGS = -s -S
 
-# All the objects that are part of the kernel.
-KERNEL_OBJS = $(patsubst %.c,%.o,$(wildcard kernel/*.c)) \
-        $(patsubst %.s,%.o,$(wildcard kernel/*.s)) \
-        $(patsubst %.c,%.o,$(wildcard kernel/**/*.c))
+# Compilation units that don't depend on system architecture.
+S_BASE_SOURCES = $(shell find $(KERNEL_PATH) -not -path '$(KERNEL_PATH)/arch*' -name '*.s')
+C_BASE_SOURCES = $(shell find $(KERNEL_PATH) -not -path '$(KERNEL_PATH)/arch*' -name '*.c')
+
+# Compilation units that depend on the current system architecture.
+S_ARCH_SOURCES = $(shell find $(KERNEL_PATH) -path '$(KERNEL_PATH)/arch/$(ARCH)/*' -name '*.s')
+C_ARCH_SOURCES = $(shell find $(KERNEL_PATH) -path '$(KERNEL_PATH)/arch/$(ARCH)/*' -name '*.c')
+
+# All compilation units. Note S_BASE_SOURCES has priority. This is because
+# we need the bootloader to be early in the compilation list in order to
+# properly link the binary.
+S_SOURCES = $(S_BASE_SOURCES) $(S_ARCH_SOURCES)
+C_SOURCES = $(C_BASE_SOURCES) $(C_ARCH_SOURCES)
+S_OBJECTS = $(patsubst %.s, $(BUILD_PATH)/%.o ,$(S_SOURCES))
+C_OBJECTS = $(patsubst %.c, $(BUILD_PATH)/%.o, $(C_SOURCES))
+KERNEL_OBJS = $(S_OBJECTS) $(C_OBJECTS)
+
+KERNEL_LD = $(KERNEL_PATH)/arch/$(ARCH)/linker.ld
+KERNEL_IMAGE = $(BUILD_PATH)/nativeos.elf
+
+# These variables are used when building the distribution disk.
+NATIVE_DISK = $(BUILD_PATH)/nativeos.iso
+NATIVE_DISK_KERNEL = nativeos.exe
 
 # It might not work on some platforms unless this is done.
 GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
 
-# Check that we have the required software.
-ifeq (, $(shell which $(CC)))
-    $(error "No $(CC) compiler in PATH. Is the toolchain compiler enabled?")
-endif
-ifeq (, $(shell which $(AS)))
-    $(error "No $(AS) compiler in PATH. Have you already installed NASM?")
-endif
-ifeq (, $(shell which $(LD)))
-    $(error "No $(LD) compiler in PATH. Is the toolchain compiler enabled?")
-endif
-
 # Mark some targets as phony. Otherwise they might not always work.
 .PHONY: qemu qemu-gdb clean
 
-################################################################################
-# ALIASES
-################################################################################
-kernel: nativeos.elf
-	
-cdrom: nativeos.iso
+# Main build targets.
+kernel: $(KERNEL_IMAGE)
+cdrom: $(NATIVE_DISK)
 
-################################################################################
-# COMMON BUILD TARGETS
-################################################################################
-%.o: %.c
+# Common build targets.
+$(BUILD_PATH)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-%.o: %.s
+$(BUILD_PATH)/%.o: %.s
+	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-################################################################################
-# KERNEL IMAGE
-################################################################################
-# Build the kernel image
-nativeos.elf: $(KERNEL_OBJS)
-	$(LD) $(LDFLAGS) -T kernel/linker.ld -o $@ $^
+# Kernel ELF binary image.
+$(KERNEL_IMAGE): $(KERNEL_OBJS)
+	$(LD) $(LDFLAGS) -T $(KERNEL_LD) -o $@ $^
 
-################################################################################
-# CD-ROM PACKING
-################################################################################
-# Build the ISO image for NativeOS (requires grub)
-nativeos.iso: nativeos.elf
-	rm -rf cdrom
-	cp -R tools/cdrom .
-	cp nativeos.elf cdrom/boot/nativeos.exe
-	grub-mkrescue -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ cdrom
+# Builds CD-ROM.
+$(NATIVE_DISK): $(KERNEL_IMAGE)
+	rm -rf $(BUILD_PATH)/cdrom
+	cp -R tools/cdrom $(BUILD_PATH)
+	cp $(KERNEL_IMAGE) $(BUILD_PATH)/cdrom/boot/$(NATIVE_DISK_KERNEL)
+	grub-mkrescue -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ $(BUILD_PATH)/cdrom
 
-################################################################################
-# QEMU TARGETS
-################################################################################
 # Create an ISO file and run it through QEMU.
-qemu: nativeos.iso
-	qemu-system-i386 -cdrom nativeos.iso
+qemu: $(NATIVE_DISK)
+	$(QEMU) -cdrom $^ $(QEMUARGS)
 
 # Special variant of QEMU made for debugging the kernel image.
-qemu-gdb: nativeos.iso
-	qemu-system-i386 -cdrom nativeos.iso -s -S
+qemu-gdb: $(NATIVE_DISK)
+	$(QEMU) -cdrom $^ $(QEMUARGS) $(QEMU_DEBUGARGS)
 
 ################################################################################
 # MISC RULES
 ################################################################################
 # Clean the distribution and remove any generated file.
 clean:
-	rm -rf cdrom
-	rm -f nativeos.elf $(KERNEL_OBJS) nativeos.iso
-
+	rm -rf $(BUILD_PATH)/cdrom
+	rm -f $(KERNEL_IMAGE) $(NATIVE_DISK) $(KERNEL_OBJS)
