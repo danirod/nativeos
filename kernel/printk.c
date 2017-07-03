@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,14 @@
 
 #include <stdarg.h>
 #include <driver/vga.h>
+
+#define DEBUG 1
+
+#if DEBUG
+#include <driver/com.h>
+#define VGACon_PutChar(ch) (serial_send_byte(COM_PORT_1, (ch)))
+#define VGACon_PutString(str) (serial_send_str(COM_PORT_1, (str)))
+#endif
 
 /*
 	Write a numeric value to the console. The algorithm will extract

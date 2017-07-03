@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,6 +86,8 @@ int serial_get_recv_status(unsigned short device)
 	return IO_InP(COM_REGISTER_LINE_STATUS(device)) & COM_LINE_READY;
 }
 
+// Replaced with define's for better performance
+/* 
 unsigned char serial_recv_byte(unsigned short device)
 {
 	return IO_InP(COM_REGISTER_RX_TX(device));
@@ -95,10 +97,11 @@ void serial_send_byte(unsigned short device, unsigned char byte)
 {
 	IO_OutP(COM_REGISTER_RX_TX(device), byte);
 }
+*/
 
 void serial_send_str(unsigned short device, char* string)
 {
 	for (char* ch = string; *ch; ch++) {
-		IO_OutP(COM_REGISTER_RX_TX(device), *ch);
+		serial_send_byte(device, *ch);
 	}
 }

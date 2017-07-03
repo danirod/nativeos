@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,23 @@
  */
 
 #ifndef KERNEL_MEMORY_H_
-#define KERNEL_MEMORY_H_
+#define KERNEL_MEMORY_H_ 
+
+#define NULL 0
+#define MEM_BLOCK_SIZE sizeof(struct memory_block)
+
+/**
+ * @brief Clear x bytes starting at z position of memory
+ * @param addr base addres to start clearing
+ * @param size number of bytes to clear
+ */
+#define kzero_memory(addr, size) (kmemset((addr), 0, (size)))
+
+struct memory_block {
+    char free;
+    unsigned int size;
+    struct memory_block* next;
+};
 
 
 /**
@@ -42,45 +58,27 @@
  * @param size how many bytes to allocate.
  * @return the pointer to the memory buffer.
  */
-void *kmalloc(unsigned int size);
+void* kmalloc(unsigned int size);
 
 /**
- * @brief Allocate a memory buffer aligned to the bounds of a new page.
- *
- * This function behaves similar to kmalloc, but it will align the buffer into the
- * boundary of a page. This is similar to how valloc works on the C standard library.
- * Please note that given the current implementation of the memory management system
- * for this kernel, this will introduce a lot of overhead and memory fragmentation.
- *
- * @param size how many bytes to allocate.
- * @return the pointer to the memory buffer.
+ * @brief Free memory block (after free can be reused)
+ * @param addr Adress of the pointer to the block + MEM_BLOCK_SIZE
  */
-void *kmalloc_al(unsigned int size);
+void kfree(void* addr);
 
 /**
- * @brief Allocate a memory buffer.
- *
- * This function works the same as kmalloc, but there is an additional pointer parameter
- * that will be dereferenced by kmalloc and overwritten with the value of the physical
- * memory address where the buffer has been allocated into memory.
- *
- * @param size how many bytes to allocate.
- * @param phys the memory address the buffer starts in.
- * @return a pointer to the memory buffer.
+ * @brief Find free memory blocks
+ * @param size requires size for the block
+ * @return pointer to block if exists else 0 (NULL)
  */
-void *kmalloc_py(unsigned int size, unsigned int *phys);
+void* kfind_free_block(unsigned int size);
 
 /**
- * @brief Allocate a memory buffer aligned to the bounds of a new page.
- *
- * This function works the same as kmalloc_al, but there is an additional pointer
- * parameter that will be dereferenced by kmalloc and overwritten with the value of the
- * physical memory address where the buffer has been allocated into memory.
- *
- * @param size how many bytes to allocate.
- * @param phys the memory address the buffer starts in.
- * @return a pointer to the memory buffer.
+ * @brief Set byte to a memory region
+ * @param position, pointer to memory region start
+ * @param byte, new value to set
+ * @param nbytes, number of bytes to set starting from position
  */
-void *kmalloc_ap(unsigned int size, unsigned int *phys);
+void kmemset(void* poistion, char byte, unsigned int nbytes);
 
-#endif // KERNEL_MEMORY_H_
+#endif

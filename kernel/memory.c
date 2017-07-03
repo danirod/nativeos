@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2017 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
  */
 
 #include <kernel/memory.h>
+//#include <kernel/io.h>
 
 /**
  * @brief First memory position after the kernel image.
@@ -46,7 +47,36 @@ extern char kernel_after;
  * is probably also the value that will be returned as a pointer the next time an
  * allocation is made.
  */
-static unsigned char* next_address = &kernel_after;
+static void* next_address = &kernel_after;
+struct memory_block* last;
+
+void* kfind_free_block(unsigned int size)
+{
+    struct memory_block* current = &kernel_after;
+    struct memory_block* best_block = NULL; /* Block with block.size >= size and (block.size - size) closest to 0 */
+    char found = 0;
+
+    while (current) {
+        if (current->free && size <= current->size && (!best_block || current->size < best_block->size)) {
+            best_block = current;
+            // printk("Best block: %d\n", (int)best_block);
+        }
+        current = current->next;
+    }
+
+    return best_block;
+}
+
+void kfree(void* addr)
+{
+    /* Remove the offset from the base pointer to the block */
+    struct memory_block* block = addr - MEM_BLOCK_SIZE;
+    // printk("FREEING block { %d, %d }  at %d\n", block->free, block->size, block);
+
+    /* Clear memory it's unnecesary */
+    // kzero_memory(addr, block->size);
+    block->free = 1;
+}
 
 /**
  * @brief Allocate a memory region in the kernel heap.
@@ -69,49 +99,47 @@ static unsigned char* next_address = &kernel_after;
  * NULL.
  *
  * @param size how many bytes do we want to reserve.
- * @param align if true, the buffer will be aligned into the boundaries of a 4 kB page.
- * @param phys points to an integer variable where to store the memory address, or NULL.
- *
+ * 
  * @return pointer to a valid buffer that has been allocated.
  */
-static void *kmalloc_real(unsigned int size, int align, unsigned int *phys) {
-	/*
-	 * If the user wants to align the allocated area to a page do it.
-	 * XXX: This implementation will introduce fragmentation if lots of small
-	 * allocations are made aligned to a page.
-	 */
-	if (align && ((unsigned int) next_address & 0xFFF)) {
-		unsigned int this_page_addr = (unsigned int) next_address & ~(0xFFF);
-		next_address = (unsigned char *) this_page_addr + 0x1000;
-	}
+void* kmalloc(unsigned int size)
+{
+    if (size == 0)
+        return NULL;
 
-	/*
-	 * If the physical address for the allocated data has been requested, place the
-	 * physical address into the int variable pointed by phys. Note that this is not
-	 * the same as returning a pointer. Outside this function, phys may be an int var.
-	 */
-	if (phys) {
-		*phys = (unsigned int) next_address;
-	}
+    struct memory_block* block = kfind_free_block(size); 
 
-    /* Allocate the buffer using a linear system. */
-    unsigned char* address_to_return = next_address;
-    next_address += size;
-    return address_to_return;
+
+    if (!block) {
+        block = (struct memory_block*)next_address; 
+
+        block->size = size;
+
+        // printk("New block CREATED of size %d\n", size);
+
+        next_address += MEM_BLOCK_SIZE + size;
+    }
+    
+    if (last) 
+        last->next = block; 
+    last = block;
+    block->free = 0;
+
+    /*
+    printk("kmalloc block at %d\n", block);
+    printk("kmalloc %d + %d = %d\n", block, MEM_BLOCK_SIZE, (unsigned char*)block + MEM_BLOCK_SIZE);
+    printk("kmalloc size = %d\n", size);
+    */
+
+    /* Add offset to the block to preserve block info */
+    return (void*)block + MEM_BLOCK_SIZE;
 }
 
-void *kmalloc(unsigned int size) {
-    return kmalloc_real(size, 0, 0);
-}
-
-void *kmalloc_al(unsigned int size) {
-    return kmalloc_real(size, 1, 0);
-}
-
-void *kmalloc_py(unsigned int size, unsigned int *phys) {
-    return kmalloc_real(size, 0, phys);
-}
-
-void *kmalloc_ap(unsigned int size, unsigned int *phys) {
-    return kmalloc_real(size, 1, phys);
+void kmemset(void* position, char byte, unsigned int nbytes)
+{
+    void* end = position + nbytes;
+    while (position < end) {
+        *(char*)(position) = byte; 
+        position++;
+    }
 }

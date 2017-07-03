@@ -40,7 +40,7 @@ INCLUDE_PATH = include
 BUILD_PATH = out
 
 # Tool flags
-CFLAGS = -nostdlib --freestanding -fno-builtin -g -I$(INCLUDE_PATH)/
+CFLAGS = -nostdlib --freestanding -fno-builtin -g -I $(INCLUDE_PATH)/
 ASFLAGS = -f elf
 LDFLAGS = -nostdlib
 QEMUARGS = -serial stdio
