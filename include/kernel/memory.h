@@ -81,8 +81,4 @@ void* kfind_free_block(unsigned int size);
  */
 void kmemset(void* poistion, char byte, unsigned int nbytes);
 
-<<<<<<< HEAD
 #endif
-=======
-#endif
->>>>>>> 177c6d5d79d623161e676dde3a36a01dec49af9d

@@ -48,15 +48,11 @@
 #define COM_LINE_OVERRUN_ERROR 0x02
 #define COM_LINE_READY 0x01
 
-// Use define for better performance
-#define serial_recv_byte(device) (IO_InP(COM_REGISTER_RX_TX(device)))
-#define serial_send_byte(device, byte) (IO_OutP(COM_REGISTER_RX_TX(device), (byte)))
-
 void serial_init(unsigned short device, unsigned short divisor);
 unsigned short serial_get_baud_rate(unsigned short device);
 int serial_get_recv_status(unsigned short device);
-// unsigned char serial_recv_byte(unsigned short device);
-// void serial_send_byte(unsigned short device, unsigned char byte);
+unsigned char serial_recv_byte(unsigned short device);
+void serial_send_byte(unsigned short device, unsigned char byte);
 void serial_send_str(unsigned short device, char* string);
 
 #endif // DRIVER_COM_H_

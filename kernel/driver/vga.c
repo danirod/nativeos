@@ -23,6 +23,13 @@
 #include <arch/x86/io.h>
 #include <driver/vga.h>
 
+/* If it's set to 1, all the VGA output will get redirected to the serial port */
+#define DEBUG 1
+
+#if DEBUG
+#include <driver/com.h>
+#endif
+
 /* How many characters fit in a row of text. */
 #define CONSOLE_COLS 80
 
@@ -189,6 +196,9 @@ void VGACon_Init()
 */
 void VGACon_PutChar(char ch)
 {
+#if DEBUG
+	serial_send_byte(COM_PORT_1, ch);
+#else
 	register int pos;
 
 	switch (ch) {
@@ -214,6 +224,7 @@ void VGACon_PutChar(char ch)
 			IncrementCursor();
 			break;
 	}
+#endif
 }
 
 /*
@@ -225,6 +236,9 @@ void VGACon_PutChar(char ch)
 */
 void VGACon_PutString(char* chArray)
 {
+#if DEBUG
+	serial_send_str(COM_PORT_1, chArray);
+#else
 	register char *ch;
 	register int pos;
 
@@ -233,6 +247,7 @@ void VGACon_PutString(char* chArray)
 		/* What are the performance implications of such loop? */
 		VGACon_PutChar(*ch);
 	}
+#endif
 }
 
 /*
