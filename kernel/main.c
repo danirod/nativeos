@@ -1,6 +1,10 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
+<<<<<<< HEAD
  * Copyright (C) 2015-2017 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
+=======
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
+>>>>>>> 177c6d5d79d623161e676dde3a36a01dec49af9d
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +84,7 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 		LOG("PANIC: Wrong multiboot magic number! Check your bootloader.\n");
 		for(;;);
 	}
-
+  
 	// Not working
 	/*
 	unsigned int memory_amount = count_memory(multiboot_ptr);
@@ -115,8 +119,25 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	for (i = 0; i < 16; i++)
 		idt_set_handler(i, &bsod);
 
-	LOG("NativeOS has started.\n");
-	LOG("However, there is nothing to do.\n");
+	printk("NativeOS has started.\n\n>");
 
-	for (;;);
+	/* Check if kfree really is freeing the memory */
+	/*
+	printk("\n\n");
+	int* _int = kmalloc(sizeof(int) * 2);
+	// int* _int4 = kmalloc(sizeof(int) * 2);
+	// printk("%d [%d], %d [%d]\n", _int4[0], &_int4[0], _int4[1], &_int4[1]);
+	_int[0] = 0xAAAA;
+	_int[1] = 0xBBBB;
+	printk("%x [%d], %x [%d]\n", _int[0], &_int[0], _int[1], &_int[1]);
+	kfree(_int);
+	printk("Free ended\n");
+	int* _int2 = kmalloc(sizeof(int) * 3);
+	_int2[0] = 0xCCCC;
+	_int2[1] = 0xDDDD;
+	printk("%x [%d], %x [%d]\n", _int2[0], &_int2[0], _int2[1], &_int2[1]);
+	*/
+	
+	
+	for(;;);
 }
