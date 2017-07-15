@@ -6,6 +6,18 @@ processor work and how operating systems work. My intention is purely
 educational. The source code is open in the hope that it helps other
 people too.
 
+## Roadmap and contributing to the project
+
+**This project has no public roadmap**. This means that I'm not disclosing
+what I'm working on when I'm working on this project. This is intended at
+this moment for this project because the project is not mature or stable
+enough and is still under development.
+
+My issue and pull request policy is clarified on CONTRIBUTING.md. I'm not
+accepting pull requests at this moment. See the document to read why.
+Issues are still open and covered by the Code of Merit. See CODE\_OF\_MERIT.md
+for details.
+
 ## Building NativeOS
 
 NativeOS requires the i386-elf-gcc cross-compiler installed in the
