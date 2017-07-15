@@ -13,10 +13,10 @@ what I'm working on when I'm working on this project. This is intended at
 this moment for this project because the project is not mature or stable
 enough and is still under development.
 
-My issue and pull request policy is clarified on CONTRIBUTING.md. I'm not
+My issue and pull request policy is clarified on [CONTRIBUTING.md][1]. I'm not
 accepting pull requests at this moment. See the document to read why.
-Issues are still open and covered by the Code of Merit. See CODE\_OF\_MERIT.md
-for details.
+Issues are still open and covered by the Code of Merit. See
+[CODE\_OF\_MERIT.md][2] for details.
 
 ## Building NativeOS
 
@@ -117,3 +117,6 @@ NativeOS is provided AS IS with no extra support. Working with kernels
 and OS and bootloaders is fun, but I'm not resposible for anything wrong
 you do with it. If you break your hard drive or your computer because
 of using the wrong command, that is not my fault.
+
+[1]: https://github.com/danirod/nativeos/blob/master/CONTRIBUTING.md
+[2]: https://github.com/danirod/nativeos/blob/master/CODE_OF_MERIT.md
