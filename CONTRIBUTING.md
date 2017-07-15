@@ -47,11 +47,6 @@ new features for the software.
   or that already had been removed by the time you submitted your PR, for
   instance.
 
-* Accepting code from outside has always a few risks. External code might have
-  some technical debt associated to it or possible bug sources that might
-  need attention. It cannot be guaranteed that the person who added that
-  code will be there for fixing that.
-
 ## Forking this project
 
 This code is still open source. Therefore, you are free to fork this project
