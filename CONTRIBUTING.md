@@ -29,9 +29,8 @@ new features for the software.
 * Technical suggestions should include an explanation on why is it a good
   idea to have this added into the project. Please note that, because of
   time constraints and because of having my own roadmap, I still reserve the
-  right for rejecting suggestions that I consider don't fit withing my project
-  goals. Because of the nature of open source, you can still fork this
-  project to have them done if you really want them.
+  right for rejecting suggestions that I consider don't fit within my project
+  goals.
 
 ## Pull requests
 
@@ -54,11 +53,6 @@ and modify it provided you do it on a way that doesn't conflicts with the
 open source license used by this project. For instance, if you want to use
 this research repository as a starting point for your own experiments.
 
-Please note that this contributing conventions do not affect forks. You are
-free to accept pull requests in your own fork, and to do things different
-than I do, in your own fork.
-
-If you take your fork far (say that you change a lot of things), you might want
-to consider renaming the forked project in order to brand it as _really yours_,
-just like many Ubuntu-based distros have their own name, or just like the
-OpenOffice-LibreOffice fork.
+Please note that most of the conventions for this repository don't apply for
+forks. This means that you are free to accept pull requests in your own fork,
+change the code of conduct and such.
