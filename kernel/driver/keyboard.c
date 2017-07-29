@@ -24,9 +24,9 @@
 #include <arch/x86/io.h>
 #include <driver/keyboard.h>
 
-char shift_pressed = 0;
-char bloq_mayus = 0;
-char altgr = 0;
+static char shift_pressed = 0;
+static char bloq_mayus = 0;
+static char altgr = 0;
 
 /* This is the handler for the keyboard driver. */
 static void keyboard_int_handler(struct idt_data* data)

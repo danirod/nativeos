@@ -37,10 +37,10 @@
 #define KEY_RIGHT 77
 #define KEY_DOWN 80
 
-char keyboard_dict[128];
-char keyboard_dict_shift[128];
-char keyboard_dict_mayus[128];
-char keyboard_dict_altgr[128];
+unsigned char keyboard_dict[128];
+unsigned char keyboard_dict_shift[128];
+unsigned char keyboard_dict_mayus[128];
+unsigned char keyboard_dict_altgr[128];
 
 void keyboard_map();
 void keyboard_init(void);
