@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2017 Dani Rodríguez
+ * Copyright (C) 2015-2017 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,6 +80,33 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 		LOG("PANIC: Wrong multiboot magic number! Check your bootloader.\n");
 		for(;;);
 	}
+  
+	// Not working
+	/*
+	unsigned int memory_amount = count_memory(multiboot_ptr);
+	// Set all unused memory to 0 (NULL)
+	kzero_memory(&kernel_after, memory_amount);
+	printk("Memory amount = %d\n", memory_amount);
+	*/
+
+	// Check if kfree really is freeing the memory: Working
+	/* 
+	printk("\n\n");
+	int* _int = kmalloc(sizeof(int) * 2);
+	// int* _int4 = kmalloc(sizeof(int) * 2);
+	// LOGf("%d [%d], %d [%d]\n", _int4[0], &_int4[0], _int4[1], &_int4[1]);
+	_int[0] = 0xAAAA;
+	_int[1] = 0xBBBB;
+	printk("%x [%d], %x [%d]\n", _int[0], &_int[0], _int[1], &_int[1]);
+	kfree(_int);
+	printk("Free ended\n");
+	int* _int2 = kmalloc(sizeof(int) * 3);
+	_int2[0] = 0xCCCC;
+	_int2[1] = 0xDDDD;
+	printk("%x [%d], %x [%d]\n", _int2[0], &_int2[0], _int2[1], &_int2[1]);
+	*/
+
+	printk("Now printk() sends output to serial port if DEBUG = 1.\n");
 
 	vbe_init(multiboot_ptr);
 	frames_init(multiboot_ptr);
@@ -88,8 +115,25 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	for (i = 0; i < 16; i++)
 		idt_set_handler(i, &bsod);
 
-	LOG("NativeOS has started.\n");
-	LOG("However, there is nothing to do.\n");
+	printk("NativeOS has started.\n\n>");
 
-	for (;;);
+	/* Check if kfree really is freeing the memory */
+	/*
+	printk("\n\n");
+	int* _int = kmalloc(sizeof(int) * 2);
+	// int* _int4 = kmalloc(sizeof(int) * 2);
+	// printk("%d [%d], %d [%d]\n", _int4[0], &_int4[0], _int4[1], &_int4[1]);
+	_int[0] = 0xAAAA;
+	_int[1] = 0xBBBB;
+	printk("%x [%d], %x [%d]\n", _int[0], &_int[0], _int[1], &_int[1]);
+	kfree(_int);
+	printk("Free ended\n");
+	int* _int2 = kmalloc(sizeof(int) * 3);
+	_int2[0] = 0xCCCC;
+	_int2[1] = 0xDDDD;
+	printk("%x [%d], %x [%d]\n", _int2[0], &_int2[0], _int2[1], &_int2[1]);
+	*/
+	
+	
+	for(;;);
 }

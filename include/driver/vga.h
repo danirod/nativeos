@@ -61,4 +61,11 @@ void VGACon_SetColor(unsigned char fg, unsigned char bg);
 /* Clear the console using the current color attributes. */
 void VGACon_Clrscr();
 
+/* Delete last char inserted */
+void VGACon_Retn();
+
+/* Lock retn at current char */
+void VGACon_LockRetn();
+
+
 #endif // KERNEL_CONSOLE_VGACON_H_

@@ -1,6 +1,6 @@
 /*
  * This file is part of NativeOS: next-gen x86 operating system
- * Copyright (C) 2015-2016 Dani Rodríguez
+ * Copyright (C) 2015-2016 Dani Rodríguez, 2017-2018 Izan Beltrán <izanbf1803@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,13 @@
 
 #include <arch/x86/io.h>
 #include <driver/vga.h>
+
+/* If it's set to 1, all the VGA output will get redirected to the serial port */
+#define DEBUG 1
+
+#if DEBUG
+#include <driver/com.h>
+#endif
 
 /* How many characters fit in a row of text. */
 #define CONSOLE_COLS 80
@@ -50,6 +57,9 @@ static unsigned short *baseAddr;
 
 /* Current character position. */
 static int cursorX, cursorY;
+
+/* Last locked pos in console (don't delete characters after \n) */
+int last_locked_pos = 0;
 
 /* Current foreground and background color. */
 static unsigned char fgColor, bgColor;
@@ -186,6 +196,9 @@ void VGACon_Init()
 */
 void VGACon_PutChar(char ch)
 {
+#if DEBUG
+	serial_send_byte(COM_PORT_1, ch);
+#else
 	register int pos;
 
 	switch (ch) {
@@ -197,6 +210,7 @@ void VGACon_PutChar(char ch)
 				cursorY = CONSOLE_ROWS - 1;
 			}
 			UpdateFramebufferCursor();
+			VGACon_LockRetn();
 			break;
 		case '\r':
 			/* Line feed */
@@ -210,6 +224,7 @@ void VGACon_PutChar(char ch)
 			IncrementCursor();
 			break;
 	}
+#endif
 }
 
 /*
@@ -221,6 +236,9 @@ void VGACon_PutChar(char ch)
 */
 void VGACon_PutString(char* chArray)
 {
+#if DEBUG
+	serial_send_str(COM_PORT_1, chArray);
+#else
 	register char *ch;
 	register int pos;
 
@@ -229,6 +247,7 @@ void VGACon_PutString(char* chArray)
 		/* What are the performance implications of such loop? */
 		VGACon_PutChar(*ch);
 	}
+#endif
 }
 
 /*
@@ -268,4 +287,32 @@ void VGACon_Clrscr()
 	register int i;
 	for (i = 0; i < CONSOLE_SIZE; i++)
 		*(baseAddr + i) = VGA_ENTRY(0, fgColor, bgColor);
+}
+
+/* Delete last char */
+void VGACon_Retn()
+{
+	register int pos;
+
+	int _cursorX = cursorX, _cursorY = cursorY;
+
+	if (--_cursorX < 0) {
+		_cursorY -= 1;
+		_cursorX = CONSOLE_COLS - 1;
+	}
+
+	pos = _cursorY * CONSOLE_COLS + _cursorX;
+
+	if (pos >= last_locked_pos) {
+		cursorX = _cursorX;
+		cursorY = _cursorY;
+		
+		*(baseAddr + pos) = VGA_ENTRY('\0', fgColor, bgColor);
+	}
+} 
+
+/* Lock retn before next position */
+void VGACon_LockRetn()
+{
+	last_locked_pos = cursorY * CONSOLE_COLS + cursorX;
 }
