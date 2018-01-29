@@ -66,8 +66,8 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	// Init hardware.
 	gdt_init();
 	idt_init();
-	keyboard_init();
 	timer_init();
+	keyboard_init();
 
 	// Check the magic number is valid. On why this check is made here and not
 	// at the beginning of the function: we can defer the check until we
@@ -89,7 +89,7 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	*/
 
 	// Check if kfree really is freeing the memory: Working
-        /* 
+        /*
 	printk("\n\n");
 	int* _int = kmalloc(sizeof(int) * 2);
 	// int* _int4 = kmalloc(sizeof(int) * 2);
@@ -131,7 +131,7 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	_int2[1] = 0xDDDD;
 	printk("%x [%d], %x [%d]\n", _int2[0], &_int2[0], _int2[1], &_int2[1]);
 	*/
-	
-	
+
+
 	for(;;);
 }
