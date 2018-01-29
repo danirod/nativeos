@@ -23,10 +23,7 @@
 #include <arch/x86/io.h>
 #include <driver/vga.h>
 
-/* If it's set to 1, all the VGA output will get redirected to the serial port */
-#define DEBUG 1
-
-#if DEBUG
+#if HAVE_DEBUG
 #include <driver/com.h>
 #endif
 
@@ -196,7 +193,7 @@ void VGACon_Init()
 */
 void VGACon_PutChar(char ch)
 {
-#if DEBUG
+#if HAVE_DEBUG
 	serial_send_byte(COM_PORT_1, ch);
 #else
 	register int pos;
@@ -236,7 +233,7 @@ void VGACon_PutChar(char ch)
 */
 void VGACon_PutString(char* chArray)
 {
-#if DEBUG
+#if HAVE_DEBUG
 	serial_send_str(COM_PORT_1, chArray);
 #else
 	register char *ch;
@@ -306,10 +303,10 @@ void VGACon_Retn()
 	if (pos >= last_locked_pos) {
 		cursorX = _cursorX;
 		cursorY = _cursorY;
-		
+
 		*(baseAddr + pos) = VGA_ENTRY('\0', fgColor, bgColor);
 	}
-} 
+}
 
 /* Lock retn before next position */
 void VGACon_LockRetn()

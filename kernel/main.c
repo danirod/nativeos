@@ -37,6 +37,10 @@
 #include <kernel/kernel.h>
 #include <kernel/multiboot.h>
 
+#ifndef HAVE_DEBUG
+#include <driver/vga.h>
+#endif
+
 #define LOG(msg) (serial_send_str(COM_PORT_1, msg));
 
 /**
@@ -68,6 +72,10 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	idt_init();
 	timer_init();
 	keyboard_init();
+
+#ifndef HAVE_DEBUG
+	VGACon_Init();
+#endif
 
 	// Check the magic number is valid. On why this check is made here and not
 	// at the beginning of the function: we can defer the check until we

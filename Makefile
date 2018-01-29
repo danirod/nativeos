@@ -16,6 +16,7 @@
 
 # Build flags
 ARCH = x86
+DEBUG ?= 0
 
 # Tools.
 CC = i386-elf-gcc
@@ -40,11 +41,15 @@ INCLUDE_PATH = include
 BUILD_PATH = out
 
 # Tool flags
-CFLAGS = -nostdlib --freestanding -fno-builtin -g -I $(INCLUDE_PATH)/
+CFLAGS = -nostdlib --freestanding -fno-builtin -g -I$(INCLUDE_PATH)/
 ASFLAGS = -f elf
 LDFLAGS = -nostdlib
 QEMUARGS = -serial stdio
 QEMU_DEBUGARGS = -s -S
+
+ifeq ($(DEBUG), 1)
+	CFLAGS += -g -O0 -DHAVE_DEBUG
+endif
 
 # Compilation units that don't depend on system architecture.
 S_BASE_SOURCES = $(shell find $(KERNEL_PATH) -not -path '$(KERNEL_PATH)/arch*' -name '*.s')
