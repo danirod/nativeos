@@ -34,7 +34,6 @@
 #include <driver/com.h>
 #include <driver/keyboard.h>
 #include <driver/timer.h>
-#include <driver/vbe.h>
 #include <kernel/kernel.h>
 #include <kernel/multiboot.h>
 
@@ -80,7 +79,7 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 		LOG("PANIC: Wrong multiboot magic number! Check your bootloader.\n");
 		for(;;);
 	}
-  
+
 	// Not working
 	/*
 	unsigned int memory_amount = count_memory(multiboot_ptr);
@@ -90,7 +89,7 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	*/
 
 	// Check if kfree really is freeing the memory: Working
-	/* 
+        /* 
 	printk("\n\n");
 	int* _int = kmalloc(sizeof(int) * 2);
 	// int* _int4 = kmalloc(sizeof(int) * 2);
@@ -108,7 +107,6 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 
 	printk("Now printk() sends output to serial port if DEBUG = 1.\n");
 
-	vbe_init(multiboot_ptr);
 	frames_init(multiboot_ptr);
 
 	int i;
