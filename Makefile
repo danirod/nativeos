@@ -1,5 +1,5 @@
 # This file is part of NativeOS
-# Copyright (C) 2015-2016 Dani Rodríguez <danirod@outlook.com>
+# Copyright (C) 2015-2018 The NativeOS contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
