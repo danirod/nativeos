@@ -16,6 +16,7 @@
 
 # Build flags
 ARCH = x86
+GIT_VERSION = $(shell git describe --always)
 DEBUG ?= 0
 
 # Tools.
@@ -42,6 +43,7 @@ BUILD_PATH = out
 
 # Tool flags
 CFLAGS = -nostdlib --freestanding -fno-builtin -g -I$(INCLUDE_PATH)/
+CFLAGS += -D_NTOS_VERSION_="\"$(GIT_VERSION)\""
 ASFLAGS = -f elf
 LDFLAGS = -nostdlib
 QEMUARGS = -serial stdio

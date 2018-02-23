@@ -113,15 +113,14 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 	printk("%x [%d], %x [%d]\n", _int2[0], &_int2[0], _int2[1], &_int2[1]);
 	*/
 
-	printk("Now printk() sends output to serial port if DEBUG = 1.\n");
-
 	frames_init(multiboot_ptr);
 
 	int i;
 	for (i = 0; i < 16; i++)
 		idt_set_handler(i, &bsod);
 
-	printk("NativeOS has started.\n\n>");
+        printk("NativeOS\n");
+        printk("Development snapshot, version %s\n", (char *) _NTOS_VERSION_);
 
 	/* Check if kfree really is freeing the memory */
 	/*
