@@ -28,7 +28,6 @@
  */
 
 #include <kernel/memory.h>
-//#include <kernel/io.h>
 
 /**
  * @brief First memory position after the kernel image.
@@ -53,13 +52,13 @@ struct memory_block* last;
 void* kfind_free_block(unsigned int size)
 {
     struct memory_block* current = &kernel_after;
-    struct memory_block* best_block = NULL; /* Block with block.size >= size and (block.size - size) closest to 0 */
+    /* Block with block.size >= size and (block.size - size) closest to 0 */
+    struct memory_block* best_block = NULL;
     char found = 0;
 
     while (current) {
         if (current->free && size <= current->size && (!best_block || current->size < best_block->size)) {
             best_block = current;
-            // printk("Best block: %d\n", (int)best_block);
         }
         current = current->next;
     }
@@ -71,10 +70,6 @@ void kfree(void* addr)
 {
     /* Remove the offset from the base pointer to the block */
     struct memory_block* block = addr - MEM_BLOCK_SIZE;
-    // printk("FREEING block { %d, %d }  at %d\n", block->free, block->size, block);
-
-    /* Clear memory it's unnecesary */
-    // kzero_memory(addr, block->size);
     block->free = 1;
 }
 
@@ -109,14 +104,9 @@ void* kmalloc(unsigned int size)
 
     struct memory_block* block = kfind_free_block(size); 
 
-
     if (!block) {
         block = (struct memory_block*)next_address; 
-
         block->size = size;
-
-        // printk("New block CREATED of size %d\n", size);
-
         next_address += MEM_BLOCK_SIZE + size;
     }
     
@@ -124,12 +114,6 @@ void* kmalloc(unsigned int size)
         last->next = block; 
     last = block;
     block->free = 0;
-
-    /*
-    printk("kmalloc block at %d\n", block);
-    printk("kmalloc %d + %d = %d\n", block, MEM_BLOCK_SIZE, (unsigned char*)block + MEM_BLOCK_SIZE);
-    printk("kmalloc size = %d\n", size);
-    */
 
     /* Add offset to the block to preserve block info */
     return (void*)block + MEM_BLOCK_SIZE;

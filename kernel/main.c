@@ -28,20 +28,13 @@
  * the main entrypoint for NativeOS.
  */
 
-#include <driver/com.h>
-#include <driver/keyboard.h>
-#include <driver/timer.h>
 #include <kernel/cpu/gdt.h>
 #include <kernel/cpu/idt.h>
 #include <kernel/kernel.h>
 #include <kernel/multiboot.h>
 #include <kernel/paging.h>
 
-#ifndef HAVE_DEBUG
-#include <driver/vga.h>
-#endif
-
-#define LOG(msg) (serial_send_str(COM_PORT_1, msg));
+#define LOG(msg)
 
 /**
  * @brief Main routine for the NativeOS Kernel.
@@ -64,18 +57,9 @@
  */
 void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 {
-	// Serial port will act as an early logging device.
-	serial_init(COM_PORT_1, 3);
-
 	// Init hardware.
 	gdt_init();
 	idt_init();
-	timer_init();
-	keyboard_init();
-
-#ifndef HAVE_DEBUG
-	VGACon_Init();
-#endif
 
 	// Check the magic number is valid. On why this check is made here and not
 	// at the beginning of the function: we can defer the check until we
@@ -88,57 +72,6 @@ void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
 		for(;;);
 	}
 
-	// Not working
-	/*
-	unsigned int memory_amount = count_memory(multiboot_ptr);
-	// Set all unused memory to 0 (NULL)
-	kzero_memory(&kernel_after, memory_amount);
-	printk("Memory amount = %d\n", memory_amount);
-	*/
-
-	// Check if kfree really is freeing the memory: Working
-        /*
-	printk("\n\n");
-	int* _int = kmalloc(sizeof(int) * 2);
-	// int* _int4 = kmalloc(sizeof(int) * 2);
-	// LOGf("%d [%d], %d [%d]\n", _int4[0], &_int4[0], _int4[1], &_int4[1]);
-	_int[0] = 0xAAAA;
-	_int[1] = 0xBBBB;
-	printk("%x [%d], %x [%d]\n", _int[0], &_int[0], _int[1], &_int[1]);
-	kfree(_int);
-	printk("Free ended\n");
-	int* _int2 = kmalloc(sizeof(int) * 3);
-	_int2[0] = 0xCCCC;
-	_int2[1] = 0xDDDD;
-	printk("%x [%d], %x [%d]\n", _int2[0], &_int2[0], _int2[1], &_int2[1]);
-	*/
-
 	frames_init(multiboot_ptr);
-
-	int i;
-	for (i = 0; i < 16; i++)
-		idt_set_handler(i, &bsod);
-
-        printk("NativeOS\n");
-        printk("Development snapshot, version %s\n", (char *) _NTOS_VERSION_);
-
-	/* Check if kfree really is freeing the memory */
-	/*
-	printk("\n\n");
-	int* _int = kmalloc(sizeof(int) * 2);
-	// int* _int4 = kmalloc(sizeof(int) * 2);
-	// printk("%d [%d], %d [%d]\n", _int4[0], &_int4[0], _int4[1], &_int4[1]);
-	_int[0] = 0xAAAA;
-	_int[1] = 0xBBBB;
-	printk("%x [%d], %x [%d]\n", _int[0], &_int[0], _int[1], &_int[1]);
-	kfree(_int);
-	printk("Free ended\n");
-	int* _int2 = kmalloc(sizeof(int) * 3);
-	_int2[0] = 0xCCCC;
-	_int2[1] = 0xDDDD;
-	printk("%x [%d], %x [%d]\n", _int2[0], &_int2[0], _int2[1], &_int2[1]);
-	*/
-
-
 	for(;;);
 }

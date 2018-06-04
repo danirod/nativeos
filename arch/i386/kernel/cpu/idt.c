@@ -19,7 +19,6 @@
 #include <kernel/cpu/io.h>
 #include <kernel/cpu/idt.h>
 #include <kernel/cpu/isrdef.h>
-#include <driver/vga.h>
 #include <kernel/kernel.h>
 
 /* Table of contents for the IDT structure. */
@@ -104,7 +103,7 @@ void idt_init()
 /* Fallback handler for interrupts. */
 static void fallback_handler(struct idt_data* data)
 {
-	printk("## Received Interrupt 0x%x ##\n", data->int_no);
+    // NOP
 }
 
 /* This function is invoked when an interrupt is received. */
