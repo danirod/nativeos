@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <arch/x86/gdt.h>
+#include <kernel/cpu/gdt.h>
 
 /* GDT structures. */
 struct gdt gdt_toc;

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <arch/x86/io.h>
+#include <kernel/cpu/io.h>
 #include <driver/com.h>
 
 /**

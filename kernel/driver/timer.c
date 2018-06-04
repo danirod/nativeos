@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <arch/x86/idt.h>
+#include <kernel/cpu/idt.h>
 #include <driver/timer.h>
 
 /* How many ticks has the system received. */

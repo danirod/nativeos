@@ -35,13 +35,6 @@ that although MS-Windows is a supported host, it is not tested
 so often, and a real UNIX or UNIX-like environment such as GNU/Linux
 or MacOS X is recommended, even on a virtual machine.
 
-You will also need the NASM compiler to compile the assembly source
-code files. No port of the sources has been done to GAS at the moment
-and I'm not actively expecting as I'm comfortable with the Intel
-syntax, but I just don't care and I might just port the scripts to
-GAS in the future to reduce the number of tools this project depends
-on.
-
 GNU Make is also required to run the Makefile file.
 
 To build the kernel image just run the following command:

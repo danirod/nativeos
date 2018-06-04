@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <arch/x86/idt.h>
-#include <arch/x86/io.h>
+#include <kernel/cpu/idt.h>
+#include <kernel/cpu/io.h>
 #include <driver/vga.h>
 
 static void keyboard_int_handler(struct idt_data* idt)

@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <arch/x86/paging.h>
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/multiboot.h>
+#include <kernel/paging.h>
 
 /**
  * This is the bitmap that will reference every possible frame in this

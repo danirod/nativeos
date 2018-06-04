@@ -28,14 +28,14 @@
  * the main entrypoint for NativeOS.
  */
 
-#include <arch/x86/gdt.h>
-#include <arch/x86/idt.h>
-#include <arch/x86/paging.h>
 #include <driver/com.h>
 #include <driver/keyboard.h>
 #include <driver/timer.h>
+#include <kernel/cpu/gdt.h>
+#include <kernel/cpu/idt.h>
 #include <kernel/kernel.h>
 #include <kernel/multiboot.h>
+#include <kernel/paging.h>
 
 #ifndef HAVE_DEBUG
 #include <driver/vga.h>

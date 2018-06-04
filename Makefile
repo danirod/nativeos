@@ -33,7 +33,7 @@ ifeq (, $(shell which $(LD)))
     $(error "$(LD) not found. Is the toolchain compiler enabled?")
 endif
 ifeq (, $(shell which $(AS)))
-    $(error "$(AS) not found. Have you installed NASM?")
+    $(error "$(AS) not found. Is the toolchain compiler enabled?")
 endif
 
 # Directories
@@ -43,6 +43,7 @@ BUILD_PATH = out
 
 # Tool flags
 CFLAGS = -nostdlib --freestanding -fno-builtin -g -I$(INCLUDE_PATH)/
+CFLAGS += -Iarch/$(ARCH)/$(INCLUDE_PATH)/
 CFLAGS += -D_NTOS_VERSION_="\"$(GIT_VERSION)\""
 ASFLAGS = -f elf
 LDFLAGS = -nostdlib

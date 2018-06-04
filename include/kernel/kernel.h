@@ -24,7 +24,7 @@
 #ifndef KERNEL_KERNEL_H_
 #define KERNEL_KERNEL_H_
 
-#include <arch/x86/idt.h>
+#include <kernel/cpu/idt.h>
 
 /**
  * @brief Halts the system

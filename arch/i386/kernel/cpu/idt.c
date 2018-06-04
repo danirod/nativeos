@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <arch/x86/io.h>
-#include <arch/x86/idt.h>
-#include <arch/x86/isrdef.h>
+#include <kernel/cpu/io.h>
+#include <kernel/cpu/idt.h>
+#include <kernel/cpu/isrdef.h>
 #include <driver/vga.h>
 #include <kernel/kernel.h>
 
