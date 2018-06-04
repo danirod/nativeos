@@ -15,14 +15,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Build flags
-ARCH = x86
+ARCH = i386
 GIT_VERSION = $(shell git describe --always)
 DEBUG ?= 0
 
 # Tools.
 CC = i386-elf-gcc
 LD = i386-elf-gcc
-AS = nasm
+AS = i386-elf-gcc
 QEMU = qemu-system-i386
 
 # Check that we have the required software.
@@ -54,12 +54,12 @@ ifeq ($(DEBUG), 1)
 endif
 
 # Compilation units that don't depend on system architecture.
-S_BASE_SOURCES = $(shell find $(KERNEL_PATH) -not -path '$(KERNEL_PATH)/arch*' -name '*.s')
-C_BASE_SOURCES = $(shell find $(KERNEL_PATH) -not -path '$(KERNEL_PATH)/arch*' -name '*.c')
+S_BASE_SOURCES = $(shell find $(KERNEL_PATH) -name '*.S')
+C_BASE_SOURCES = $(shell find $(KERNEL_PATH) -name '*.c')
 
 # Compilation units that depend on the current system architecture.
-S_ARCH_SOURCES = $(shell find $(KERNEL_PATH) -path '$(KERNEL_PATH)/arch/$(ARCH)/*' -name '*.s')
-C_ARCH_SOURCES = $(shell find $(KERNEL_PATH) -path '$(KERNEL_PATH)/arch/$(ARCH)/*' -name '*.c')
+S_ARCH_SOURCES = $(shell find 'arch/$(ARCH)/$(KERNEL_PATH)' -name '*.S')
+C_ARCH_SOURCES = $(shell find 'arch/$(ARCH)/$(KERNEL_PATH)' -name '*.c')
 
 # All compilation units. Note S_BASE_SOURCES has priority. This is because
 # we need the bootloader to be early in the compilation list in order to
@@ -70,7 +70,7 @@ S_OBJECTS = $(patsubst %.s, $(BUILD_PATH)/%.o ,$(S_SOURCES))
 C_OBJECTS = $(patsubst %.c, $(BUILD_PATH)/%.o, $(C_SOURCES))
 KERNEL_OBJS = $(S_OBJECTS) $(C_OBJECTS)
 
-KERNEL_LD = $(KERNEL_PATH)/arch/$(ARCH)/linker.ld
+KERNEL_LD = arch/$(ARCH)/kernel/linker.ld
 KERNEL_IMAGE = $(BUILD_PATH)/nativeos.elf
 
 # These variables are used when building the distribution disk.
