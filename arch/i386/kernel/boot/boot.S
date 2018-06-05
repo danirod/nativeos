@@ -37,12 +37,20 @@
 
     .global Bootstrap
     Bootstrap:
+/* Test that the magic number is correct, so that we can be free from this.
+   GNU GRUB must have placed the value 0x2badb002 in the EAX register.
+   If this is not the case, something is very wrong with this bootloader
+   and we should not boot. */
+        cmpl $0x2badb002, %eax
+        je .BootstrapContinueBooting
+        jmp kdie
+
+    .BootstrapContinueBooting:
 /* Set up the stack. */
         movl $(Stack + STACK_SIZE), %esp
 
 /* Execute the kernel. */
         pushl %ebx
-        pushl %eax
         call kmain
         jmp kdie
 

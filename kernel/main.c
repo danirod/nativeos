@@ -55,23 +55,11 @@
  * @param magic_number the magic number provided by the bootloader.
  * @param multiboot_ptr a pointer to a multiboot structure.
  */
-void kmain(unsigned int magic_number, multiboot_info_t *multiboot_ptr)
+void kmain(multiboot_info_t *multiboot_ptr)
 {
 	// Init hardware.
 	gdt_init();
 	idt_init();
-
-	// Check the magic number is valid. On why this check is made here and not
-	// at the beginning of the function: we can defer the check until we
-	// actually need to use the *multiboot_ptr structure. Even if the kernel
-	// wasn't loaded using a multiboot compatible bootloader, anything done
-	// until now (enabling ports and setting up early hardware drivers) would
-	// be valid code because it doesn't depend on the multiboot structure.
-	if (magic_number != 0x2BADB002) {
-		LOG("PANIC: Wrong multiboot magic number! Check your bootloader.\n");
-		for(;;);
-	}
-
 	frames_init(multiboot_ptr);
 	for(;;);
 }

@@ -45,7 +45,7 @@ BUILD_PATH = out
 CFLAGS = -nostdlib --freestanding -fno-builtin -g -I$(INCLUDE_PATH)/
 CFLAGS += -Iarch/$(ARCH)/$(INCLUDE_PATH)/
 CFLAGS += -D_NTOS_VERSION_="\"$(GIT_VERSION)\""
-ASFLAGS = -f elf
+ASFLAGS = -g
 LDFLAGS = -nostdlib
 QEMUARGS = -serial stdio
 QEMU_DEBUGARGS = -s -S
