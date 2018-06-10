@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/multiboot.h>
 #include <kernel/paging.h>

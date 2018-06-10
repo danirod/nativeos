@@ -30,7 +30,6 @@
 
 #include <kernel/cpu/gdt.h>
 #include <kernel/cpu/idt.h>
-#include <kernel/kernel.h>
 #include <kernel/multiboot.h>
 #include <kernel/paging.h>
 

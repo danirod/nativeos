@@ -19,7 +19,6 @@
 #include <kernel/cpu/io.h>
 #include <kernel/cpu/idt.h>
 #include <kernel/cpu/isrdef.h>
-#include <kernel/kernel.h>
 
 /* Table of contents for the IDT structure. */
 struct idt_table idt_toc;
