@@ -44,6 +44,7 @@ BUILD_PATH = out
 # Tool flags
 CFLAGS = -nostdlib --freestanding -fno-builtin -g -I$(INCLUDE_PATH)/
 CFLAGS += -Iarch/$(ARCH)/$(INCLUDE_PATH)/
+CFLAGS += -Ilibc/include/
 CFLAGS += -D_NTOS_VERSION_="\"$(GIT_VERSION)\""
 ASFLAGS = -g
 LDFLAGS = -nostdlib
@@ -62,6 +63,10 @@ C_BASE_SOURCES = $(shell find $(KERNEL_PATH) -name '*.c')
 S_ARCH_SOURCES = $(shell find 'arch/$(ARCH)/$(KERNEL_PATH)' -name '*.S')
 C_ARCH_SOURCES = $(shell find 'arch/$(ARCH)/$(KERNEL_PATH)' -name '*.c')
 
+# The klibc is also required to compile the kernel.
+KLIBC_LIBRARY = libc/libc.a
+KLIBC_SOURCES = $(shell find 'libc/src/' -name '*.c')
+
 # All compilation units. Note S_BASE_SOURCES has priority. This is because
 # we need the bootloader to be early in the compilation list in order to
 # properly link the binary.
@@ -69,7 +74,7 @@ S_SOURCES = $(S_BASE_SOURCES) $(S_ARCH_SOURCES)
 C_SOURCES = $(C_BASE_SOURCES) $(C_ARCH_SOURCES)
 S_OBJECTS = $(patsubst %.s, $(BUILD_PATH)/%.o ,$(S_SOURCES))
 C_OBJECTS = $(patsubst %.c, $(BUILD_PATH)/%.o, $(C_SOURCES))
-KERNEL_OBJS = $(S_OBJECTS) $(C_OBJECTS)
+KERNEL_OBJS = $(S_OBJECTS) $(C_OBJECTS) $(KLIBC_LIBRARY)
 
 KERNEL_LD = arch/$(ARCH)/kernel/linker.ld
 KERNEL_IMAGE = $(BUILD_PATH)/nativeos.elf
@@ -101,6 +106,10 @@ $(BUILD_PATH)/%.o: %.s
 $(KERNEL_IMAGE): $(KERNEL_OBJS)
 	$(LD) $(LDFLAGS) -T $(KERNEL_LD) -o $@ $^
 
+# Build the static library.
+$(KLIBC_LIBRARY): $(KLIBC_SOURCES)
+	make -C libc
+
 # Builds CD-ROM.
 $(NATIVE_DISK): $(KERNEL_IMAGE)
 	rm -rf $(BUILD_PATH)/cdrom
@@ -123,3 +132,4 @@ qemu-gdb: $(NATIVE_DISK)
 clean:
 	rm -rvf $(BUILD_PATH)
 	rm -vf $(NATIVE_DISK) $(KERNEL_IMAGE)
+	make -C libc clean

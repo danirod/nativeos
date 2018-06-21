@@ -1,0 +1,18 @@
+CC=i386-elf-gcc
+AR=i386-elf-ar
+
+CFLAGS=-Iinclude
+
+LIBC_SOURCES = $(shell find src -name '*.c')
+LIBC_OBJECTS = $(patsubst %.c, %.o, $(LIBC_SOURCES))
+
+.PHONY = clean
+
+libc.a: $(LIBC_OBJECTS)
+	$(AR) r $@ $<
+
+%.o: %.c
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+clean:
+	rm -rf $(LIBC_OBJECTS) libc.a
