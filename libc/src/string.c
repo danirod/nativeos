@@ -65,3 +65,45 @@ size_t strlen(const char* s)
     for (ptr = s; *ptr; ptr++);
     return (ptr - s);
 }
+
+int strcmp(const char *s1, const char *s2)
+{
+    unsigned char *cmp1 = (unsigned char *) s1;
+    unsigned char *cmp2 = (unsigned char *) s2;
+
+    while (*cmp1 && *cmp2) {
+        if (*cmp1 != *cmp2) {
+            /* Characters on this position do not match. Break. */
+            return (*cmp1 - *cmp2);
+        }
+        cmp1++;
+        cmp2++;
+    }
+
+    /* They didn't say which positive or negative number had to be returned. */
+    return (*cmp1 - *cmp2) > 0 ? 1 : -1;
+}
+
+int strncmp(const char *s1, const char *s2, size_t n)
+{
+    unsigned char *cmp1 = (unsigned char *) s1;
+    unsigned char *cmp2 = (unsigned char *) s2;
+
+    if (n == 0) {
+        /* Early bail out. */
+        return 0;
+    }
+
+    /* *cmp1 && *cmp2 will bail out once NUL is reached for any string. */
+    while (*cmp1 && *cmp2 && n--) {
+        if (*cmp1 != *cmp2) {
+            /* Characters on this position do not match. Break. */
+            return (*cmp1 - *cmp2);
+        }
+        cmp1++;
+        cmp2++;
+    }
+
+    /* They didn't say which positive or negative number had to be returned. */
+    return (*cmp1 - *cmp2) > 0 ? 1 : -1;
+}

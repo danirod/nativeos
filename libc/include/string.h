@@ -33,3 +33,21 @@ size_t strlen(const char* s);
  * @return the computed length of the string s or maxlen if it's larger.
  */
 size_t strnlen(const char *s, size_t maxlen);
+
+/**
+ * @brief Compare lexicographically both strings.
+ * @param s1 the first string to compare
+ * @param s2 the second string to compare
+ * @return <0 if s1 > s2, >0 if s1 < s2, 0 if s1 == s2
+ */
+int strcmp(const char *s1, const char *s2);
+
+/**
+ * @brief Compare lexicographically no more than n characters from both strings.
+ * @param s1 the first string to compare
+ * @param s2 the second string to compare
+ * @param n the maximum number of characters to compare
+ * @return <0 if s1 > s2, >0 if s1 < s2, 0 if s1 == s2
+ */
+int strncmp(const char *s1, const char *s2, size_t n);
+
