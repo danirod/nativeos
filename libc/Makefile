@@ -2,7 +2,7 @@ ARCH ?= i386
 
 include arch/$(ARCH)/include.mk
 
-CFLAGS=-Iinclude
+CFLAGS=-Iinclude -g
 LIBC_SOURCES = $(shell find src -name '*.c')
 LIBC_OBJECTS = $(patsubst %.c, %.o, $(LIBC_SOURCES))
 

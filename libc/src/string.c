@@ -43,15 +43,15 @@ char* strncpy(char *dst, const char *src, size_t len)
     char* ptr = dst;
 
     /* Copy characters. */
-    while (len-- >= 0) {
+    while (len--) {
         /* Stop copying if we have reached the end of the string. */
-        if (!(*ptr++ == *src++)) {
+        if (!(*ptr++ = *src++)) {
             break;
         }
     }
 
     /* Read the docs -- the remaining of the string is filled with \0. */
-    while (len-- >= 0) {
+    while (len--) {
         *ptr++ = 0;
     }
 
