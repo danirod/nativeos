@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of NativeOS
  * Copyright (C) 2015-2018 The NativeOS contributors
  *
@@ -32,6 +32,7 @@
 #include <kernel/cpu/idt.h>
 #include <kernel/multiboot.h>
 #include <kernel/paging.h>
+#include <kernel/mem/heap.h>
 
 #define LOG(msg)
 
@@ -59,6 +60,7 @@ void kmain(multiboot_info_t *multiboot_ptr)
 	// Init hardware.
 	gdt_init();
 	idt_init();
+	heap_init();
 	frames_init(multiboot_ptr);
 	for(;;);
 }
