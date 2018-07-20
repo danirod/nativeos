@@ -9,7 +9,7 @@ LIBC_OBJECTS = $(patsubst %.c, %.o, $(LIBC_SOURCES))
 .PHONY = clean
 
 libc.a: $(LIBC_OBJECTS)
-	$(AR) r $@ $<
+	$(AR) r $@ $^
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
