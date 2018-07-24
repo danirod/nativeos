@@ -3,6 +3,14 @@
 #include <stddef.h>
 
 /**
+ * @brief Copies the given number of characters from one buffer to other.
+ * @param dst the target buffer to copy data to.
+ * @param src the source buffer to copy data from.
+ * @param count the amount of bytes to transfer from source to dest.
+ */
+void* memcpy(void* dst, void* src, size_t count);
+
+/**
  * @brief Copies at most len characters from src into dst.
  * @param dst the target string where to put the copied characters.
  * @param src the source string to copy characters from.
