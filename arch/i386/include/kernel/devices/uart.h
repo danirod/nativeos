@@ -56,3 +56,4 @@ struct serial_config {
  */
 #define SERIAL_IORQ_SETRATE 1
 
+int serial_install(void);

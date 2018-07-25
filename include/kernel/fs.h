@@ -31,6 +31,8 @@
 
 #include <stddef.h>
 
+#define VFS_FILE_MAXLEN 64
+
 #define VFS_TYPE_NUL 0x00
 #define VFS_TYPE_FILE 0x01
 #define VFS_TYPE_DIRECTORY 0x02
@@ -46,6 +48,10 @@ typedef size_t (vfs_write_t) (struct vfs_node * node, unsigned char * buffer,
 		unsigned int offset, size_t length);
 typedef void * (vfs_iorq_t) (struct vfs_node * node, unsigned int iorq,
 		void * argp);
+typedef struct vfs_dirent * (vfs_readdir_t) (struct vfs_node * node,
+		unsigned int index);
+typedef struct vfs_node * (vfs_finddir_t) (struct vfs_node * node,
+		const char * name);
 
 struct vfs_node {
 	unsigned int inode, length, type;
@@ -54,5 +60,11 @@ struct vfs_node {
 	vfs_read_t * read;
 	vfs_write_t * write;
 	vfs_iorq_t * iorq;
+	vfs_readdir_t * readdir;
+	vfs_finddir_t * finddir;
 };
 
+struct vfs_dirent {
+	unsigned int inode;
+	char name[VFS_FILE_MAXLEN + 1];
+};

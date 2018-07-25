@@ -27,6 +27,7 @@
  */
 
 #include <kernel/fs.h>
+#include <kernel/devfs.h>
 
 #include <kernel/devices/uart.h>
 #include <kernel/cpu/io.h>
@@ -368,3 +369,9 @@ static struct vfs_node serial_fd = {
 	.write = &serial_fd_write,
 	.iorq = &serial_fd_iorq
 };
+
+int serial_install(void)
+{
+	devfs_device_install("serial", &serial_fd);
+	return 0;
+}

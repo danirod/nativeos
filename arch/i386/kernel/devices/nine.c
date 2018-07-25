@@ -1,4 +1,5 @@
 #include <kernel/fs.h>
+#include <kernel/devfs.h>
 
 static int
 nine_fd_open (struct vfs_node * node, void * argp)
@@ -38,3 +39,10 @@ static struct vfs_node nine_fd = {
 	.write = &nine_fd_write,
 	.close = &nine_fd_close
 };
+
+int
+nine_install (void)
+{
+	devfs_device_install("nine", &nine_fd);
+	return 0;
+}
