@@ -47,6 +47,20 @@ typedef unsigned int elf32_offt;
 #define ELF_SHT_SHLIB 10
 #define ELF_SHT_DYNSYM 11
 
+#define ELF_STB_LOCAL 0
+#define ELF_STB_GLOBAL 1
+#define ELF_STB_WEAK 2
+#define ELF_STB_LOPROC 13
+#define ELF_STB_HIPROC 15
+
+#define ELF_STT_NOTYPE 0
+#define ELF_STT_OBJECT 1
+#define ELF_STT_FUNC 2
+#define ELF_STT_SECTION 3
+#define ELF_STT_FILE 4
+#define ELF_STT_LOPROC 13
+#define ELF_STT_HIPROC 15
+
 struct elf32_header {
 	unsigned char ident[ELF_IDENT_SIZE];
 	elf32_hword type;
@@ -76,6 +90,16 @@ struct elf32_section_header {
 	elf32_word addralign;
 	elf32_word entsize;
 };
+
+struct elf32_symt_entry {
+	elf32_word name;
+	elf32_addr value;
+	elf32_word size;
+	unsigned char info;
+	unsigned char other;
+	elf32_hword shndx;
+};
+
 /**
  * \brief Tests whether NativeOS is able to understand the given ELF header.
  * \param header a pointer to something that may look like an ELF header.
@@ -91,3 +115,29 @@ int elf_is_valid (struct elf32_header * header);
  */
 struct elf32_section_header *
 elf_get_section_header (struct elf32_header * header, unsigned int index);
+
+/**
+ * \brief Counts the number of symbols present in the given symbol table.
+ * \param hdr a header pointing to a ELF section header of type SYMTAB.
+ * \return the amount of symbols contained in the given symbol table header.
+ */
+unsigned int
+elf_count_symtab_symbols (struct elf32_section_header * hdr);
+
+/**
+ * \brief Get a descriptor to a particular symbol table entry.
+ * \param hdr a header to some ELF section header of type SYMTAB.
+ * \param i the number of symbol table entry to retrieve.
+ * \return the symbol table entry or NULL if no table entry.
+ */
+struct elf32_symt_entry *
+elf_get_symtab_entry (struct elf32_section_header * hdr, unsigned int i);
+
+/**
+ * \brief Get a string from the string table given its index.
+ * \param hdr a header to some ELF section header of type STRTAB.
+ * \param i the index of the string to retrieve.
+ * \return the null-terminated string contained in the given index.
+ */
+char *
+elf_get_strtab_entry (struct elf32_section_header * hdr, unsigned int i);
