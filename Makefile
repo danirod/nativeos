@@ -39,6 +39,7 @@ endif
 # Directories
 KERNEL_PATH = kernel
 INCLUDE_PATH = include
+KEXT_PATH = ext
 BUILD_PATH = out
 
 # Tool flags
@@ -79,6 +80,10 @@ KERNEL_OBJS = $(S_OBJECTS) $(C_OBJECTS) $(KLIBC_LIBRARY)
 KERNEL_LD = arch/$(ARCH)/kernel/linker.ld
 KERNEL_IMAGE = $(BUILD_PATH)/nativeos.elf
 
+KEXT_MODS = $(shell find $(KEXT_PATH) -type d -mindepth 1 -maxdepth 1 -exec basename {} \;)
+KEXT_OBJS = $(patsubst %, $(BUILD_PATH)/$(KEXT_PATH)/%.kxt, $(KEXT_MODS))
+KEXT_LD = arch/$(ARCH)/ext/linker.ld
+
 # These variables are used when building the distribution disk.
 NATIVE_DISK = $(BUILD_PATH)/nativeos.iso
 NATIVE_DISK_KERNEL = nativeos.exe
@@ -102,8 +107,12 @@ $(BUILD_PATH)/%.o: %.s
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $<
 
+$(BUILD_PATH)/ext/%.kxt: ext/%/*.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -r -T $(KEXT_LD) -o $@ $^
+
 # Kernel ELF binary image.
-$(KERNEL_IMAGE): $(KERNEL_OBJS)
+$(KERNEL_IMAGE): $(KERNEL_OBJS) $(KEXT_OBJS)
 	$(LD) $(LDFLAGS) -T $(KERNEL_LD) -o $@ $^
 
 # Build the static library.
@@ -114,7 +123,9 @@ $(KLIBC_LIBRARY): $(KLIBC_SOURCES)
 $(NATIVE_DISK): $(KERNEL_IMAGE)
 	rm -rf $(BUILD_PATH)/cdrom
 	cp -R tools/cdrom $(BUILD_PATH)
+	mkdir -p $(BUILD_PATH)/cdrom/nativeos
 	cp $(KERNEL_IMAGE) $(BUILD_PATH)/cdrom/boot/$(NATIVE_DISK_KERNEL)
+	cp $(BUILD_PATH)/ext/*.kxt $(BUILD_PATH)/cdrom/nativeos
 	grub-mkrescue -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ $(BUILD_PATH)/cdrom
 
 # Create an ISO file and run it through QEMU.
