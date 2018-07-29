@@ -31,6 +31,8 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 /**
  * \brief Register a symbol in the symbol tab.
  * \param name the name of this symbol.
@@ -50,3 +52,12 @@ void symtab_del_entry (const char * name);
  * \return the address of the given symbol or NULL if not found.
  */
 uintptr_t symtab_get_addr (const char * name);
+
+/**
+ * \brief Load symbols in an ELF symbol table into the symbol table.
+ * \param symtab the symbol table of an ELF binary object.
+ * \param strtab the string table of an ELF binary object.
+ */
+void
+symtab_load_elf_symtab(struct elf32_section_header * symtab,
+		struct elf32_section_header *strtab);

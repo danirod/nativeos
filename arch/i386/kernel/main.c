@@ -28,6 +28,8 @@
  * the main entrypoint for NativeOS.
  */
 
+#include <elf/elf.h>
+#include <elf/symtab.h>
 #include <kernel/cpu/gdt.h>
 #include <kernel/cpu/idt.h>
 #include <kernel/multiboot.h>
@@ -35,6 +37,50 @@
 #include <kernel/mem/heap.h>
 
 #define LOG(msg)
+
+/**
+ * \brief Parse the kernel image ELF header looking for public symbols.
+ *
+ * When a multiboot bootloader such as GRUB loads the kernel image, one of the
+ * fields contains information about the ELF image itself, including pointers
+ * to the different section headers included in the ELF image.
+ *
+ * This function will parse the section headers looking for the symbol table
+ * and the string table.  Using this headers, it is possible to build an index
+ * of global function symbols, including names and memory addresses. This index
+ * is added to the kernel symbol table.
+ *
+ * After calling this function, the kernel symbol table will have information
+ * about the public functions available in the kernel, such as kmain.  These
+ * functions are required to load kernel extensions, since kernel extensions
+ * are relocatable ELF objects that use functions part of the kernel, but uses
+ * placeholders as memory addresses because the ELF object does not know the
+ * exact location of the function in the kernel image at compile time.
+ *
+ * \param elf a pointer to the ELF table index provided by Multiboot.
+ */
+static void
+read_kernel_symbol_table (struct multiboot_elf * elf)
+{
+	struct elf32_section_header * entry, * symtab = 0, * strtab = 0;
+	unsigned int i, addr;
+
+	for (i = 0; i < elf->size; i++) {
+		addr = elf->addr + (i * elf->size);
+		entry = (struct elf32_section_header *) addr;
+		if (!strtab && entry->type == ELF_SHT_STRTAB) {
+			strtab = entry;
+		}
+		if (!symtab && entry->type == ELF_SHT_SYMTAB) {
+			symtab = entry;
+		}
+		if (symtab && strtab) {
+			break;
+		}
+	}
+
+	symtab_load_elf_symtab(symtab, strtab);
+}
 
 /**
  * @brief Main routine for the NativeOS Kernel.
@@ -62,5 +108,6 @@ void kmain(multiboot_info_t *multiboot_ptr)
 	idt_init();
 	heap_init();
 	frames_init(multiboot_ptr);
+	read_kernel_symbol_table(&multiboot_ptr->aout_elf.elf);
 	for(;;);
 }

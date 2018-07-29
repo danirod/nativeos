@@ -34,9 +34,9 @@
  * slow or not fast enough.
  */
 
-#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <elf/elf.h>
 #include <elf/symtab.h>
 
 struct symtab_entry;
@@ -141,14 +141,29 @@ symtab_get_addr (const char * name)
 }
 
 void
-symtab_load_elf_symbols (struct elf32_section_header * sym_hdr,
-		struct elf32_section_header * str_hdr)
+symtab_load_elf_symtab(struct elf32_section_header * symtab,
+		struct elf32_section_header *strtab)
 {
-	unsigned int i, sym_count;
+	unsigned int i, symbols;
+	unsigned char type, bind;
 	struct elf32_symt_entry * symbol;
+	char * symb_name;
+	uintptr_t symb_addr;
 
-	sym_count = sym_hdr->size / sizeof (struct elf32_symt_entry);
-	for (i = 0; i < sym_count; i++) {
-		symbol = (struct elf32_symt_entry *) sym_hdr->
+	symbols = elf_count_symtab_symbols(symtab);
+	for (i = 0; i < symbols; i++) {
+		symbol = elf_get_symtab_entry(symtab, i);
+
+		/* Check if this symbol represents a global function. */
+		bind = symbol->info >> 4;
+		type = symbol->info & 0xF;
+		if (bind != ELF_STB_GLOBAL || type != ELF_STT_FUNC) {
+			continue;
+		}
+
+		/* Get the symbol name.  */
+		symb_name = elf_get_strtab_entry(strtab, symbol->name);
+		symb_addr = (uintptr_t) symbol->value;
+		symtab_new_entry(symb_name, symb_addr);
 	}
 }

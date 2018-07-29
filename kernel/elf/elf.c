@@ -89,3 +89,29 @@ elf_get_section_header (struct elf32_header * header, unsigned int index)
 	hdr = base + header->shoff + (index * header->shentsize);
 	return (struct elf32_section_header *) hdr;
 }
+
+unsigned int
+elf_count_symtab_symbols (struct elf32_section_header * hdr)
+{
+	return hdr->size / sizeof (struct elf32_symt_entry);
+}
+
+struct elf32_symt_entry *
+elf_get_symtab_entry (struct elf32_section_header * hdr, unsigned int i)
+{
+	unsigned int offset = sizeof (struct elf32_symt_entry) * i;
+	if (offset > hdr->size) {
+		/* Out of bounds.  */
+		return 0;
+	}
+	return (struct elf32_symt_entry *) hdr->addr + i;
+}
+
+char *
+elf_get_strtab_entry (struct elf32_section_header * hdr, unsigned int i)
+{
+	if (i >= hdr->size) {
+		return 0;
+	}
+	return ((char *) hdr->addr) + i;
+}
