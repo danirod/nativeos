@@ -34,6 +34,19 @@ typedef unsigned int elf32_offt;
 
 #define ELF_IDENT_SIZE 16
 
+#define ELF_SHT_NULL 0
+#define ELF_SHT_PROGBITS 1
+#define ELF_SHT_SYMTAB 2
+#define ELF_SHT_STRTAB 3
+#define ELF_SHT_RELA 4
+#define ELF_SHT_HASH 5
+#define ELF_SHT_DYNAMIC 6
+#define ELF_SHT_NOTE 7
+#define ELF_SHT_NOBITS 8
+#define ELF_SHT_REL 9
+#define ELF_SHT_SHLIB 10
+#define ELF_SHT_DYNSYM 11
+
 struct elf32_header {
 	unsigned char ident[ELF_IDENT_SIZE];
 	elf32_hword type;
@@ -51,9 +64,30 @@ struct elf32_header {
 	elf32_hword shstrndx;
 };
 
+struct elf32_section_header {
+	elf32_word name;
+	elf32_word type;
+	elf32_word flags;
+	elf32_addr addr;
+	elf32_offt offset;
+	elf32_word size;
+	elf32_word link;
+	elf32_word info;
+	elf32_word addralign;
+	elf32_word entsize;
+};
 /**
  * \brief Tests whether NativeOS is able to understand the given ELF header.
  * \param header a pointer to something that may look like an ELF header.
  * \return 0 if the header does not represent a valid ELF image, 1 otherwise.
  */
 int elf_is_valid (struct elf32_header * header);
+
+/**
+ * \brief Returns a pointer to some ELF section header given by its index.
+ * \param header a pointer to the ELF object file header.
+ * \param index the number of section to return.
+ * \return a pointer to the given header or NULL if invalid index.
+ */
+struct elf32_section_header *
+elf_get_section_header (struct elf32_header * header, unsigned int index);

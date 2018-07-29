@@ -75,3 +75,17 @@ elf_is_valid (struct elf32_header * header)
 
 	return 1;
 }
+
+struct elf32_section_header *
+elf_get_section_header (struct elf32_header * header, unsigned int index)
+{
+	unsigned int base, hdr;
+
+	if (index >= header->shnum) {
+		return 0;
+	}
+
+	base = (unsigned int) header;
+	hdr = base + header->shoff + (index * header->shentsize);
+	return (struct elf32_section_header *) hdr;
+}
