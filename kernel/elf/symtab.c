@@ -122,6 +122,10 @@ symtab_del_entry (const char * name)
 			/* It's also the last item.  */
 			symtab_list.last = prev;
 		}
+
+		free(entry->name);
+		free(entry);
+
 		return;
 	}
 }
