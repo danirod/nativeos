@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of NativeOS
  * Copyright (C) 2015-2018 The NativeOS contributors
  *
@@ -28,6 +28,9 @@ struct idt_entry idt_entries[INTERRUPTS];
 
 /* This is the function that actually loads the IDT table. */
 extern void idt_load(void);
+
+/* Halts the system. */
+extern void kdie(void);
 
 /* This function will modify one entry in the IDT table. */
 static void idt_set_entry(int pos, unsigned int offset,

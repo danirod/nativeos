@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of NativeOS
  * Copyright (C) 2015-2018 The NativeOS contributors
  *
@@ -51,7 +51,7 @@ struct memory_block* last;
 
 void* kfind_free_block(unsigned int size)
 {
-    struct memory_block* current = &kernel_after;
+    struct memory_block* current = (struct memory_block *) &kernel_after;
     /* Block with block.size >= size and (block.size - size) closest to 0 */
     struct memory_block* best_block = NULL;
     char found = 0;
@@ -94,7 +94,7 @@ void kfree(void* addr)
  * NULL.
  *
  * @param size how many bytes do we want to reserve.
- * 
+ *
  * @return pointer to a valid buffer that has been allocated.
  */
 void* kmalloc(unsigned int size)
@@ -102,16 +102,16 @@ void* kmalloc(unsigned int size)
     if (size == 0)
         return NULL;
 
-    struct memory_block* block = kfind_free_block(size); 
+    struct memory_block* block = kfind_free_block(size);
 
     if (!block) {
-        block = (struct memory_block*)next_address; 
+        block = (struct memory_block*)next_address;
         block->size = size;
         next_address += MEM_BLOCK_SIZE + size;
     }
-    
-    if (last) 
-        last->next = block; 
+
+    if (last)
+        last->next = block;
     last = block;
     block->free = 0;
 
@@ -124,7 +124,7 @@ void kmemset(void* position, char byte, unsigned int nbytes)
 {
     void* end = position + nbytes;
     while (position < end) {
-        *(char*)(position) = byte; 
+        *(char*)(position) = byte;
         position++;
     }
 }
