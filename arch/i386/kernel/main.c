@@ -30,6 +30,7 @@
 
 #include <elf/elf.h>
 #include <elf/symtab.h>
+#include <module.h>
 #include <kernel/cpu/gdt.h>
 #include <kernel/cpu/idt.h>
 #include <kernel/multiboot.h>
@@ -80,6 +81,27 @@ read_kernel_symbol_table (struct multiboot_elf * elf)
 	symtab_load_elf_symtab(symtab, strtab);
 }
 
+static void
+load_kernel_module (struct multiboot_module * mod)
+{
+	struct kext_module kext;
+	kext.addr = mod->mod_start;
+	kext.size = mod->mod_end - mod->mod_start;
+	kext_process(&kext);
+}
+
+static void
+load_kernel_modules (struct multiboot_info * mboot)
+{
+	struct multiboot_module * base, mod;
+	int i;
+
+	base = (struct multiboot_module *) mboot->mods_addr;
+	for (i = 0; i < mboot->mods_count; i++) {
+		load_kernel_module(base + i);
+	}
+}
+
 /**
  * @brief Main routine for the NativeOS Kernel.
  *
@@ -107,5 +129,6 @@ void kmain(multiboot_info_t *multiboot_ptr)
 	heap_init();
 	frames_init(multiboot_ptr);
 	read_kernel_symbol_table(&multiboot_ptr->aout_elf.elf);
+	load_kernel_modules(multiboot_ptr);
 	for(;;);
 }
