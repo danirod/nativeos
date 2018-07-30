@@ -34,6 +34,14 @@ typedef unsigned int elf32_offt;
 
 #define ELF_IDENT_SIZE 16
 
+#define ELF_ET_NONE 0
+#define ELF_ET_REL 1
+#define ELF_ET_EXEC 2
+#define ELF_ET_DYN 3
+#define ELF_ET_CORE 4
+#define ELF_ET_LOPROC 0xFF00
+#define ELF_ET_HIPROC 0xFFFF
+
 #define ELF_SHT_NULL 0
 #define ELF_SHT_PROGBITS 1
 #define ELF_SHT_SYMTAB 2
