@@ -34,8 +34,6 @@
 #include <kernel/paging.h>
 #include <kernel/mem/heap.h>
 
-#define LOG(msg)
-
 /**
  * @brief Main routine for the NativeOS Kernel.
  *
