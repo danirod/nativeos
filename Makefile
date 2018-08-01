@@ -112,7 +112,7 @@ $(BUILD_PATH)/ext/%.kxt: ext/%/*.c
 	$(CC) $(CFLAGS) -r -T $(KEXT_LD) -o $@ $^
 
 # Kernel ELF binary image.
-$(KERNEL_IMAGE): $(KERNEL_OBJS) $(KEXT_OBJS)
+$(KERNEL_IMAGE): $(KERNEL_OBJS)
 	$(LD) $(LDFLAGS) -T $(KERNEL_LD) -o $@ $^
 
 # Build the static library.
@@ -120,7 +120,7 @@ $(KLIBC_LIBRARY): $(KLIBC_SOURCES)
 	make -C libc
 
 # Builds CD-ROM.
-$(NATIVE_DISK): $(KERNEL_IMAGE)
+$(NATIVE_DISK): $(KERNEL_IMAGE) $(KEXT_OBJS)
 	rm -rf $(BUILD_PATH)/cdrom
 	cp -R tools/cdrom $(BUILD_PATH)
 	mkdir -p $(BUILD_PATH)/cdrom/nativeos
