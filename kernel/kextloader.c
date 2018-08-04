@@ -26,6 +26,9 @@
  * tables, relocating the extensions into their memory addresses, and importing
  * symbols into the kernel symbol table.
  */
+#include <stdlib.h>
+#include <string.h>
+
 #include <elf/elf.h>
 #include <elf/symtab.h>
 #include <module.h>
@@ -343,6 +346,50 @@ kext_rel_relocate (struct elf32_header * elf)
 }
 
 /**
+ * \brief Allocate NOBITS sections.
+ *
+ * In order to save space, the ELF specification supports having segments
+ * stripped from the binary ELF file.  When the binary is loaded, it is
+ * expected that the loader allocates a memory region of the requested size, to
+ * use as that particular segment.  These segments are of type NOBITS.
+ *
+ * One of the most important types of NOBITS segments is BSS, which is the area
+ * used by uninitialized global or static variables, or those whose initial
+ * state is 0x00.  Instead of having space in the ELF binary full of zeroes,
+ * the ELF image just stores the amount of bytes that has this section, and the
+ * loader reserves and memsets this section to save space in the ELF image.
+ *
+ * This function will process the ELF image looking for segments whose type is
+ * NOBITS and where the ALLOC flag is set to true, and it will allocate memory
+ * regions to use as BSS segments.
+ *
+ * \param elf the ELF image to allocate.
+ */
+static void
+kext_allocate_nobits (struct elf32_header * elf)
+{
+	unsigned int i;
+	unsigned char * p, * buffer;
+	struct elf32_section_header * header;
+
+	for (i = 0; i < elf->shnum; i++) {
+		header = elf_get_section_header(elf, i);
+
+		/* Only interested about sections not allocated.  */
+		if (header->type != ELF_SHT_NOBITS) continue;
+		if ((header->flags & ELF_SHF_ALLOC) == 0) continue;
+		if (header->size == 0) continue;
+
+		/* Allocate a memory region for this kernel extension.  */
+		buffer = malloc(header->size);
+		memset(buffer, 0, header->size);
+
+		/* Update the header to point to this buffer.  */
+		header->offset = (uintptr_t) buffer - (uintptr_t) elf;
+	}
+}
+
+/**
  * \brief Process a relocatable kernel extension.
  *
  * Among other things, this function will update the virtual address of this
@@ -353,6 +400,7 @@ static int
 kext_process_rel (struct elf32_header * elf)
 {
 	/* TODO: Should be better to first load all the symbols.  */
+	kext_allocate_nobits(elf);
 	kext_rel_load_symbols(elf);
 	kext_rel_relocate(elf);
 	return 0;

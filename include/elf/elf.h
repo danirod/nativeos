@@ -55,6 +55,11 @@ typedef unsigned int elf32_offt;
 #define ELF_SHT_SHLIB 10
 #define ELF_SHT_DYNSYM 11
 
+#define ELF_SHF_WRITE 0x01
+#define ELF_SHF_ALLOC 0x02
+#define ELF_SHF_EXECINSTR 0x04
+#define ELF_SHF_MASKPROC 0xF0000000
+
 #define ELF_SHN_UNDEF 0
 #define ELF_SHN_LORESERVE 0xFF00
 #define ELF_SHN_LOPROC 0xFF00
