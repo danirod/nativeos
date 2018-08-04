@@ -55,6 +55,14 @@ typedef unsigned int elf32_offt;
 #define ELF_SHT_SHLIB 10
 #define ELF_SHT_DYNSYM 11
 
+#define ELF_SHN_UNDEF 0
+#define ELF_SHN_LORESERVE 0xFF00
+#define ELF_SHN_LOPROC 0xFF00
+#define ELF_SHN_HIPROC 0xFF1F
+#define ELF_SHN_ABS 0xFFF1
+#define ELF_SHN_COMMON 0xFFF2
+#define ELF_SHN_HIRESERVE 0xFFFF
+
 #define ELF_STB_LOCAL 0
 #define ELF_STB_GLOBAL 1
 #define ELF_STB_WEAK 2
@@ -68,6 +76,18 @@ typedef unsigned int elf32_offt;
 #define ELF_STT_FILE 4
 #define ELF_STT_LOPROC 13
 #define ELF_STT_HIPROC 15
+
+#define ELF_R386_NONE 0
+#define ELF_R386_32 1
+#define ELF_R386_PC32 2
+#define ELF_R386_GOT32 3
+#define ELF_R386_PLT32 4
+#define ELF_R386_COPY 5
+#define ELF_R386_GLOB_DAT 6
+#define ELF_R386_JMP_SLOT 7
+#define ELF_R386_RELATIVE 8
+#define ELF_R386_GOTOFF 9
+#define ELF_R386_GOTPC 10
 
 struct elf32_header {
 	unsigned char ident[ELF_IDENT_SIZE];
@@ -106,6 +126,17 @@ struct elf32_symt_entry {
 	unsigned char info;
 	unsigned char other;
 	elf32_hword shndx;
+};
+
+struct elf32_rel {
+	elf32_addr offset;
+	elf32_word info;
+};
+
+struct elf32_rela {
+	elf32_addr offset;
+	elf32_word info;
+	elf32_sword addend;
 };
 
 /**

@@ -94,6 +94,52 @@ kext_rel_abs_symt (struct elf32_header * elf,
 }
 
 /**
+ * \brief Compute the value for a particular symbol in a symbol table.
+ *
+ * Given the section table and the index of the symbol to get the data from,
+ * this function will extract the symbol from the symbol table and get the
+ * value for that particular symbol.
+ */
+static uintptr_t
+kext_rel_get_symval (struct elf32_header * elf,
+		struct elf32_section_header * symtab,
+		unsigned int id)
+{
+	struct elf32_section_header * strtab, * target;
+	struct elf32_symt_entry * entry;
+	char * strings, * sym_name;
+	uintptr_t sym_offset;
+
+	if (id == 0) return 0; /* First element is always reserved.  */
+
+	/* Get the string table where external symbols will be taken from.  */
+	strtab = kext_rel_abs_shdr(elf, symtab->link);
+	strings = (char *) kext_absptr(elf, strtab->offset);
+
+	entry = (struct elf32_symt_entry *) kext_rel_abs_symt(elf, symtab, id);
+
+	if (entry->shndx == ELF_SHN_UNDEF) {
+		/* The symbol is external. I need the symbol name.  */
+		sym_name = &strings[entry->name];
+		if (sym_name && *sym_name) {
+			return symtab_get_addr(sym_name);
+		} else {
+			/* TODO: Weak symbols are a thing.  */
+			return 0;
+		}
+	}
+	else if (entry->shndx == ELF_SHN_ABS) {
+		/* Absolute symbol.  */
+		return (uintptr_t) entry->value;
+	} else {
+		/* Internally defined symbol.  */
+		target = kext_rel_abs_shdr(elf, entry->shndx);
+		sym_offset = kext_absptr(elf, target->offset);
+		return sym_offset + (uintptr_t) entry->value;
+	}
+}
+
+/**
  * \brief Load the symbols declared in a symbol table into the kernel table.
  *
  * This commit will parse the given symbol table and add global functions and
@@ -183,6 +229,120 @@ kext_rel_load_symbols (struct elf32_header * elf)
 }
 
 /**
+ * \brief Process a particular relocation section in the ELF image.
+ *
+ * This function actually parses a relocation table and relocates each symbol
+ * described by the relocation table.  A relocation table has some
+ * dependencies, and these dependencies are provided to this function as well.
+ *
+ * The relocation table points to the symbols that need to be relocated and
+ * indicates the type of relocation that has to be made.  This is important
+ * because there are symbols that have to be relocated in a special fashion.
+ *
+ * The symbol table points to the actual symbol names and values.  The symbols
+ * described in the relocation table are actually indices to entries in the
+ * symbol table, so the symbol table is needed to know which symbol actually we
+ * are trying to relocate.
+ *
+ * The target table points to the actual code or data where the relocations
+ * will be made.  Usually it's about some values located in particular memory
+ * addresses contained here.
+ *
+ * \param elf the ELF image that we are trying to relocate.
+ * \param reltab the relocation entries table.
+ * \param symtab the symbol table with symbols to be relocated.
+ * \param tgttab the code or data to relocate.
+ */
+static void
+kext_rel_do_relocate (struct elf32_header * elf,
+		struct elf32_section_header * reltab,
+		struct elf32_section_header * symtab,
+		struct elf32_section_header * tgttab)
+{
+	unsigned int i, count, symidx;
+	unsigned char type;
+	uintptr_t symval, tgtptr;
+	unsigned int * locptr;
+	struct elf32_rel * rels, * rel;
+
+	if (reltab->entsize == 0) return;
+	count = reltab->size / reltab->entsize;
+	rels = (struct elf32_rel *) kext_absptr(elf, reltab->offset);
+	tgtptr = kext_absptr(elf, tgttab->offset);
+
+	for (i = 0; i < count; i++) {
+		rel = &rels[i];
+		type = rel->info & 0xF;
+		symidx = rel->info >> 8;
+
+		/* Only ELF_R386_NONE, ELF_R386_32 and ELF_R386_PC32 are
+		 * required at the moment for kernel extensions.  So we only
+		 * need to know the following values: S, A and P. Where:
+		 *
+		 * S = the value of the symbol whose value resides in the
+		 *     relocation entry. We need to access the symbol table for
+		 *     this. If it's a local symbol, we can get the value by
+		 *     getting the symbol's value in this very own ELF image.
+		 *     Otherwise, it's external, and we must use the kernel
+		 *     symbol table (call symtab_get_addr).
+		 * A = the addendum. ELF-i386 doesn't use RELA entries so the
+		 *     addendum is always implicit and it's the current
+		 *     placeholder value of the symbol to be relocated.
+		 * P = the place where we will be relocating.  (The memory
+		 *     address where the relocation will have place.)
+		 *
+		 * Yes, there is a relationship between A and P.  P = &A.  Or
+		 * either, A = *P.  Depending on the relocation type, the sum
+		 * will be different.
+		 */
+		symval = kext_rel_get_symval(elf, symtab, symidx);
+		locptr = (unsigned int *) (tgtptr + (uintptr_t) rel->offset);
+
+		if (type == ELF_R386_NONE) {
+			/* No relocation.  */
+			return;
+		} else if (type == ELF_R386_32) {
+			/* S + A.  */
+			*locptr = symval + *locptr;
+		} else if (type == ELF_R386_PC32) {
+			/* S + A - P.  */
+			*locptr = symval + *locptr - ((uintptr_t) locptr);
+		} else {
+			/* TODO: Unsupported relocation error.  */
+		}
+	}
+}
+
+/**
+ * \brief Perform relocation based in the relocation tables of the ELF image.
+ *
+ * This function will look for relocation sections in the ELF image, and for
+ * each section found in the ELF image, the contents of such sections will be
+ * read and some symbols will be relocated.
+ *
+ * \param elf the ELF image containing the sections and symbols to relocate.
+ */
+static void
+kext_rel_relocate (struct elf32_header * elf)
+{
+	unsigned int i;
+	struct elf32_section_header * header, * symtab, * tgttab;
+
+	for (i = 0; i < elf->shnum; i++) {
+		header = kext_rel_abs_shdr(elf, i);
+		/* There are no ELF_SHT_RELA sections on ELF-i386.  */
+		if (header->type == ELF_SHT_REL) {
+			/* shdr->link points to the symbol table containing the
+			 * symbols to relocate.  shdr->info points to the
+			 * section containing code or data to relocate.  */
+			symtab = kext_rel_abs_shdr(elf, header->link);
+			tgttab = kext_rel_abs_shdr(elf, header->info);
+			kext_rel_do_relocate(elf, header, symtab, tgttab);
+		}
+	}
+}
+
+/**
  * \brief Process a relocatable kernel extension.
  *
  * Among other things, this function will update the virtual address of this
@@ -192,7 +352,9 @@ kext_rel_load_symbols (struct elf32_header * elf)
 static int
 kext_process_rel (struct elf32_header * elf)
 {
+	/* TODO: Should be better to first load all the symbols.  */
 	kext_rel_load_symbols(elf);
+	kext_rel_relocate(elf);
 	return 0;
 }
 
