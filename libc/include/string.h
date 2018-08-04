@@ -11,6 +11,14 @@
 void* memcpy(void* dst, void* src, size_t count);
 
 /**
+ * @brief Fill a byte buffer with some value.
+ * @param buf the buffer to fill.
+ * @param val the numerical value to set.
+ * @param len the number of bytes to set.
+ */
+void* memset(void *buf, int val, size_t len);
+
+/**
  * @brief Copies at most len characters from src into dst.
  * @param dst the target string where to put the copied characters.
  * @param src the source string to copy characters from.
