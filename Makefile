@@ -23,6 +23,7 @@ DEBUG ?= 0
 CC = i386-elf-gcc
 LD = i386-elf-gcc
 AS = i386-elf-gcc
+GRUB_MKRESCUE = i386-elf-grub-mkrescue
 QEMU = qemu-system-i386
 
 # Check that we have the required software.
@@ -84,7 +85,7 @@ NATIVE_DISK = $(BUILD_PATH)/nativeos.iso
 NATIVE_DISK_KERNEL = nativeos.exe
 
 # It might not work on some platforms unless this is done.
-GRUB_ROOT = $(shell dirname `which grub-mkrescue`)/..
+GRUB_ROOT = $(shell dirname `which $(GRUB_MKRESCUE)`)/..
 
 # Mark some targets as phony. Otherwise they might not always work.
 .PHONY: qemu qemu-gdb clean
@@ -115,7 +116,7 @@ $(NATIVE_DISK): $(KERNEL_IMAGE)
 	rm -rf $(BUILD_PATH)/cdrom
 	cp -R tools/cdrom $(BUILD_PATH)
 	cp $(KERNEL_IMAGE) $(BUILD_PATH)/cdrom/boot/$(NATIVE_DISK_KERNEL)
-	grub-mkrescue -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ $(BUILD_PATH)/cdrom
+	$(GRUB_MKRESCUE) -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ $(BUILD_PATH)/cdrom
 
 # Create an ISO file and run it through QEMU.
 qemu: $(NATIVE_DISK)
