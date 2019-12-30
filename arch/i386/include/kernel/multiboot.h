@@ -156,4 +156,10 @@ typedef struct multiboot_info {
 	unsigned short vbe_interface_length;
 } __attribute__((packed)) multiboot_info_t;
 
+/**
+ * Store the multiboot information as a global structure that can be accessed
+ * through the functions of the kernel that require so.
+ */
+extern multiboot_info_t * multiboot_info;
+
 #endif // KERNEL_MULTIBOOT_H_

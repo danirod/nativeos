@@ -49,10 +49,12 @@
 /* Set up the stack. */
         movl $(Stack + STACK_SIZE), %esp
 
+/* Store the multiboot info in a kernel structure. */
+    .extern multiboot_info;
+    movl %ebx, multiboot_info;
+
 /* Execute the kernel. */
-        pushl %ebx
         call kmain
-        jmp kdie
 
 /* Enters an infinite loop with interrupts disabled. There is no back from
    this function unless you reboot your system. Should only be used whenever

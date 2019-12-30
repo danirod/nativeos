@@ -36,24 +36,8 @@
 
 /**
  * @brief Main routine for the NativeOS Kernel.
- *
- * This function can be considered the main entrypoint after the bootstrap
- * function in boot.s extracts the multiboot data from the processor registers
- * and places them onto the stack in order to provide them as arguments.
- * This kernel will assume that it has been loaded by a multiboot compatible
- * bootloader such as GRUB. There is some checking to assert that but little
- * effort is made.
- *
- * According to section 3.2 of the Multiboot 0.6.96 specification, available
- * at https://www.gnu.org/software/grub/manual/multiboot/multiboot.html,
- * the magic number value must equal 0x2BADB002. The structure will contain
- * values that are set by the bootloader as described on section 3.3 of the
- * specification.
- *
- * @param magic_number the magic number provided by the bootloader.
- * @param multiboot_ptr a pointer to a multiboot structure.
  */
-void kmain(multiboot_info_t *multiboot_ptr)
+void kmain()
 {
 	// Init hardware.
 	gdt_init();
