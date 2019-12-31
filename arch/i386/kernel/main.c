@@ -31,8 +31,8 @@
 #include <kernel/cpu/gdt.h>
 #include <kernel/cpu/idt.h>
 #include <kernel/multiboot.h>
-#include <kernel/paging.h>
 #include <kernel/mem/heap.h>
+#include <kernel/mem/pmm.h>
 
 /**
  * @brief Main routine for the NativeOS Kernel.
@@ -43,6 +43,6 @@ void kmain()
 	gdt_init();
 	idt_init();
 	heap_init();
-	frames_init(multiboot_ptr);
+	pmm_init();
 	for(;;);
 }
