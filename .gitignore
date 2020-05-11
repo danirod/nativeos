@@ -4,8 +4,6 @@ nativeos.elf
 
 # CD-ROM
 *.iso
-./cdrom/
-cdrom/*
 
 .codelite/
 *.project
@@ -19,5 +17,5 @@ run.sh
 
 ###########
 
-out/
+build/
 docs/

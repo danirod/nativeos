@@ -14,17 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Build flags
-ARCH = i386
-GIT_VERSION = $(shell git describe --always)
-DEBUG ?= 0
+ARCH ?= i386
+
+# QEMU flags
+GRUB_MKRESCUE = i386-elf-grub-mkrescue
+QEMU = qemu-system-i386
 
 # Tools.
 CC = i386-elf-gcc
 LD = i386-elf-gcc
 AS = i386-elf-gcc
-GRUB_MKRESCUE = i386-elf-grub-mkrescue
-QEMU = qemu-system-i386
 
 # Check that we have the required software.
 ifeq (, $(shell which $(CC)))
@@ -37,86 +36,44 @@ ifeq (, $(shell which $(AS)))
     $(error "$(AS) not found. Is the toolchain compiler enabled?")
 endif
 
-# Directories
-KERNEL_PATH = kernel
-INCLUDE_PATH = include
-BUILD_PATH = out
-
-# Tool flags
-CFLAGS = -nostdlib --freestanding -fno-builtin -g -I$(INCLUDE_PATH)/
-CFLAGS += -Iarch/$(ARCH)/$(INCLUDE_PATH)/
-CFLAGS += -Ilibc/include/
-CFLAGS += -D_NTOS_VERSION_="\"$(GIT_VERSION)\""
-ASFLAGS = -g
-LDFLAGS = -nostdlib
 QEMUARGS = -serial stdio
 QEMU_DEBUGARGS = -s -S
 
-ifeq ($(DEBUG), 1)
-	CFLAGS += -g -O0 -DHAVE_DEBUG
-endif
-
-# Compilation units that don't depend on system architecture.
-S_BASE_SOURCES = $(shell find $(KERNEL_PATH) -name '*.S')
-C_BASE_SOURCES = $(shell find $(KERNEL_PATH) -name '*.c')
-
-# Compilation units that depend on the current system architecture.
-S_ARCH_SOURCES = $(shell find 'arch/$(ARCH)/$(KERNEL_PATH)' -name '*.S')
-C_ARCH_SOURCES = $(shell find 'arch/$(ARCH)/$(KERNEL_PATH)' -name '*.c')
-
-# The klibc is also required to compile the kernel.
+# Global assets
 KLIBC_LIBRARY = libc/libc.a
-KLIBC_SOURCES = $(shell find 'libc/src/' -name '*.c')
+KARCH_LIBRARY = arch/$(ARCH)/lib$(ARCH).a
 
-# All compilation units. Note S_BASE_SOURCES has priority. This is because
-# we need the bootloader to be early in the compilation list in order to
-# properly link the binary.
-S_SOURCES = $(S_BASE_SOURCES) $(S_ARCH_SOURCES)
-C_SOURCES = $(C_BASE_SOURCES) $(C_ARCH_SOURCES)
-S_OBJECTS = $(patsubst %.s, $(BUILD_PATH)/%.o ,$(S_SOURCES))
-C_OBJECTS = $(patsubst %.c, $(BUILD_PATH)/%.o, $(C_SOURCES))
-KERNEL_OBJS = $(S_OBJECTS) $(C_OBJECTS) $(KLIBC_LIBRARY)
-
-KERNEL_LD = arch/$(ARCH)/kernel/linker.ld
-KERNEL_IMAGE = $(BUILD_PATH)/nativeos.elf
-
-# These variables are used when building the distribution disk.
-NATIVE_DISK = $(BUILD_PATH)/nativeos.iso
-NATIVE_DISK_KERNEL = nativeos.exe
+# Kernel compilation
+KERNEL_IMAGE = nativeos.elf
+LDSCRIPT = arch/$(ARCH)/kernel/linker.ld
+LDFLAGS = -nostdlib
 
 # It might not work on some platforms unless this is done.
 GRUB_ROOT = $(shell dirname `which $(GRUB_MKRESCUE)`)/..
+
+# CD-ROM
+NATIVE_DISK = nativeos.iso
 
 # Mark some targets as phony. Otherwise they might not always work.
 .PHONY: qemu qemu-gdb clean
 
 # Main build targets.
-kernel: $(KERNEL_IMAGE)
 cdrom: $(NATIVE_DISK)
 
-# Common build targets.
-$(BUILD_PATH)/%.o: %.c
-	@mkdir -p $(dir $@)
-	$(CC) -c $(CFLAGS) -o $@ $<
+$(KERNEL_IMAGE): $(KARCH_LIBRARY) $(KLIBC_LIBRARY)
+	$(LD) $(LDFLAGS) -T $(LDSCRIPT) -o $@ $^
 
-$(BUILD_PATH)/%.o: %.s
-	@mkdir -p $(dir $@)
-	$(AS) $(ASFLAGS) -o $@ $<
-
-# Kernel ELF binary image.
-$(KERNEL_IMAGE): $(KERNEL_OBJS)
-	$(LD) $(LDFLAGS) -T $(KERNEL_LD) -o $@ $^
-
-# Build the static library.
-$(KLIBC_LIBRARY): $(KLIBC_SOURCES)
+$(KLIBC_LIBRARY):
 	make -C libc
+$(KARCH_LIBRARY):
+	make -C arch/$(ARCH)
 
 # Builds CD-ROM.
 $(NATIVE_DISK): $(KERNEL_IMAGE)
-	rm -rf $(BUILD_PATH)/cdrom
-	cp -R tools/cdrom $(BUILD_PATH)
-	cp $(KERNEL_IMAGE) $(BUILD_PATH)/cdrom/boot/$(NATIVE_DISK_KERNEL)
-	$(GRUB_MKRESCUE) -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ $(BUILD_PATH)/cdrom
+	rm -rf build
+	cp -R tools/cdrom build
+	cp $(KERNEL_IMAGE) build/boot/nativeos.exe
+	$(GRUB_MKRESCUE) -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ build
 
 # Create an ISO file and run it through QEMU.
 qemu: $(NATIVE_DISK)
@@ -131,6 +88,6 @@ qemu-gdb: $(NATIVE_DISK)
 ################################################################################
 # Clean the distribution and remove any generated file.
 clean:
-	rm -rvf $(BUILD_PATH)
-	rm -vf $(NATIVE_DISK) $(KERNEL_IMAGE)
+	rm -rf build $(KERNEL_IMAGE) $(NATIVE_DISK)
+	make -C arch/$(ARCH) clean
 	make -C libc clean
