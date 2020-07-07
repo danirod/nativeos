@@ -54,7 +54,7 @@ static void remap_pic(unsigned int start_int)
 	IO_OutP(0x21, start_int);
 	IO_OutP(0xA1, start_int + 8);
 
-	/* Tell each PIC which one is master and which one is slave. */
+	/* Tell each PIC which one is PIC1 and which one is PIC2. */
 	IO_OutP(0x21, 0x04);
 	IO_OutP(0xA1, 0x02);
 
@@ -121,7 +121,10 @@ void idt_handler(struct idt_data* data)
 	/* If this is an exception, I have to halt the system (I think?) */
 	if (data->int_no < 16) kdie();
 
-	/* Acknowledge the interrupt to the master PIC and possibly slave PIC. */
+	/*
+	 * Acknowledge the interrupt to PIC1. If the interrupt came from,
+	 * PIC2, then PIC1 will forward the interrupt acknowledge to PIC2.
+	 */
 	if (data->int_no >= 0x28 && data->int_no < 0x30) IO_OutP(0xA0, 0x20);
 	if (data->int_no >= 0x20 && data->int_no < 0x30) IO_OutP(0x20, 0x20);
 }
