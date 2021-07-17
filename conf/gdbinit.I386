@@ -1,0 +1,9 @@
+# This is the gdbscript used to debug a kernel image compiled using
+# the I386 profile. Note that it requires the kernel image to have
+# been compiled first, in order to have access to the symbol table.
+# It will work if QEMU is launched using the `make qemu-gdb` target.
+
+target remote localhost:1234
+
+file compile/I386/kernel
+break kmain

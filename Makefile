@@ -14,80 +14,56 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-ARCH ?= i386
+.PHONY: build-kernel \
+	cdrom \
+	check-profile \
+	clean \
+	qemu \
+	qemu-gdb \
+	usage
 
-# QEMU flags
-GRUB_MKRESCUE = i386-elf-grub-mkrescue
+GRUB_MKRESCUE ?= grub-mkrescue
+GRUB_ROOT = $(shell dirname `which ${GRUB_MKRESCUE}`)
 QEMU = qemu-system-i386
 
-# Tools.
-CC = i386-elf-gcc
-LD = i386-elf-gcc
-AS = i386-elf-gcc
+usage:
+	@echo "Targets:"
+	@echo "  build-kernel     builds a kernel image"
+	@echo "  cdrom            builds a CD-ROM image"
+	@echo "  qemu             runs the built CD-ROM in QEMU"
+	@echo "  qemu-gdb         runs the built CD-ROM in QEMU using GDB"
+	@echo
+	@echo "All the targets require passing a variable called PROFILE with"
+	@echo "the name of a kernel profile first. For instance,"
+	@echo
+	@echo "    make build-kernel PROFILE=I386"
+	@echo
 
-# Check that we have the required software.
-ifeq (, $(shell which $(CC)))
-    $(error "$(CC) not found. Is the toolchain compiler enabled?")
+check-profile:
+ifeq ($(PROFILE),)
+	$(error Please, set the PROFILE variable when calling this target.)
 endif
-ifeq (, $(shell which $(LD)))
-    $(error "$(LD) not found. Is the toolchain compiler enabled?")
-endif
-ifeq (, $(shell which $(AS)))
-    $(error "$(AS) not found. Is the toolchain compiler enabled?")
-endif
+	true
 
-QEMUARGS = -serial stdio
-QEMU_DEBUGARGS = -s -S
+build-kernel: check-profile
+	tools/kcons conf/${PROFILE}
+	make -C compile/${PROFILE}
 
-# Global assets
-KLIBC_LIBRARY = libc/libc.a
-KARCH_LIBRARY = arch/$(ARCH)/lib$(ARCH).a
+cdrom: check-profile dist/nativeos-${PROFILE}.iso
 
-# Kernel compilation
-KERNEL_IMAGE = nativeos.elf
-LDSCRIPT = arch/$(ARCH)/kernel/linker.ld
-LDFLAGS = -nostdlib
+dist/nativeos-${PROFILE}.iso: compile/${PROFILE}/kernel
+	rm -rf dist/${PROFILE}
+	mkdir -p dist/${PROFILE}
+	cp -R tools/cdrom/ dist/${PROFILE}
+	cp compile/${PROFILE}/kernel dist/${PROFILE}/boot/nativeos.exe
+	${GRUB_MKRESCUE} -d ${GRUB_ROOT}/../lib/grub/i386-pc -o dist/nativeos-${PROFILE}.iso dist/${PROFILE}
 
-# It might not work on some platforms unless this is done.
-GRUB_ROOT = $(shell dirname `which $(GRUB_MKRESCUE)`)/..
 
-# CD-ROM
-NATIVE_DISK = nativeos.iso
+qemu: check-profile dist/nativeos-${PROFILE}.iso
+	$(QEMU) -cdrom dist/nativeos-${PROFILE}.iso -serial stdio
 
-# Mark some targets as phony. Otherwise they might not always work.
-.PHONY: qemu qemu-gdb clean
+qemu-gdb: check-profile dist/nativeos-${PROFILE}.iso
+	$(QEMU) -cdrom dist/nativeos-${PROFILE}.iso -serial stdio -s -S
 
-# Main build targets.
-cdrom: $(NATIVE_DISK)
-
-$(KERNEL_IMAGE): $(KARCH_LIBRARY) $(KLIBC_LIBRARY)
-	$(LD) $(LDFLAGS) -T $(LDSCRIPT) -o $@ $^
-
-$(KLIBC_LIBRARY):
-	make -C libc
-$(KARCH_LIBRARY):
-	make -C arch/$(ARCH)
-
-# Builds CD-ROM.
-$(NATIVE_DISK): $(KERNEL_IMAGE)
-	rm -rf build
-	cp -R tools/cdrom build
-	cp $(KERNEL_IMAGE) build/boot/nativeos.exe
-	$(GRUB_MKRESCUE) -d $(GRUB_ROOT)/lib/grub/i386-pc -o $@ build
-
-# Create an ISO file and run it through QEMU.
-qemu: $(NATIVE_DISK)
-	$(QEMU) -cdrom $^ $(QEMUARGS)
-
-# Special variant of QEMU made for debugging the kernel image.
-qemu-gdb: $(NATIVE_DISK)
-	$(QEMU) -cdrom $^ $(QEMUARGS) $(QEMU_DEBUGARGS)
-
-################################################################################
-# MISC RULES
-################################################################################
-# Clean the distribution and remove any generated file.
 clean:
-	rm -rf build $(KERNEL_IMAGE) $(NATIVE_DISK)
-	make -C arch/$(ARCH) clean
-	make -C libc clean
+	rm -rf compile

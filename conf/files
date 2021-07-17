@@ -1,0 +1,6 @@
+# string.h
+libc/src/string/memcpy.c        standard
+libc/src/string/strcmp.c        standard
+libc/src/string/strcpy.c        standard
+libc/src/string/strlen.c        standard
+libc/src/string/strncpy.c       standard

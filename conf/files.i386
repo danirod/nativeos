@@ -1,0 +1,12 @@
+arch/i386/kernel/boot/boot.S            standard
+arch/i386/kernel/boot/multiboot.c       optional multiboot
+arch/i386/kernel/cpu/gdt.c              standard
+arch/i386/kernel/cpu/idt.c              standard
+arch/i386/kernel/cpu/io.S               standard
+arch/i386/kernel/cpu/lgdt.S             standard
+arch/i386/kernel/cpu/lidt.S             standard
+arch/i386/kernel/cpu/spinlock.c         standard
+arch/i386/kernel/main.c                 standard
+arch/i386/kernel/mem/alloc.c            standard
+arch/i386/kernel/mem/heap.c             standard
+arch/i386/kernel/mem/pmm.c              standard

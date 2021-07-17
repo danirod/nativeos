@@ -1,0 +1,11 @@
+# The main configuration file for the i386 architecture.
+# Duplicate this file if you want to derive additional profiles
+# based on this one.
+
+arch i386
+
+# Turn on useful tools for debug
+makeoption CFLAGS+="-g -O0"
+option debug
+
+option multiboot

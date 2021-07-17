@@ -1,21 +1,2 @@
-*.a
-*.o
-nativeos.elf
-
-# CD-ROM
-*.iso
-
-.codelite/
-*.project
-*.workspace
-
-# VS-Code
-.vscode/*
-
-# Run script
-run.sh
-
-###########
-
-build/
-docs/
+compile/
+dist/

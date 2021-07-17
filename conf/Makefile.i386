@@ -1,0 +1,33 @@
+.POSIX:
+
+CC = i386-elf-gcc
+AS = i386-elf-as
+LD = i386-elf-ld
+
+CFLAGS = -c -nostdlib -ffreestanding -fno-builtin
+CFLAGS += -I../../arch/i386/include
+CFLAGS += -I../../libc/include
+
+LDFLAGS = -nostdlib -T ../../arch/i386/kernel/linker.ld
+
+ROOT=../..
+
+#### MAKEOPTIONS start here
+%%MAKEOPTIONS
+#### MAKEOPTIONS end here
+
+.PHONY: clean
+
+#### OBJS start here
+%%OBJS
+#### OBJS end here
+
+kernel: ${OBJS}
+	${LD} ${LDFLAGS} -o kernel ${OBJS}
+
+#### RULES start here
+%%RULES
+#### RULES end here
+
+clean:
+	rm -f kernel ${OBJS}

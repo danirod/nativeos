@@ -1,0 +1,513 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0
+
+"""
+# This file is part of NativeOS
+# Copyright (C) 2021 The NativeOS contributors
+
+kcons is the kernel construction tool. kcons is heavily inspired by config(1),
+config(8) and other similar tools present in many UNIX systems starting from
+the original BSD 4.2 UNIX and nowadays on other BSD operating systems such
+as FreeBSD or NetBSD.
+
+However, this tool is called kcons and not config, because it is not 100%
+compatible, since I have my own plans and needs based on my project. Some of
+the most notable changes:
+
+* I don't split the config files in multiple directories. Profiles, templates
+  and file lists should be present in the same conf/ directory.
+"""
+
+import os
+import shlex
+import sys
+
+
+MAKEFILE_RULE_TEMPLATE = "".join(
+    [
+        "%%object%%: $(ROOT)/%%source%%\n"
+        "\t$(CC) $(CFLAGS) $(%%object%%_CFLAGS) $(ROOT)/%%source%%\n",
+    ]
+)
+
+
+class MakefileDumper:
+    """
+    The Makefile dumper is the class that generates the Makefile using the
+    templates and the data currently held by the context. The template is
+    a file that must be present in the config directory and it is a file
+    with the name Makefile.{arch}, being arch the system architecture, such
+    as Makefile.i386 or Makefile.aarch64.
+
+    The Makefile will be copied into the compile/{profile} directory in the
+    root, such as $ROOT/compile/I386, but some special commands present in
+    the template file will be replaced by the context state.
+
+    For a command to be recognized and expanded, it must be the only contents
+    of that specific line. Lines that do not match with a command are copied
+    raw from the template into the destination file.
+
+    The detected commands are:
+
+    %%MAKEOPTIONS
+        Will be expanded into variable declarations for every makeoption
+        previously found in the profile file. Note that the output
+        depends on whether the variable was set or appended.
+
+    %%OBJS
+        Wil be expanded into the declaration of a variable called OBJS where
+        every object file that will be included in the kernel image is
+        present.
+
+    %%RULES
+        Will be expanded into a Makefile rule to build every source
+        object that has been previously caught by reading and filtering
+        the files list.
+    """
+
+    def __init__(self, context):
+        self.context = context
+        makefile_orig_path = "Makefile." + context.profile.arch
+        self.makefile_orig = os.path.join(context.conf_dir, makefile_orig_path)
+        self.makefile_dest = os.path.join(context.compile_dir, "Makefile")
+
+    def object_file_for(self, name):
+        """
+        Given the name of a source file, this function will return the name
+        of the object file that should be used to compile this file.
+        """
+        base_name = os.path.basename(name)
+        name, ext = os.path.splitext(base_name)
+        return f"{name}.o"
+
+    def replace_all(self, str, tokens):
+        for find, repl in tokens.items():
+            str = str.replace(find, repl)
+        return str
+
+    def dump(self):
+        with open(self.makefile_dest, "w") as makefile:
+            makefile_lines = open(self.makefile_orig).readlines()
+            for line in makefile_lines:
+                clean_line = line.strip()
+
+                if clean_line == "%%MAKEOPTIONS":
+                    self.expand_makeopts(makefile)
+                elif clean_line == "%%OBJS":
+                    self.expand_objs(makefile)
+                elif clean_line == "%%RULES":
+                    self.expand_rules(makefile)
+                else:
+                    makefile.write(line)
+
+    def expand_makeopts(self, file):
+        options = []
+        for name, value in self.context.profile.makeoptions.items():
+            options.append(f"{name}={value}")
+        for name, value in self.context.profile.appendmakeoptions.items():
+            options.append(f"{name}+={value}")
+        options.sort()
+        file.write("\n".join(options) + "\n")
+
+    def expand_objs(self, file):
+        buffer = "OBJS =\t"
+        for source_file in self.context.file_list:
+            object_file = self.object_file_for(source_file)
+            before_buffer = buffer + " " + object_file
+            if len(before_buffer) > 60:
+                # Escape a line break to avoid making the line very long"
+                buffer += "\\\n"
+                file.write(buffer)
+                buffer = "\t" + object_file + " "
+            else:
+                buffer += object_file + " "
+        # Remove trailing space.
+        if buffer.endswith(" "):
+            buffer = buffer[:-1]
+        file.write(buffer)
+        file.write("\n")
+
+    def expand_rules(self, file):
+        for source_file in self.context.file_list:
+            object_file = self.object_file_for(source_file)
+            rule = self.replace_all(
+                MAKEFILE_RULE_TEMPLATE,
+                {
+                    "%%source%%": source_file,
+                    "%%object%%": object_file,
+                },
+            )
+            file.write(rule)
+
+
+class Parser:
+    """
+    The base parser is able to read the contents of files and perform a basic
+    and probably dangerous tokenization by using splits and other string
+    manipulation functions.
+
+    There are different kinds of files, with different subgrammars, and each
+    kind will require its own parser, but every parser has some common cases:
+
+    * Every kind of file uses # as a comment separator. Comments always come
+      afte a whitespace character such as a space, a tab or a line break
+      character (or either they are the first character of the file). What I
+      mean by this is that you can't just parse "foo#bar" as "foo" with "bar"
+      as a comment.
+
+    * Files are made of directives, such as compilation directives or file
+      inclusion directives. A directive is a set of words, paths or tokens
+      that set the behaviour of the execution context. There is up to one
+      directive per line. It is not possible to have two directives in the
+      same line, but it is possible to have a directive split among multiple
+      lines by escaping the \n or \r\n character.
+    """
+
+    def __init__(self, file):
+        self.lines = open(file).readlines()
+
+    def parse(self):
+        slash_buffer = ""
+        for raw_line in self.lines:
+            # Leading and trailing whitespaces are omitted. (In fact, this is
+            # a good moment to normalize all whitespaces into single spaces.)
+            raw_line = raw_line.strip()
+
+            # Detect if this line will require to be merged with the next one.
+            if raw_line.endswith("\\"):
+                slash_buffer = raw_line[:-1]
+                continue
+
+            # Detect whether we come from a merged line.
+            if slash_buffer:
+                raw_line = slash_buffer + raw_line
+                slash_buffer = ""
+
+            # Delegate in shlex the parsing of the line. shlex will take care
+            # of escaping characters in front of a whitespace (such as a slash
+            # before a space or a tab token). Also, it can trim whitespace.
+            # It is much better than doing .split() and performing the escaping
+            # manually.
+            split_line = shlex.split(raw_line, comments="#")
+            if split_line:
+                yield split_line
+
+
+class FileListParser(Parser):
+    """
+    A file list is a kind of file that contains directives to build list of
+    files. A directive tells kcons about a file that has to be included when
+    compiling the kernel.
+
+    A file may be standard, in which case it is always included, or may be
+    optional. If a file is optional, it has a list of options. The file is only
+    included if the option is enabled in the profile for that specific kernel.
+
+    For example:
+
+        kernel/mutex.c      standard
+        kernel/spinlock.c   standard
+        kernel/vgacon.c     optional console
+        kernel/uart8250.c   optional uart ibm
+        kernel/pl011.c      optional uart rpi
+
+    In this case:
+
+    * kernel/mutex.c and kernel/spinlock.c are always picked.
+    * kernel/vgacon.c will only be picked if the kernel profile has the
+      `console` option added.
+    * kernel/uart8250.c requires both `uart` and `ibm` options picked. Having
+      only `uart` or `ibm` without the other one not enough.
+    * Same goes for kernel/pl011.c, which requires both `uart` and `rpi` set.
+    """
+
+    def __init__(self, file):
+        super().__init__(file)
+        self.files = {}
+        self.errors = []
+
+    def process(self):
+        """
+        Process the list of files in this file in order to build the list.
+        This method has to be called once in order to populate the self.files
+        data structure and possibly the self.errors in case of parse errors.
+        """
+        for file, kind, *options in self.parse():
+            if kind not in ["standard", "optional"]:
+                # Given kind is not acceptable.
+                self.errors.append(f"Invalid file kind {kind} for file {file}")
+            elif kind == "standard":
+                # The file is standard, it always has to be included.
+                self.files[file] = {"standard": True}
+            elif not options:
+                # The file is optional, but no options were given.
+                self.errors.append(f"No options given for optional file {file}")
+            else:
+                # The file is optional and options were given.
+                self.files[file] = {"standard": False, "options": options}
+
+    def compilable_files(self, profile):
+        """
+        Given a profile, it will return a slice of all the files in the parsed
+        list that match are, either standard, or optional having the required
+        options being set in the profile.
+        """
+
+        def matches(options):
+            # Returns true if every item in the options iterable is also
+            # present in the options for the profile bound to compilable_files.
+            return all([opt in profile.options for opt in options])
+
+        return [
+            file
+            for file, config in self.files.items()
+            if config["standard"] or matches(config["options"])
+        ]
+
+
+class ProfileParser(Parser):
+    """
+    Parses a profile file. A profile file contains the configuration of a
+    specific kernel image compilation. For instance, it sets the build options,
+    which may translate in additional header files or specific C macros being
+    set.
+
+    It is a file where each line contains one of the following directives:
+
+    arch [architecture]
+        The system architecture to build. This affects the template Makefile
+        to be used and also causes kcons to include an addition of another
+        files list.
+
+    makeoption [ (OPTION | OPTION=value | OPTION+=value) ...]
+        A makeoption is translated into a Makefile variable in the final
+        Makefile. This directive accepts multiple parameters and each
+        parameter is translated into a separate makeoption.
+
+        There are ways to declare an option.
+
+        The first form is simply specifying the name of the makeoption. This
+        will set a variable to an empty string, and may be enough if it
+        is possible to test for the presence of a variable regardless of
+        the value.
+
+            makeoption FOOBAR
+
+        Will generate the following Makefile snippet:
+
+            FOOBAR=
+
+        The second form sets the name of a makeoption to a specific value.
+        Any value previously set by another makeoption directive is
+        disregarded and not included in the final Makefile.
+
+            makeoption DEBUG=-g
+            makeoption FOOBAR=1
+            makeoption FOOBAR=2
+
+        Will generate the following Makefile snippet:
+
+            DEBUG=-g
+            FOOBAR=2
+
+        The third form appends a value to a variable. If the variable was
+        previously set by another makeoption directive, it will be appended
+        to the value previously set. If the variable was not set using a
+        makeoption directive, it will be added as an append. This is useful
+        to complete parameters set by the user when calling `make`.
+
+            makeoption CFLAGS+="-g -O0"
+            makeoption MODULES=" uart.o "
+            makeoption MODULES+=" framebuffer.o "
+
+        Will generate the following Makefile snippet:
+
+            CFLAGS+=-g -O0
+            MODULES=" uart.o framebuffer.o "
+
+    nooption [names...]
+        For each parameter given to this directive, it disables the parameters
+        in the options set. If the option was already disabled or was never
+        enabled, the option will be ignored.
+
+    option [names...]
+        For each parameter given to this directive, it enables the parameters
+        in the options set. If the option was already enabled, the option
+        will be ignored.
+    """
+
+    def __init__(self, file):
+        super().__init__(file)
+        self.arch = None
+        self.makeoptions = {}
+        self.appendmakeoptions = {}
+        self.options = set()
+        self.errors = []
+
+    def process(self):
+        """
+        Parse the directives contained in the profile file. This function has
+        to be called once to set the state of the class depending on the
+        directives declared in the profile file. As a result, the errors list
+        will also be set to any error found while processing the directives.
+        """
+        for cmd, *args in self.parse():
+            if cmd == "arch":
+                self.set_arch(args)
+            elif cmd == "makeoption":
+                self.add_makeoption(args)
+            elif cmd == "nooption":
+                self.remove_options(args)
+            elif cmd == "option":
+                self.add_options(args)
+            else:
+                self.errors.append(f"Unknown directive: {cmd}")
+
+    def set_arch(self, argv):
+        if len(argv) != 1:
+            self.errors.append(f"arch: invalid value")
+            return
+
+        self.arch = argv[0]
+
+    def add_options(self, options):
+        self.options.update(options)
+
+    def add_makeoption(self, options):
+        for makeoption in options:
+            # No equal sets the variable to an empty string.
+            if "=" not in makeoption:
+                makeoption = makeoption + "="
+
+            if "+=" in makeoption:
+                name, value = makeoption.split("+=")
+
+                if name in self.makeoptions:
+                    # The variable was set by another makeoption directive.
+                    self.makeoptions[name] += value
+                else:
+                    # If never seen before, it is an appendmakeoption.
+                    self.appendmakeoptions[name] = value
+            else:
+                # It is an update. Forget about previous values.
+                name, value = makeoption.split("=")
+                self.makeoptions[name] = value
+                if name in self.appendmakeoptions:
+                    del self.appendmakeoptions[name]
+
+    def remove_options(self, options):
+        self.options.difference_update(options)
+
+
+class Context:
+    """
+    The context is the main driver that will find the files associated to a
+    profile file (such as the files or the Makefile) and process them at all
+    in order to create the build directory containing the final Makefile and
+    generated header files.
+    """
+
+    def __init__(self, profile_path):
+        # Build the paths that we are going to require.
+        self.profile_file = self.normalize_file(profile_path)
+        self.profile_name = os.path.basename(self.profile_file)
+        self.conf_dir = os.path.dirname(self.profile_file)
+        self.root_dir = self.normalize_file("..", base=self.conf_dir)
+        compile_path = f"compile/{self.profile_name}"
+        self.compile_dir = os.path.join(self.root_dir, compile_path)
+
+        # Validate config. Won't return if config is invalid.
+        self.validate_context()
+
+    def validate_context(self):
+        """
+        After setting up the context, check if its valid. For a context to
+        be valid, every file that will be touched must be readable and
+        accessible.
+        """
+        # By validating the profile_name, we also validate the parent dirs.
+        if not os.path.exists(self.profile_file):
+            print(f"Error! {self.profile_file} not found", file=sys.stderr)
+            sys.exit(66)  # EX_NOINPUT
+
+    def parse_profile(self):
+        """
+        Reads the profile file and processes it using the profile parser.
+        If the profile parser is valid, the configuration will be stored so
+        that it can be reused later.
+
+        This function does not return if the profile file is not valid.
+        Instead, the list of errors produced while parsing the profile file
+        will be dumped to the output and the program will exit.
+        """
+        self.profile = ProfileParser(self.profile_file)
+        self.profile.process()
+        if self.profile.errors:
+            print("Error! Parsing the profile failed", file=sys.stderr)
+            for error in self.profile.errors:
+                print("  ", error, file=sys.stderr)
+            sys.exit(65)  # EX_DATAERR
+
+    def parse_files(self):
+        """
+        Reads the file lists and processes them using the file list parser.
+        The files `files` and `files.{arch}` are always read. They both must
+        exist in the same directory as the profile file, and must be readable.
+
+        This function does not return if any of the file lists is not valid
+        due to a programming error. The list of errors in the last file that
+        was parsed will be printed to screen and the program will exit.
+        """
+
+        def parse_file(path):
+            parser = FileListParser(path)
+            parser.process()
+            if parser.errors:
+                print(f"Error! Parsing {path}", file=sys.stderr)
+                for error in parser.errors:
+                    print(" ", error, file=sys.stderr)
+                sys.exit(65)  # EX_DATAERR
+            return parser
+
+        # The list of files will be stored in this set to prevent dupes.
+        file_set = set()
+
+        # Build the list of files to parse and parse them.
+        file_names = ["files", "files." + self.profile.arch]
+        for file_name in file_names:
+            file_path = self.normalize_file(file_name, base=self.conf_dir)
+            file_list = parse_file(file_path).compilable_files(self.profile)
+            file_set.update(file_list)
+
+        # Store them as a sorted list just to make the output more clear.
+        self.file_list = list(file_set)
+        self.file_list.sort()
+
+    def create_compile(self):
+        os.makedirs(self.compile_dir, exist_ok=True)
+        MakefileDumper(self).dump()
+
+    def normalize_file(self, path, base=None):
+        """
+        Given a path that should map to a file, this function will normalize
+        the given path so that it is absolute. If the given path is already
+        absolute, this function does not do anything. The outcome of this
+        function depends on the given path and the PWD in use when calling
+        kcons.
+        """
+        if os.path.isabs(path):
+            return path
+        else:
+            if not base:
+                base = os.getcwd()
+            return os.path.normpath(os.path.join(base, path))
+
+
+if len(sys.argv) != 2:
+    print(f"Usage: {sys.argv[0]} [PROFILE]", file=sys.stderr)
+    sys.exit(64)  # EX_USAGE
+
+context = Context(sys.argv[1])
+context.parse_profile()
+context.parse_files()
+context.create_compile()

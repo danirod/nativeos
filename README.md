@@ -18,33 +18,68 @@ accepting pull requests at this moment. See the document to read why.
 Issues are still open and covered by the Code of Conduct. See
 [CODE\_OF\_CONDUCT.md][2] for details.
 
-## Building NativeOS
+## Building the NativeOS Kernel
 
-NativeOS requires the i386-elf-gcc cross-compiler installed in the
-machine to compile. The build process has already been tested under
-Linux, MacOS X and Windows and it works on all the platforms.
+To build the kernel image (in other words, the program that will run
+when the computer starts up), you will need the i386-elf-gcc
+cross-compiler installed in the machine. Download GNU Binutils and GNU
+GCC and compile them targeting the i386-elf platform.
 
-You must compile the i386-elf-binutils and i386-elf-gcc. Download
-GNU Binutils and GNU GCC and compile them targetting the i386-elf
-platform.
+You might get away with using your host GNU GCC and GNU Binutils
+compilers if they are able to produce freestanding binaries for the
+i386-elf or i686-elf platforms. This is usually the case in GNU/Linux
+and other operating systems that use ELF binaries and that depend so
+much in the GNU compiler toolchain.
 
-MS-Windows users should download and install a POSIX environment
-such as Cygwin or MSYS2 in order to get all the tools that would
-allow them to build the kernel image, such as make. Please note
-that although MS-Windows is a supported host, it is not tested
-so often, and a real UNIX or UNIX-like environment such as GNU/Linux
-or MacOS X is recommended, even on a virtual machine.
+Windows NT users should download and install a POSIX environment such as
+MSYS2 in order to get all the tools that would allow them to build the
+kernel image, such as make. If you are using a Windows version where the
+Windows Subsystem for Linux is available, you should use it if you will
+insist on testing or working in the kernel in Windows NT.
 
 GNU Make is also required to run the Makefile file.
 
-To build the kernel image just run the following command:
+Python 3 is also required to run the kcons tool, which is used to
+generate the Makefiles.
 
+### Picking a profile
+
+Profiles are kernel compilation settings. A profile causes a specific
+subset of source code files to be compiled into the kernel image, and
+some specific optional settings to be enabled.
+
+At the moment, the repository provides the I386 profile, to build a
+basic 32 bit kernel image for the i386 architecture. The settings file
+for this profile is at conf/I386.
+
+### Building a profile
+
+To build a profile, you can use the kcons script. kcons will parse the
+profile and the associated files and generate a Makefile that can be
+used to build the kernel. Call `tools/kcons` providing the path to a
+profile file as a parameter.
+
+    $ tools/kcons conf/I386
+
+This will generate a subdirectory named after the profile name inside
+the `compile/` directory. In this directory, a Makefile will be present.
+Use it to build the kernel image:
+
+    $ cd compile/I386
     $ make
 
-This will build the kernel into "nativeos.elf" file. NativeOS kernel
-uses the ELF format and it supports the Multiboot specification, so it
-can be deployed in any machine that uses a Multiboot bootloader (such
-as GRUB) and executed.
+The NativeOS kernel file is a binary in the ELF format. It supports the
+Multiboot specification, so it can be deployed in any machine using a
+bootloader capable of loading Multiboot binaries, such as GNU GRUB,
+SYSLINUX or Limine.
+
+### Shortcut
+
+It is also possible to configure and build a kernel image profile using
+the root Makefile. Provide the profile name as the `PROFILE` parameter
+and it will run all the commands above.
+
+    $ make build-kernel PROFILE=I386
 
 ## Creating a CD image
 
@@ -53,30 +88,28 @@ There is already a rule in the Makefile file to generate a CD-ROM using
 GRUB.
 
 You need the GRUB Command Line Tools installed with support for the
-i386-elf platform. If you are using GNU/Linux, you probably already
-have support for that platform, but othwersie you might have to
-add it. Instructions for building the GRUB Command Line Tools are given
-below.
+i386-elf platform. If you are using GNU/Linux, you probably already have
+support for that platform, but otherwise you might have to install it to
+your system. Take protections to prevent GRUB to running on your host
+system if that is not practical for you. The `grub-mkrescue` program
+should be able to run in your command line.
 
-To create a NativeOS ISO image, run the following command:
+GNU xorriso is additionally required to generate the ISO file.
 
-    $ make cdrom
+To create a NativeOS ISO image, run the following command, specifying
+the name of a **previously built** profile as the `PROFILE` variable:
 
-MacOS X and Windows users can install the GRUB Command Line tools by
-following the instructions given in the following address:
+    $ make cdrom PROFILE=I386
+
+Windows NT, macOS and BSD users can install the GRUB Command Line tools
+by following the instructions given in the following address:
 <http://wiki.osdev.org/GRUB_2#Installing_GRUB2_on_Mac_OS_X>.
 (Instructions are the same for Windows).
 
 NOTE: You'll be getting the GRUB Command Line Tools here. **This is
-definitely NOT the same as installing the GRUB Bootloader on your
-host PC**, although the command line tools allow you to do that, so
-care must be taken in order to avoid running any dangerous command.
-
-Windows users can find a precompiled version of the GRUB Command Line
-tools at <https://github.com/danirod/i386-elf-toolchain/releases>.
-In any way you will need GNU xorriso to generate the ISO files.
-(There is already a precompiled version of xorriso for Windows in
-the link too.)
+definitely NOT the same as installing the GRUB Bootloader on your host
+PC**, although the command line tools allow you to do that, so care must
+be taken in order to avoid running any dangerous command.
 
 ## Running NativeOS
 
@@ -92,15 +125,15 @@ attach GDB in order to debug the kernel image.
 
 Run the following commands:
 
-    $ make qemu         # Executes qemu-system-i386
-    $ make qemu-gdb     # Executes qemu-system-i386 in debug mode
+    $ make qemu PROFILE=I386      # Run qemu-system-i386
+    $ make qemu-gdb PROFILE=I386  # Run qemu-system-i386 in debug mode
 
 For more information on GDB debugging with QEMU, see the QEMU
 manual or the following article: <http://wiki.osdev.org/QEMU>.
 
 ## License and disclaimer
 
-Copyright (C) 2015-2017 Dani Rodríguez
+Copyright (C) 2015-2021 Dani Rodríguez
 
 NativeOS is licensed under the terms of the GNU General Public License v3.
 See the COPYING file for more information. Old NativeOS files will
