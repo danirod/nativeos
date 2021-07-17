@@ -1,5 +1,5 @@
-#include <string.h>
 #include <kernel/cpu/spinlock.h>
+#include <sys/stdkern.h>
 
 static inline int x86_xchg_dword(int* memaddr, int val)
 {

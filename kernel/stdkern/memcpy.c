@@ -16,21 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+#include <stddef.h>
 
-int
-strcmp(const char *s1, const char *s2)
+void *
+memcpy(void *dst, const void *src, size_t count)
 {
-	unsigned char *cmp1 = (unsigned char *) s1;
-	unsigned char *cmp2 = (unsigned char *) s2;
-
-	while (*cmp1 && *cmp2) {
-		if (*cmp1 != *cmp2) {
-			return (*cmp1 - *cmp2);
-		}
-		cmp1++;
-		cmp2++;
+	unsigned char *pdst = (unsigned char *) dst;
+	unsigned char *psrc = (unsigned char *) src;
+	while (count--) {
+		*pdst++ = *psrc++;
 	}
-
-	return (*cmp1 - *cmp2);
+	return dst;
 }

@@ -16,27 +16,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+#include <stddef.h>
 
-char*
+char *
+strcpy(char *dst, const char *src)
+{
+	char *ptr = dst;
+	while (*src) {
+		*ptr++ = *src++;
+	}
+	return dst;
+}
+
+char *
 strncpy(char *dst, const char *src, size_t len)
 {
-	/* The moving pointer that we'll use to not change dst.  */
-	char* ptr = dst;
-
-	/* Copy characters.  */
+	char *ptr = dst;
 	while (len--) {
-		/* Stop copying if we have reached the end of the string.  */
+		/* Assigns (and copies) the \0 before failing the test. */
 		if (!(*ptr++ = *src++)) {
 			break;
 		}
 	}
-
-	/* Read the docs -- the remaining of the string is filled with \0.  */
 	while (len--) {
+		/* Fill with zeros until the length is reached. */
 		*ptr++ = 0;
 	}
-
-	/* Return a pointer to the original string to copy.  */
 	return dst;
 }

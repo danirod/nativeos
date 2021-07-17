@@ -1,6 +1,4 @@
-# string.h
-libc/src/string/memcpy.c        standard
-libc/src/string/strcmp.c        standard
-libc/src/string/strcpy.c        standard
-libc/src/string/strlen.c        standard
-libc/src/string/strncpy.c       standard
+kernel/stdkern/memcpy.c		standard
+kernel/stdkern/strcmp.c		standard
+kernel/stdkern/strcpy.c		standard
+kernel/stdkern/strlen.c		standard

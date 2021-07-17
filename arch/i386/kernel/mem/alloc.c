@@ -25,8 +25,8 @@
  * of such functions are malloc or free, which allows to allocat and deallocate
  * objects from the kernel heap.
  */
-#include <stdlib.h>
 #include <kernel/mem/heap.h>
+#include <sys/stdkern.h>
 
 void *
 malloc (size_t size)

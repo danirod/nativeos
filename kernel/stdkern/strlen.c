@@ -16,19 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+#include <stddef.h>
 
-char*
-strcpy(char* dst, const char* src)
+size_t
+strlen(const char *s)
 {
-	/* The moving pointer that we'll use to change dst.  */
-	char* ptr = dst;
+	const char *ptr;
+	for (ptr = s; *ptr; ptr++)
+		;
+	return ptr - s;
+}
 
-	/* Start copying characters.  */
-	while (*src) {
-		*ptr++ = *src++;
+size_t
+strnlen(const char *s, size_t maxlen)
+{
+	if (maxlen == 0) {
+		return 0;
 	}
-
-	/* Return pointer to the original string.  */
-	return dst;
+	const char *ptr;
+	for (ptr = s; *ptr && maxlen--; ptr++)
+		;
+	return ptr - s;
 }

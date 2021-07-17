@@ -16,30 +16,44 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+#include <stddef.h>
+
+int
+strcmp(const char *s1, const char *s2)
+{
+	unsigned char *cmp1 = (unsigned char *) s1;
+	unsigned char *cmp2 = (unsigned char *) s2;
+
+	while (*cmp1 && *cmp2) {
+		if (*cmp1 != *cmp2) {
+			return *cmp1 - *cmp2;
+		}
+		cmp1++;
+		cmp2++;
+	}
+
+	return *cmp1 - *cmp2;
+}
 
 int
 strncmp(const char *s1, const char *s2, size_t n)
 {
-    unsigned char *cmp1 = (unsigned char *) s1;
-    unsigned char *cmp2 = (unsigned char *) s2;
+	unsigned char *cmp1 = (unsigned char *) s1;
+	unsigned char *cmp2 = (unsigned char *) s2;
 
-    if (n == 0) {
-        /* Early bail out. */
-        return 0;
-    }
+	if (n == 0) {
+		/* Early bail out. */
+		return 0;
+	}
 
-    /* *cmp1 && *cmp2 will bail out once NUL is reached for any string. */
-    while (*cmp1 && *cmp2 && n--) {
-        if (*cmp1 != *cmp2) {
-            /* Characters on this position do not match. Break. */
-            return (*cmp1 - *cmp2);
-        }
-        cmp1++;
-        cmp2++;
-    }
+	/* Bail as soon as any string ends. */
+	while (*cmp1 && *cmp2 && n--) {
+		if (*cmp1 != *cmp2) {
+			return *cmp1 - *cmp2;
+		}
+		cmp1++;
+		cmp2++;
+	}
 
-    /* They didn't say which positive or negative number had to be returned. */
-    return (*cmp1 - *cmp2);
+	return *cmp1 - *cmp2;
 }
-

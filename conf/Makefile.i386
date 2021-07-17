@@ -6,7 +6,7 @@ LD = i386-elf-ld
 
 CFLAGS = -c -nostdlib -ffreestanding -fno-builtin
 CFLAGS += -I../../arch/i386/include
-CFLAGS += -I../../libc/include
+CFLAGS += -I../../kernel
 
 LDFLAGS = -nostdlib -T ../../arch/i386/kernel/linker.ld
 
