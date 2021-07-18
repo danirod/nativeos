@@ -53,8 +53,13 @@
     .extern multiboot_info;
     movl %ebx, multiboot_info;
 
-/* Execute the kernel. */
-        call kmain
+	/* Set up GDT */
+	lgdt gdt_toc
+	ljmp $0x8, $.after_gdt_setup
+
+.after_gdt_setup:
+	/* Execute the kernel. */
+	call kmain
 
 /* Enters an infinite loop with interrupts disabled. There is no back from
    this function unless you reboot your system. Should only be used whenever
@@ -65,6 +70,23 @@
     .dieloop:
         hlt
         jmp .dieloop
+
+.section .rodata
+gdt_table:
+	/* Entry 0: NULL */
+	.long 0 /* (sid = 0, access = 0x00, granularity = 0x00) */
+	.long 0 /* (base = 0x00000000, limit = 0x00000000) */
+
+	/* Entry 1: Code Segment */
+	.long 0x0000ffff /* (sid = 1, access = 0x9A, granularity = 0xCF) */
+	.long 0x00cf9a00 /* (base = 0x00000000, limit = 0xFFFFFFFF) */
+
+	/* Entry 2: Data Segment */
+	.long 0x0000ffff /* (sid = 2, access = 0x92, granularity = 0xCF) */
+	.long 0x00cf9300 /* (base = 0x00000000, limit = 0xFFFFFFFF) */
+gdt_toc:
+	.word 0x17
+	.long gdt_table
 
 .bss
 .align 4

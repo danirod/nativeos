@@ -28,7 +28,6 @@
  * the main entrypoint for NativeOS.
  */
 
-#include <kernel/cpu/gdt.h>
 #include <kernel/cpu/idt.h>
 #include <kernel/multiboot.h>
 #include <kernel/mem/heap.h>
@@ -40,7 +39,6 @@
 void kmain()
 {
 	// Init hardware.
-	gdt_init();
 	idt_init();
 	heap_init();
 	pmm_init();
