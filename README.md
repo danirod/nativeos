@@ -21,26 +21,19 @@ Issues are still open and covered by the Code of Conduct. See
 ## Building the NativeOS Kernel
 
 To build the kernel image (in other words, the program that will run
-when the computer starts up), you will need the i386-elf-gcc
-cross-compiler installed in the machine. Download GNU Binutils and GNU
-GCC and compile them targeting the i386-elf platform.
-
-You might get away with using your host GNU GCC and GNU Binutils
-compilers if they are able to produce freestanding binaries for the
-i386-elf or i686-elf platforms. This is usually the case in GNU/Linux
-and other operating systems that use ELF binaries and that depend so
-much in the GNU compiler toolchain.
-
-Windows NT users should download and install a POSIX environment such as
-MSYS2 in order to get all the tools that would allow them to build the
-kernel image, such as make. If you are using a Windows version where the
-Windows Subsystem for Linux is available, you should use it if you will
-insist on testing or working in the kernel in Windows NT.
+when the computer starts up), you will need to install the LLVM compiler
+if you don't have it already. NativeOS switched to LLVM because it has
+support for foreign ABIs (such as i386-elf in an x86-64 macOS) out of
+the box without requiring to setup a cross-compiler.
 
 GNU Make is also required to run the Makefile file.
 
 Python 3 is also required to run the kcons tool, which is used to
 generate the Makefiles.
+
+Windows NT is not a supported platform and there may be bugs. Users
+of Windows NT are encouraged to setup a POSIX system such as MSYS or
+Cygwin, or use the Windows Subsystem for Linux if available.
 
 ### Picking a profile
 

@@ -28,15 +28,21 @@
 /* Stack allocation. */
 #define STACK_SIZE 0x4000
 
+/*
+ * Marking the section as allocatable and executable (AX) will cause
+ * both GCC and LLVM to place the multiboot section inside the 4 KB
+ * file sector required by the Multiboot spec.
+ */
+.section .multiboot, "ax", @progbits
+multiboot_header:
+	.int MULTIBOOT_MAGIC_NUMBER
+	.int MULTIBOOT_FLAGS
+	.int MULTIBOOT_CHECKSUM
+
 .text
 .align 4
-    MultibootHeader:
-        .int MULTIBOOT_MAGIC_NUMBER
-        .int MULTIBOOT_FLAGS
-        .int MULTIBOOT_CHECKSUM
-
-    .global Bootstrap
-    Bootstrap:
+.global Bootstrap
+Bootstrap:
 /* Test that the magic number is correct, so that we can be free from this.
    GNU GRUB must have placed the value 0x2badb002 in the EAX register.
    If this is not the case, something is very wrong with this bootloader

@@ -11,10 +11,20 @@ SECTIONS
 	. = 0x00100000;
 	kernel_start = .;
 
-	.text ALIGN (0x1000) :
+	.multiboot :
+	{
+		KEEP(*(.multiboot))
+	}
+
+	.text : ALIGN(0x1000)
 	{
 		*(.text)
 	}
+
+	.note.gnu.build-id : ALIGN(0x1000)
+	{
+		*(.note.gnu.build-id)
+	} 
 
 	.rodata ALIGN (0x1000) :
 	{
