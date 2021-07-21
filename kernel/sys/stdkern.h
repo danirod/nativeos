@@ -42,7 +42,17 @@ free(void *ptr);
  * @param count the amount of bytes to transfer from source to dest.
  */
 void *
-memcpy(void *dst, void *src, size_t count);
+memcpy(void *dst, const void *src, size_t count);
+
+/**
+ * @brief Sets every byte in the given buffer region to a value.
+ * @param dest the target buffer where to set the values in.
+ * @param byte the value to place in the given buffer.
+ * @param count the amount of bytes to overwrite in the given buffer.
+ * @return a pointer to the target buffer.
+ */
+void *
+memset(void *dest, int byte, size_t count);
 
 /**
  * @brief Compare lexicographically both strings.
