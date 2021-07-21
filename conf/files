@@ -1,3 +1,4 @@
+kernel/stdkern/list.c		standard
 kernel/stdkern/memcpy.c		standard
 kernel/stdkern/strcmp.c		standard
 kernel/stdkern/strcpy.c		standard
