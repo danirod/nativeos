@@ -54,7 +54,7 @@ cdrom: check-profile dist/nativeos-${PROFILE}.iso
 dist/nativeos-${PROFILE}.iso: compile/${PROFILE}/kernel
 	rm -rf dist/${PROFILE}
 	mkdir -p dist/${PROFILE}
-	cp -R tools/cdrom/ dist/${PROFILE}
+	cp -R tools/cdrom/* dist/${PROFILE}
 	cp compile/${PROFILE}/kernel dist/${PROFILE}/boot/nativeos.exe
 	${GRUB_MKRESCUE} -d ${GRUB_ROOT}/../lib/grub/i386-pc -o dist/nativeos-${PROFILE}.iso dist/${PROFILE}
 
