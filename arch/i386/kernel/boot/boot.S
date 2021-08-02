@@ -33,7 +33,7 @@
  * both GCC and LLVM to place the multiboot section inside the 4 KB
  * file sector required by the Multiboot spec.
  */
-.section .multiboot, "ax", @progbits
+.section .multiboot, "a"
 multiboot_header:
 	.int MULTIBOOT_MAGIC_NUMBER
 	.int MULTIBOOT_FLAGS

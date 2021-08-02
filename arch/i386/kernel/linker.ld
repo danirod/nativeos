@@ -1,3 +1,6 @@
+OUTPUT_ARCH(i386);
+OUTPUT_FORMAT(elf32-i386);
+
 ENTRY (Bootstrap)
 
 /* Size of the kernel heap.  Note that the kernel heap is only used to allocate
@@ -11,7 +14,7 @@ SECTIONS
 	. = 0x00100000;
 	kernel_start = .;
 
-	.multiboot :
+	.multiboot ALIGN(0x1000) :
 	{
 		KEEP(*(.multiboot))
 	}
@@ -52,4 +55,9 @@ SECTIONS
 	}
 
 	kernel_after = .;
+
+	/DISCARD/ :
+	{
+		*(.interp)
+	}
 }
