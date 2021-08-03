@@ -1,6 +1,7 @@
 kernel/stdkern/list.c		standard
 kernel/stdkern/memcpy.c		standard
 kernel/stdkern/memset.c		standard
+kernel/stdkern/ringbuf.c	standard
 kernel/stdkern/strcmp.c		standard
 kernel/stdkern/strcpy.c		standard
 kernel/stdkern/strlen.c		standard
