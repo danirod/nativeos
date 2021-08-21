@@ -25,8 +25,7 @@ typedef struct driver {
  * device in order to initialize the system data structures required to
  * maintain the device manager itself.
  */
-void
-device_init(void);
+void device_init(void);
 
 /**
  * \brief Install a device.
@@ -47,8 +46,7 @@ device_init(void);
  * \param mtname the name to use when refering to this device.
  * \return status code with the outcome of the mount operation.
  */
-int
-device_install(chardev_t *dev, char *mtname);
+int device_install(chardev_t *dev, char *mtname);
 
 /**
  * \brief Uninstall a device.
@@ -60,8 +58,7 @@ device_install(chardev_t *dev, char *mtname);
  *
  * \param mtname the name of the device to remove from the device manager.
  */
-void
-device_remove(char *mtname);
+void device_remove(char *mtname);
 
 /*
  * UNDOCUMENTED UNSTABLE FUNCTIONS. These functions will eventually be removed
@@ -69,11 +66,8 @@ device_remove(char *mtname);
  * DEVFS.
  */
 
-int
-device_open(char *mtname);
+int device_open(char *mtname);
 
-unsigned int
-device_read(int fd, unsigned char *buf, unsigned int len);
+unsigned int device_read(int fd, unsigned char *buf, unsigned int len);
 
-unsigned int
-device_write(int fd, unsigned char *buf, unsigned int len);
+unsigned int device_write(int fd, unsigned char *buf, unsigned int len);

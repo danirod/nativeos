@@ -1,16 +1,9 @@
 #include <sys/device.h>
 
-static int
-null_init(void);
-
-static unsigned int
-null_dev_read(unsigned char *buf, unsigned int len);
-
-static unsigned int
-null_dev_write(unsigned char *buf, unsigned int len);
-
-static unsigned int
-zero_dev_read(unsigned char *buf, unsigned int len);
+static int null_init(void);
+static unsigned int null_dev_read(unsigned char *buf, unsigned int len);
+static unsigned int null_dev_write(unsigned char *buf, unsigned int len);
+static unsigned int zero_dev_read(unsigned char *buf, unsigned int len);
 
 static driver_t null_driver = {
     .dv_name = "null",

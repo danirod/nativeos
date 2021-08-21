@@ -25,15 +25,13 @@
  * @param size the amount of bytes to allocate in the heap.
  * @return a pointer to the allocated buffer or NULL if there was an error.
  */
-void *
-malloc(size_t size);
+void *malloc(size_t size);
 
 /**
  * @brief Deallocate a memory buffer from the heap.
  * @param ptr a pointer to the memory region to be deallocated from heap.
  */
-void
-free(void *ptr);
+void free(void *ptr);
 
 /**
  * @brief Copies the given number of characters from one buffer to other.
@@ -41,8 +39,7 @@ free(void *ptr);
  * @param src the source buffer to copy data from.
  * @param count the amount of bytes to transfer from source to dest.
  */
-void *
-memcpy(void *dst, const void *src, size_t count);
+void *memcpy(void *dst, const void *src, size_t count);
 
 /**
  * @brief Sets every byte in the given buffer region to a value.
@@ -51,8 +48,7 @@ memcpy(void *dst, const void *src, size_t count);
  * @param count the amount of bytes to overwrite in the given buffer.
  * @return a pointer to the target buffer.
  */
-void *
-memset(void *dest, int byte, size_t count);
+void *memset(void *dest, int byte, size_t count);
 
 /**
  * @brief Compare lexicographically both strings.
@@ -60,8 +56,7 @@ memset(void *dest, int byte, size_t count);
  * @param s2 the second string to compare
  * @return <0 if s1 > s2, >0 if s1 < s2, 0 if s1 == s2
  */
-int
-strcmp(const char *s1, const char *s2);
+int strcmp(const char *s1, const char *s2);
 
 /**
  * @brief Compare lexicographically no more than n characters from both strings.
@@ -70,8 +65,7 @@ strcmp(const char *s1, const char *s2);
  * @param n the maximum number of characters to compare
  * @return <0 if s1 > s2, >0 if s1 < s2, 0 if s1 == s2
  */
-int
-strncmp(const char *s1, const char *s2, size_t n);
+int strncmp(const char *s1, const char *s2, size_t n);
 
 /**
  * @brief Copies the string src into dst.
@@ -79,8 +73,7 @@ strncmp(const char *s1, const char *s2, size_t n);
  * @param src the source string to copy characters form.
  * @return a pointer to dst string.
  */
-char *
-strcpy(char *dst, const char *src);
+char *strcpy(char *dst, const char *src);
 
 /**
  * @brief Copies at most len characters from src into dst.
@@ -89,16 +82,14 @@ strcpy(char *dst, const char *src);
  * @param len the maximum amount of characters to copy.
  * @return a pointer to dst string.
  */
-char *
-strncpy(char *dst, const char *src, size_t len);
+char *strncpy(char *dst, const char *src, size_t len);
 
 /**
  * @brief Computes the length of the string s.
  * @param s the string whose length we want to compute.
  * @return the computed length of the string s.
  */
-size_t
-strlen(const char *s);
+size_t strlen(const char *s);
 
 /**
  * @brief Computes the length of the string s as long as doesn't exceed maxlen.
@@ -106,5 +97,4 @@ strlen(const char *s);
  * @param maxlen the maximum amount of characters to compute.
  * @return the computed length of the string s or maxlen if it's larger.
  */
-size_t
-strnlen(const char *s, size_t maxlen);
+size_t strnlen(const char *s, size_t maxlen);

@@ -8,8 +8,7 @@
 #include <sys/device.h>
 #include <sys/stdkern.h>
 
-static int
-vgatext_init(void);
+static int vgatext_init(void);
 
 #define VGA_COLS 80
 #define VGA_ROWS 25

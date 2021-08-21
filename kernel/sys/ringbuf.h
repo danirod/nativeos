@@ -22,8 +22,7 @@ typedef struct ringbuf {
  * \param size the amount of bytes for the buffer of this ring buffer.
  * \return a pointer to the ring buffer.
  */
-ringbuf_t *
-ringbuf_alloc(unsigned int size);
+ringbuf_t *ringbuf_alloc(unsigned int size);
 
 /**
  * \brief Writes a byte into the ring buffer.
@@ -35,24 +34,21 @@ ringbuf_alloc(unsigned int size);
  * \param buf the buffer to write into
  * \param byte the byte to place into the ring buffer.
  */
-void
-ringbuf_write(ringbuf_t *buf, unsigned char byte);
+void ringbuf_write(ringbuf_t *buf, unsigned char byte);
 
 /**
  * \brief Tests whether the buffer was overflowed.
  * \param buf the buffer to test for overflow.
  * \return a non-zero value if a previous write operation did overflow.
  */
-int
-ringbuf_test_overflow(ringbuf_t *buf);
+int ringbuf_test_overflow(ringbuf_t *buf);
 
 /**
  * \brief Tests whether the buffer contains data pending to be read.
  * \param buf the buffer to test for readiness.
  * \return a non-zero value if the buffer contains data waiting to be read.
  */
-int
-ringbuf_test_ready(ringbuf_t *buf);
+int ringbuf_test_ready(ringbuf_t *buf);
 
 /**
  * \brief Reads a byte from the given ring buffer.
@@ -61,12 +57,10 @@ ringbuf_test_ready(ringbuf_t *buf);
  * \param buf the buffer where the data should be read
  * \return the byte read from the ring buffer.
  */
-unsigned char
-ringbuf_read(ringbuf_t *buf);
+unsigned char ringbuf_read(ringbuf_t *buf);
 
 /**
  * \brief Deallocates a previously allocated ring buffer.
  * \param buf the ring buffer to deallocate.
  */
-void
-ringbuf_free(ringbuf_t *buf);
+void ringbuf_free(ringbuf_t *buf);
