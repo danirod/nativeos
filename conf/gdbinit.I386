@@ -6,4 +6,9 @@
 target remote localhost:1234
 
 file compile/I386/kernel
-break kmain
+
+# Set a breakpoint in kernel_main to debug the main function. At this
+# stage of kernel development, this is probably the most interesting
+# thing to catch.
+break kernel_main
+continue

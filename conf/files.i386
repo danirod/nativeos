@@ -4,7 +4,6 @@ arch/i386/kernel/cpu/idt.c              standard
 arch/i386/kernel/cpu/io.S               standard
 arch/i386/kernel/cpu/lidt.S             standard
 arch/i386/kernel/cpu/spinlock.c         standard
-arch/i386/kernel/main.c                 standard
 arch/i386/kernel/mem/alloc.c            standard
 arch/i386/kernel/mem/heap.c             standard
 arch/i386/kernel/mem/pmm.c              standard

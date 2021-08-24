@@ -1,5 +1,6 @@
 kernel/device/null.c		standard
 kernel/kern/hw_devices.c	standard
+kernel/kern/kern_main.c		standard
 kernel/stdkern/list.c		standard
 kernel/stdkern/memcpy.c		standard
 kernel/stdkern/memset.c		standard

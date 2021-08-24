@@ -64,8 +64,14 @@ Bootstrap:
 	ljmp $0x8, $.after_gdt_setup
 
 .after_gdt_setup:
+.extern kernel_main
+	/* Platform specific initialisation. */
+	call idt_init
+	call heap_init
+	call pmm_init
+
 	/* Execute the kernel. */
-	call kmain
+	call kernel_main
 
 /* Enters an infinite loop with interrupts disabled. There is no back from
    this function unless you reboot your system. Should only be used whenever
