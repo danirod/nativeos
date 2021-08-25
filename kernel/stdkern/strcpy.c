@@ -32,15 +32,20 @@ char *
 strncpy(char *dst, const char *src, size_t len)
 {
 	char *ptr = dst;
-	while (len--) {
-		/* Assigns (and copies) the \0 before failing the test. */
-		if (!(*ptr++ = *src++)) {
-			break;
-		}
-	}
-	while (len--) {
-		/* Fill with zeros until the length is reached. */
-		*ptr++ = 0;
+
+	if (len) {
+		do {
+			// When src reaches ends, assigns \0 before fail.
+			if (!(*ptr++ = *src++)) {
+				// Did you know that the spec says you must
+				// fill the remaining of the string with \0?
+				// Because you are supposed to copy len
+				// bytes.
+				while (len--)
+					*ptr++ = 0;
+				break;
+			}
+		} while(--len);
 	}
 	return dst;
 }
