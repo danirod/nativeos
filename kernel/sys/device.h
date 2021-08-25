@@ -66,15 +66,3 @@ int device_install(chardev_t *dev, char *mtname);
  * \param mtname the name of the device to remove from the device manager.
  */
 void device_remove(char *mtname);
-
-/*
- * UNDOCUMENTED UNSTABLE FUNCTIONS. These functions will eventually be removed
- * once NativeOS has a VFS and is able to manage the devices through a proper
- * DEVFS.
- */
-
-int device_open(char *mtname);
-
-unsigned int device_read(int fd, unsigned char *buf, unsigned int len);
-
-unsigned int device_write(int fd, unsigned char *buf, unsigned int len);

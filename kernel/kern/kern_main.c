@@ -45,12 +45,12 @@ kernel_main(void)
 	kernel_welcome();
 }
 
-#define device_puts(dev, str) \
-	device_write(dev, (unsigned char *) str, strlen(str))
-
 static void
 kernel_welcome(void)
 {
-	int fb = device_open("fb");
-	device_puts(fb, "NativeOS\n");
+	/* FIXME: should be done using the VFS API. */
+	vfs_node_t *devfs, *fb;
+	devfs = vfs_get_volume("DEV");
+	fb = devfs->vn_finddir(devfs, "fb");
+	fb->vn_write(fb, "NativeOS\n", strlen("NativeOS\n"));
 }
