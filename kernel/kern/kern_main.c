@@ -6,6 +6,7 @@
 
 #include <sys/device.h>
 #include <sys/stdkern.h>
+#include <sys/vfs.h>
 
 /**
  * \file kern/kern_main.c
@@ -33,6 +34,7 @@ static void kernel_welcome(void);
 void
 kernel_main(void)
 {
+	vfs_init();
 	device_init();
 
 	// TODO: These should be dynamically loaded (linker sets?)

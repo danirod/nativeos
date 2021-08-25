@@ -1,4 +1,5 @@
 kernel/device/null.c		standard
+kernel/kern/fs_vfs.c		standard
 kernel/kern/hw_devices.c	standard
 kernel/kern/kern_main.c		standard
 kernel/stdkern/list.c		standard
