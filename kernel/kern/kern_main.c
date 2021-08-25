@@ -20,6 +20,7 @@
  */
 
 // FIXME: These should not be declared here.
+extern void null_install(void);
 extern void vgatext_install(void);
 
 static void kernel_welcome(void);
@@ -38,6 +39,7 @@ kernel_main(void)
 	device_init();
 
 	// TODO: These should be dynamically loaded (linker sets?)
+	null_install();
 	vgatext_install();
 
 	kernel_welcome();

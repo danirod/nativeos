@@ -7,6 +7,7 @@
 #include <kernel/cpu/io.h>
 #include <sys/device.h>
 #include <sys/stdkern.h>
+#include <sys/vfs.h>
 
 static int vgatext_init(void);
 
@@ -114,6 +115,21 @@ vgatext_write(unsigned char *buf, unsigned int len)
 	return len;
 }
 
+static int
+vgatext_open(unsigned int flags)
+{
+	if (flags & VO_FREAD)
+		/* This is a write only device. */
+		return -1;
+	return 0;
+}
+
+static int
+vgatext_close()
+{
+	return 0;
+}
+
 static driver_t vgatext_driver = {
     .dv_name = "vgacon",
     .dv_flags = DV_FCHARDEV,
@@ -122,7 +138,9 @@ static driver_t vgatext_driver = {
 
 static chardev_t vgatext_device = {
     .cd_family = &vgatext_driver,
+    .cd_open = &vgatext_open,
     .cd_write = &vgatext_write,
+    .cd_close = &vgatext_close,
 };
 
 static int

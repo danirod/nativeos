@@ -3,10 +3,17 @@
 struct chardev;
 struct driver;
 
+typedef int (*chardev_open)(unsigned int flags);
+typedef unsigned int (*chardev_read)(unsigned char *buf, unsigned int size);
+typedef unsigned int (*chardev_write)(unsigned char *buf, unsigned int size);
+typedef int (*chardev_close)();
+
 typedef struct chardev {
 	struct driver *cd_family;
-	unsigned int (*cd_read)(unsigned char *, unsigned int);
-	unsigned int (*cd_write)(unsigned char *, unsigned int);
+	chardev_open cd_open;
+	chardev_read cd_read;
+	chardev_write cd_write;
+	chardev_close cd_close;
 } chardev_t;
 
 typedef struct driver {

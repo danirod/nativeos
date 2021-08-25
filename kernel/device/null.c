@@ -1,9 +1,11 @@
 #include <sys/device.h>
 
 static int null_init(void);
+static int null_dev_open(unsigned int flags);
 static unsigned int null_dev_read(unsigned char *buf, unsigned int len);
 static unsigned int null_dev_write(unsigned char *buf, unsigned int len);
 static unsigned int zero_dev_read(unsigned char *buf, unsigned int len);
+static int null_dev_close();
 
 static driver_t null_driver = {
     .dv_name = "null",
@@ -13,15 +15,31 @@ static driver_t null_driver = {
 
 static chardev_t null_chardev = {
     .cd_family = &null_driver,
+    .cd_open = &null_dev_open,
     .cd_read = &null_dev_read,
     .cd_write = &null_dev_write,
+    .cd_close = &null_dev_close,
 };
 
 static chardev_t zero_chardev = {
     .cd_family = &null_driver,
+    .cd_open = &null_dev_open,
     .cd_read = &zero_dev_read,
     .cd_write = &null_dev_write,
+    .cd_close = &null_dev_close,
 };
+
+static int
+null_dev_open(unsigned int flags)
+{
+	return 0;
+}
+
+static int
+null_dev_close()
+{
+	return 0;
+}
 
 static unsigned int
 null_dev_read(unsigned char *buf, unsigned int len)
