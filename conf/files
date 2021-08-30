@@ -9,3 +9,4 @@ kernel/stdkern/ringbuf.c	standard
 kernel/stdkern/strcmp.c		standard
 kernel/stdkern/strcpy.c		standard
 kernel/stdkern/strlen.c		standard
+kernel/stdkern/strsep.c		standard

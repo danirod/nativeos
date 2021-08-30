@@ -98,3 +98,11 @@ size_t strlen(const char *s);
  * @return the computed length of the string s or maxlen if it's larger.
  */
 size_t strnlen(const char *s, size_t maxlen);
+
+/**
+ * @brief Separates strings
+ * @param strptr A pointer to the string to be separated.
+ * @param delimiter The delimiter to break the string
+ * @return a pointer to the original strptr value.
+ */
+char *strsep(char **strptr, const char *delimiter);
