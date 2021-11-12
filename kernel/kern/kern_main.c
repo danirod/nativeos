@@ -48,9 +48,7 @@ kernel_main(void)
 static void
 kernel_welcome(void)
 {
-	/* FIXME: should be done using the VFS API. */
-	vfs_node_t *devfs, *fb;
-	devfs = vfs_get_volume("DEV");
-	fb = devfs->vn_finddir(devfs, "fb");
-	fb->vn_write(fb, "NativeOS\n", strlen("NativeOS\n"));
+	vfs_node_t *fb = vfs_open_path("DEV:/fb");
+	char *welcome = "This is NativeOS\n";
+	fb->vn_write(fb, welcome, strlen(welcome));
 }
