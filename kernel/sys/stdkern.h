@@ -100,6 +100,13 @@ size_t strlen(const char *s);
 size_t strnlen(const char *s, size_t maxlen);
 
 /**
+ * @brief Duplicates a string into the heap and returns a copy.
+ * @param s the string to copy into the heap
+ * @return a pointer to the heap area where the string was copied.
+ */
+char *strdup(const char *s);
+
+/**
  * @brief Separates strings
  * @param strptr A pointer to the string to be separated.
  * @param delimiter The delimiter to break the string
