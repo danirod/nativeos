@@ -22,8 +22,11 @@ char *
 strcpy(char *dst, const char *src)
 {
 	char *ptr = dst;
-	while (*src) {
-		*ptr++ = *src++;
+	if (src && *src) {
+		while (*src) {
+			*ptr++ = *src++;
+		}
+		*ptr++ = 0;
 	}
 	return dst;
 }
