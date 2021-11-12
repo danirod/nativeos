@@ -40,3 +40,10 @@ int vfs_mount(vfs_node_t *node, char *mountname);
 int vfs_umount(char *mountname);
 
 vfs_node_t *vfs_get_volume(char *mountname);
+
+/**
+ * @brief Given a path, locate the node in the mounted filesystems
+ * @param path the path to the node we want to find
+ * @return a pointer to the found node or NULL if not found
+ */
+vfs_node_t *vfs_open_path(const char *path);
