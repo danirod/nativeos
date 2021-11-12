@@ -8,3 +8,4 @@ arch/i386/kernel/mem/alloc.c            standard
 arch/i386/kernel/mem/heap.c             standard
 arch/i386/kernel/mem/pmm.c              standard
 kernel/device/vgatext.c			standard
+kernel/device/kbd.c			standard

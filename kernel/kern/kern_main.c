@@ -22,6 +22,7 @@
 // FIXME: These should not be declared here.
 extern void null_install(void);
 extern void vgatext_install(void);
+extern void keyboard_install(void);
 
 static void kernel_welcome(void);
 
@@ -41,6 +42,7 @@ kernel_main(void)
 	// TODO: These should be dynamically loaded (linker sets?)
 	null_install();
 	vgatext_install();
+	keyboard_install();
 
 	kernel_welcome();
 }
@@ -49,6 +51,14 @@ static void
 kernel_welcome(void)
 {
 	vfs_node_t *fb = vfs_open_path("DEV:/fb");
+	vfs_node_t *kbd = vfs_open_path("DEV:/kbd");
 	char *welcome = "This is NativeOS\n";
 	fb->vn_write(fb, welcome, strlen(welcome));
+
+	unsigned char buf[16];
+	unsigned int read;
+	for (;;) {
+		read = kbd->vn_read(kbd, buf, 16);
+		fb->vn_write(fb, buf, read);
+	}
 }
