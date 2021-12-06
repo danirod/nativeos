@@ -53,12 +53,12 @@ kernel_welcome(void)
 	vfs_node_t *fb = vfs_open_path("DEV:/fb");
 	vfs_node_t *kbd = vfs_open_path("DEV:/kbd");
 	char *welcome = "This is NativeOS\n";
-	fb->vn_write(fb, welcome, strlen(welcome));
+	fs_write(fb, welcome, strlen(welcome));
 
 	unsigned char buf[16];
 	unsigned int read;
 	for (;;) {
-		read = kbd->vn_read(kbd, buf, 16);
-		fb->vn_write(fb, buf, read);
+		read = fs_read(kbd, buf, 16);
+		fs_write(fb, buf, read);
 	}
 }
