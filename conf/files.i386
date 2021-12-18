@@ -9,3 +9,4 @@ arch/i386/kernel/mem/heap.c             standard
 arch/i386/kernel/mem/pmm.c              standard
 kernel/device/vgatext.c			standard
 kernel/device/kbd.c			standard
+kernel/device/pctimer.c			standard

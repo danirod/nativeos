@@ -23,6 +23,7 @@
 extern void null_install(void);
 extern void vgatext_install(void);
 extern void keyboard_install(void);
+extern void pctimer_install(void);
 
 static void kernel_welcome(void);
 
@@ -41,6 +42,7 @@ kernel_main(void)
 
 	// TODO: These should be dynamically loaded (linker sets?)
 	null_install();
+	pctimer_install();
 	vgatext_install();
 	keyboard_install();
 
