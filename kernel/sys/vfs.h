@@ -46,7 +46,7 @@ vfs_node_t *vfs_get_volume(char *mountname);
  * @param path the path to the node we want to find
  * @return a pointer to the found node or NULL if not found
  */
-vfs_node_t *vfs_open_path(const char *path);
+vfs_node_t *fs_resolve(const char *path);
 
 int fs_open(vfs_node_t *node, unsigned int flags);
 unsigned int fs_read(vfs_node_t *node, void *buf, unsigned int len);

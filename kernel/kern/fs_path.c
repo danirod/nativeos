@@ -9,7 +9,7 @@
  * this function returns NULL.
  */
 static vfs_node_t *
-vfs_follow_path(vfs_node_t *root, char *path)
+fs_follow_path(vfs_node_t *root, char *path)
 {
 	char *out;
 	vfs_node_t *node;
@@ -29,11 +29,11 @@ vfs_follow_path(vfs_node_t *root, char *path)
 	}
 
 	/* This is a directory, and node is a proper directory. */
-	return vfs_follow_path(node, path);
+	return fs_follow_path(node, path);
 }
 
 vfs_node_t *
-vfs_open_path(const char *path)
+fs_resolve(const char *path)
 {
 	vfs_node_t *descriptor = 0;
 	char *strsep_orig, *strsep_in, *strsep_out;
@@ -64,7 +64,7 @@ vfs_open_path(const char *path)
 
 	/* Then start processing the path to look for the file in the device. */
 	strsep_in++;
-	descriptor = vfs_follow_path(descriptor, strsep_in);
+	descriptor = fs_follow_path(descriptor, strsep_in);
 defer:
 	free(strsep_orig);
 	return descriptor;

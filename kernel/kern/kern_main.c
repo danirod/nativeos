@@ -49,13 +49,28 @@ kernel_main(void)
 	kernel_welcome();
 }
 
+static vfs_node_t *
+fs_resolve_and_open(const char *path, unsigned int args)
+{
+	vfs_node_t *node = fs_resolve(path);
+	if (node) {
+		fs_open(node, args);
+	}
+	return node;
+}
+
+static unsigned int
+fs_write_string(vfs_node_t *node, const char *str)
+{
+	return fs_write(node, (unsigned char *) str, strlen(str));
+}
+
 static void
 kernel_welcome(void)
 {
-	vfs_node_t *fb = vfs_open_path("DEV:/fb");
-	vfs_node_t *kbd = vfs_open_path("DEV:/kbd");
-	char *welcome = "This is NativeOS\n";
-	fs_write(fb, welcome, strlen(welcome));
+	vfs_node_t *fb = fs_resolve_and_open("DEV:/fb", VO_FWRITE);
+	vfs_node_t *kbd = fs_resolve_and_open("DEV:/kbd", VO_FREAD);
+	fs_write_string(fb, "This is NativeOS\n");
 
 	unsigned char buf[16];
 	unsigned int read;
