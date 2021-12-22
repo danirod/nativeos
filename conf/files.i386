@@ -10,3 +10,4 @@ arch/i386/kernel/mem/pmm.c              standard
 kernel/device/vgatext.c			standard
 kernel/device/kbd.c			standard
 kernel/device/pctimer.c			standard
+kernel/device/uart8250.c standard

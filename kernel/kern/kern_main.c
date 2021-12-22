@@ -24,6 +24,7 @@ extern void null_install(void);
 extern void vgatext_install(void);
 extern void keyboard_install(void);
 extern void pctimer_install(void);
+extern void uart8250_install(void);
 
 static void kernel_welcome(void);
 
@@ -45,6 +46,7 @@ kernel_main(void)
 	pctimer_install();
 	vgatext_install();
 	keyboard_install();
+	uart8250_install();
 
 	kernel_welcome();
 }
@@ -54,7 +56,9 @@ fs_resolve_and_open(const char *path, unsigned int args)
 {
 	vfs_node_t *node = fs_resolve(path);
 	if (node) {
-		fs_open(node, args);
+		if (fs_open(node, args) != 0) {
+			node = NULL;
+		}
 	}
 	return node;
 }
@@ -68,14 +72,28 @@ fs_write_string(vfs_node_t *node, const char *str)
 static void
 kernel_welcome(void)
 {
-	vfs_node_t *fb = fs_resolve_and_open("DEV:/fb", VO_FWRITE);
-	vfs_node_t *kbd = fs_resolve_and_open("DEV:/kbd", VO_FREAD);
+	vfs_node_t *fb, *kbd, *uart;
+	fb = fs_resolve_and_open("DEV:/fb", VO_FWRITE);
+	kbd = fs_resolve_and_open("DEV:/kbd", VO_FREAD);
+	uart = fs_resolve_and_open("DEV:/uart", VO_FWRITE | VO_FREAD);
+
 	fs_write_string(fb, "This is NativeOS\n");
+	fs_write_string(fb, "Please, check out the UART output for debug\n");
+	fs_write_string(fb, "Press any key to type garbage :)\n\n");
+
+	fs_write_string(uart, "This is NativeOS\r\n");
+	fs_write_string(uart, "Type some characters, you should get an echo\r\n");
+	fs_write_string(uart, "No, at the moment line breaks will not work\r\n");
+	fs_write_string(uart, "Also, backspace will not work too.\r\n");
+	fs_write_string(uart, "Listening:\r\n");
 
 	unsigned char buf[16];
 	unsigned int read;
 	for (;;) {
 		read = fs_read(kbd, buf, 16);
 		fs_write(fb, buf, read);
+
+		read = fs_read(uart, buf, 16);
+		fs_write(uart, buf, read);
 	}
 }
