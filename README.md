@@ -59,12 +59,39 @@ the `compile/` directory. In this directory, a Makefile will be present.
 Use it to build the kernel image:
 
     $ cd compile/I386
-    $ make
+    $ make kernel
+
+Or, to make things faster,
+
+    $ make -C compile/I386 kernel
 
 The NativeOS kernel file is a binary in the ELF format. It supports the
 Multiboot specification, so it can be deployed in any machine using a
 bootloader capable of loading Multiboot binaries, such as GNU GRUB,
 SYSLINUX or Limine.
+
+### Running the profile in QEMU
+
+For the i386 platform, QEMU supports a special flag called `-kernel`,
+where the path to a Multiboot executable file can be given. QEMU will
+treat the given file as if it was booted via a CD-ROM. This allows to
+quickly test the executable file without having to build CD-ROMs:
+
+    $ make -C compile/I386 qemu
+    qemu-system-i386 -kernel kernel -serial stdio
+
+### Debugging the profile in QEMU
+
+QEMU also supports using the gdbserver protocol, so it is possible to
+connect QEMU with GDB in order to debug the running processor. There
+is a gdbinit file in the conf directory to help with the process.
+
+    $ make -C compile/I386 qemu-gdb
+
+(In another terminal:)
+
+    $ gdb -x conf/gdbinit.I386
+    > continue
 
 ### Shortcut
 

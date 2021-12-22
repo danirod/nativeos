@@ -29,5 +29,11 @@ kernel: ${OBJS}
 %%RULES
 #### RULES end here
 
+qemu: kernel
+	qemu-system-i386 -kernel kernel -serial stdio
+
+qemu-gdb: kernel
+	qemu-system-i386 -kernel kernel -serial stdio -s -S
+
 clean:
 	rm -f kernel ${OBJS}
