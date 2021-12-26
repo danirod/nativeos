@@ -19,8 +19,6 @@ static int vgatext_init(void);
 
 #define VGA_IOR_ADDR 0x3D4
 #define VGA_IOR_DATA 0x3D5
-#define VGA_CMD_HICUR 0xE
-#define VGA_CMD_LOCUR 0xF
 
 struct vgacontext {
 	unsigned short *baseaddr;
@@ -40,10 +38,27 @@ static void
 syncfbcursor()
 {
 	int abspos = context.cy * VGA_COLS + context.cx;
-	IO_OutP(VGA_IOR_ADDR, VGA_CMD_HICUR);
+	IO_OutP(VGA_IOR_ADDR, 0xE);
 	IO_OutP(VGA_IOR_DATA, (abspos >> 8) & 0xFF);
-	IO_OutP(VGA_IOR_ADDR, VGA_CMD_LOCUR);
+	IO_OutP(VGA_IOR_ADDR, 0xF);
 	IO_OutP(VGA_IOR_DATA, abspos & 0xFF);
+}
+
+static void
+enablecursor(int enabled)
+{
+	unsigned char in;
+	if (enabled) {
+		IO_OutP(VGA_IOR_ADDR, 0xA);
+		in = IO_InP(VGA_IOR_DATA) & 0x1F;
+		IO_OutP(VGA_IOR_DATA, in | 0xD);
+		IO_OutP(VGA_IOR_ADDR, 0xB);
+		in = IO_InP(VGA_IOR_DATA) & 0xC0;
+		IO_OutP(VGA_IOR_DATA, in | 0xF);
+	} else {
+		IO_OutP(VGA_IOR_ADDR, 0xA);
+		IO_OutP(VGA_IOR_DATA, 0x20);
+	}
 }
 
 static inline void
@@ -60,8 +75,10 @@ copyrow(unsigned int dst, unsigned int src)
 static inline void
 clearrow(unsigned int row)
 {
+	unsigned int i;
 	unsigned short *rowptr = context.baseaddr + (VGA_COLS * row);
-	memset(rowptr, 0, VGA_COLS * 2);
+	for (i = 0; i < VGA_COLS; i++)
+		rowptr[i] = VGA_ENTRY(0, 7, 0);
 }
 
 static inline void
@@ -72,7 +89,7 @@ moveline()
 		for (row = 1; row < VGA_ROWS; row++)
 			copyrow(row - 1, row);
 		clearrow(VGA_ROWS - 1);
-		context.cy--;
+		context.cy = VGA_ROWS - 1;
 	}
 }
 
@@ -146,9 +163,13 @@ static chardev_t vgatext_device = {
 static int
 vgatext_init(void)
 {
+	unsigned int i;
 	/* Clear video buffer. */
-	memset(context.baseaddr, 0, VGA_SIZE);
+	for (i = 0; i < VGA_SIZE; i++) {
+		context.baseaddr[i] = VGA_ENTRY(0, 7, 0);
+	}
 	syncfbcursor();
+	enablecursor(1);
 
 	device_install(&vgatext_device, "fb");
 	return 0;
