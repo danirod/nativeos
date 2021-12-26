@@ -57,6 +57,7 @@
 #include <stdint.h>
 #include <sys/device.h>
 #include <sys/ringbuf.h>
+#include <sys/vfs.h>
 
 #define UART_PORT 0x3F8
 
@@ -165,15 +166,13 @@ uart8250_interrupt(struct idt_data *idt)
 	uint8_t value;
 
 	/* Assert there is data. */
-	if (IO_InP(UART_PORT + 5) & 1) {
+	while (IO_InP(UART_PORT + 5) & 1) {
 		value = IO_InP(UART_PORT);
-		acknowledge();
-
-		/* Discard the byte unless the chardev is opened. */
-		if (uart8250_context.flags) {
+		if (uart8250_context.flags & VO_FWRITE) {
 			ringbuf_write(uart8250_context.rx_buf, value);
 		}
 	}
+	acknowledge();
 }
 
 static int
@@ -233,14 +232,53 @@ uart8250_read(unsigned char *buf, uint32_t len)
 }
 
 static uint32_t
-uart8250_write(unsigned char *buf, uint32_t len)
+uart8250_write_binary(unsigned char *buf, uint32_t len)
 {
-	size_t write_bytes = 0;
+	unsigned int write_bytes = 0;
 	while (len--) {
 		IO_OutP(UART_PORT, *buf++);
 		write_bytes++;
 	}
 	return write_bytes;
+}
+
+static uint32_t
+uart8250_write_non_binary(unsigned char *buf, uint32_t len)
+{
+	unsigned int write_bytes = 0;
+	while (len--) {
+		switch (*buf) {
+		case '\r':
+			IO_OutP(UART_PORT, '\r');
+			IO_OutP(UART_PORT, '\n');
+			write_bytes += 2;
+			buf++;
+			break;
+		case 127:
+			IO_OutP(UART_PORT, '\b');
+			write_bytes++;
+			buf++;
+			break;
+		default:
+			IO_OutP(UART_PORT, *buf++);
+			write_bytes++;
+			break;
+		}
+	}
+	return write_bytes;
+}
+
+static uint32_t
+uart8250_write(unsigned char *buf, uint32_t len)
+{
+	if (!buf || !*buf) {
+		return 0;
+	}
+	if (uart8250_context.flags & VO_FBINARY) {
+		return uart8250_write_binary(buf, len);
+	} else {
+		return uart8250_write_non_binary(buf, len);
+	}
 }
 
 /**

@@ -4,6 +4,7 @@ struct vfs_node;
 
 #define VO_FREAD 0x0001 /**< Open the file to read from it. */
 #define VO_FWRITE 0x0002 /**< Open the file to write into it. */
+#define VO_FBINARY 0x004 /**< Open the file in binary mode. */
 
 #define VN_FREGFILE 0x1
 #define VN_FDIR 0x2

@@ -81,11 +81,8 @@ kernel_welcome(void)
 	fs_write_string(fb, "Please, check out the UART output for debug\n");
 	fs_write_string(fb, "Press any key to type garbage :)\n\n");
 
-	fs_write_string(uart, "This is NativeOS\r\n");
-	fs_write_string(uart, "Type some characters, you should get an echo\r\n");
-	fs_write_string(uart, "No, at the moment line breaks will not work\r\n");
-	fs_write_string(uart, "Also, backspace will not work too.\r\n");
-	fs_write_string(uart, "Listening:\r\n");
+	fs_write_string(uart, "This is NativeOS\n");
+	fs_write_string(uart, "Type some characters to get echo:\n\n");
 
 	unsigned char buf[16];
 	unsigned int read;
