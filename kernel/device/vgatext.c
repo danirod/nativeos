@@ -175,8 +175,4 @@ vgatext_init(void)
 	return 0;
 }
 
-void
-vgatext_install()
-{
-	vgatext_driver.dv_init();
-}
+DEVICE_DESCRIPTOR(vgatext, vgatext_driver);

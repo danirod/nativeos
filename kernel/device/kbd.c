@@ -66,8 +66,4 @@ keyboard_init(void)
 	return 0;
 }
 
-void
-keyboard_install()
-{
-	keyboard_driver.dv_init();
-}
+DEVICE_DESCRIPTOR(kbd, keyboard_driver);

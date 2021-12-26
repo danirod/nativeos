@@ -42,7 +42,7 @@ static int
 pctimer_init(void)
 {
 	idt_set_handler(0x20, &pctimer_handler);
-    device_install(&pctimer_chardev, "pit");
+	device_install(&pctimer_chardev, "pit");
 	return 0;
 }
 
@@ -63,12 +63,12 @@ pctimer_read(unsigned char *buf, unsigned int len)
 {
 	static char *letters = "0123456789ABCDEF";
 	unsigned int i, last, read = 0;
-    unsigned long ticks = next_ticks;
+	unsigned long ticks = next_ticks;
 	char conversion[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 	for (i = 0; i < 8; i++) {
 		last = ticks & 0xF;
 		conversion[i] = letters[last];
-        ticks >>= 4;
+		ticks >>= 4;
 	}
 	for (i = 7; i >= 0 && len--; --i) {
 		*buf++ = conversion[i];
@@ -77,8 +77,4 @@ pctimer_read(unsigned char *buf, unsigned int len)
 	return read;
 }
 
-void
-pctimer_install(void)
-{
-	pctimer_driver.dv_init();
-}
+DEVICE_DESCRIPTOR(pctimer, pctimer_driver);

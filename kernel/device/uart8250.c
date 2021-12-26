@@ -281,14 +281,4 @@ uart8250_write(unsigned char *buf, uint32_t len)
 	}
 }
 
-/**
- * \brief Initialise the UART device.
- * This function has to be called in order to initialise the device until the
- * kernel actually has a linker set that we can use to automatically call all
- * the initialisation routines automatically.
- */
-void
-uart8250_install()
-{
-	uart8250_driver.dv_init();
-}
+DEVICE_DESCRIPTOR(uart8250, uart8250_driver);

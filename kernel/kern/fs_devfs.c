@@ -43,8 +43,19 @@ static vfs_node_t devfs_rootdir = {
 void
 device_init(void)
 {
+	extern char devices_start, devices_end;
+	driver_t **driver_start, **driver_end, **driver;
+
+	/* Init the data structures. */
 	devmgr_list = list_alloc();
 	vfs_mount(&devfs_rootdir, "DEV");
+
+	/* Mount the devices. */
+	driver_start = (driver_t **) &devices_start;
+	driver_end = (driver_t **) &devices_end;
+	for (driver = driver_start; driver < driver_end; driver++) {
+		(*driver)->dv_init();
+	}
 }
 
 int

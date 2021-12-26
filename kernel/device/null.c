@@ -72,8 +72,4 @@ null_init(void)
 	return 0;
 }
 
-void
-null_install()
-{
-	null_driver.dv_init();
-}
+DEVICE_DESCRIPTOR(null, null_driver);

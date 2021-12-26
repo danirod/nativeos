@@ -24,6 +24,13 @@ SECTIONS
 		*(.text)
 	}
 
+	.text.driver : ALIGN(0x1000)
+	{
+		devices_start = .;
+		*(.text.driver)
+		devices_end = .;
+	}
+
 	.note.gnu.build-id : ALIGN(0x1000)
 	{
 		*(.note.gnu.build-id)

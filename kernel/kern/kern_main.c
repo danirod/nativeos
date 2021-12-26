@@ -40,14 +40,6 @@ kernel_main(void)
 {
 	vfs_init();
 	device_init();
-
-	// TODO: These should be dynamically loaded (linker sets?)
-	null_install();
-	pctimer_install();
-	vgatext_install();
-	keyboard_install();
-	uart8250_install();
-
 	kernel_welcome();
 }
 

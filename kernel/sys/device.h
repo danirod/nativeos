@@ -1,5 +1,20 @@
 #pragma once
 
+/**
+ * \brief Declare a device descriptor
+ *
+ * Calling this macro providing a proper device_t structure will create a
+ * marker pointer in a different section of the ELF binary image, so that
+ * the device manager will be able to dynamically load it when the kernel
+ * starts up.
+ *
+ * \param name the name to use for the exported symbol
+ * \param dev the device_t structure to add to the table
+ */
+#define DEVICE_DESCRIPTOR(name, dev) \
+	driver_t *descriptor_##name \
+	    __attribute__((section(".text.driver"), used)) = &dev
+
 struct chardev;
 struct driver;
 
