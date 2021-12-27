@@ -21,15 +21,15 @@ static unsigned int pctimer_read(unsigned char *buf, unsigned int len);
 static unsigned int pctimer_write(unsigned char *buf, unsigned int len);
 
 static driver_t pctimer_driver = {
-    .dv_name = "pctimer",
-    .dv_flags = 0,
-    .dv_init = &pctimer_init,
+    .drv_name = "pctimer",
+    .drv_flags = 0,
+    .drv_init = &pctimer_init,
 };
 
-static chardev_t pctimer_chardev = {
-    .cd_open = &pctimer_open,
-    .cd_close = &pctimer_close,
-    .cd_read = &pctimer_read,
+static device_t pctimer_device = {
+    .dev_open = &pctimer_open,
+    .dev_close = &pctimer_close,
+    .dev_read_chr = &pctimer_read,
 };
 
 static void
@@ -42,7 +42,7 @@ static int
 pctimer_init(void)
 {
 	idt_set_handler(0x20, &pctimer_handler);
-	device_install(&pctimer_chardev, "pit");
+	device_install(&pctimer_device, "pit");
 	return 0;
 }
 

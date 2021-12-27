@@ -15,29 +15,37 @@
 	driver_t *descriptor_##name \
 	    __attribute__((section(".text.driver"), used)) = &dev
 
-struct chardev;
+struct device;
 struct driver;
 
-typedef int (*chardev_open)(unsigned int flags);
-typedef unsigned int (*chardev_read)(unsigned char *buf, unsigned int size);
-typedef unsigned int (*chardev_write)(unsigned char *buf, unsigned int size);
-typedef int (*chardev_close)();
+typedef int (*device_open)(unsigned int flags);
+typedef unsigned int (*device_read_chr)(unsigned char *buf, unsigned int size);
+typedef unsigned int (*device_write_chr)(unsigned char *buf, unsigned int size);
+typedef unsigned int (*device_read_blk)(unsigned char *buf,
+                                        unsigned int offt,
+                                        unsigned int size);
+typedef unsigned int (*device_write_blk)(unsigned char *buf,
+                                         unsigned int offt,
+                                         unsigned int size);
+typedef int (*device_close)();
 
-typedef struct chardev {
-	struct driver *cd_family;
-	chardev_open cd_open;
-	chardev_read cd_read;
-	chardev_write cd_write;
-	chardev_close cd_close;
-} chardev_t;
+typedef struct device {
+	struct driver *dev_family;
+	device_open dev_open;
+	device_read_blk dev_read_blk;
+	device_write_blk dev_write_blk;
+	device_read_chr dev_read_chr;
+	device_write_chr dev_write_chr;
+	device_close dev_close;
+} device_t;
 
 typedef struct driver {
-	char *dv_name;
-	unsigned int dv_flags;
+	char *drv_name;
+	unsigned int drv_flags;
 #define DV_FCHARDEV 1
 #define DV_FBLCKDEV 2
-	int (*dv_init)(void);
-	void (*dv_tini)(void);
+	int (*drv_init)(void);
+	void (*drv_tini)(void);
 } driver_t;
 
 /**
@@ -68,7 +76,7 @@ void device_init(void);
  * \param mtname the name to use when refering to this device.
  * \return status code with the outcome of the mount operation.
  */
-int device_install(chardev_t *dev, char *mtname);
+int device_install(device_t *dev, char *mtname);
 
 /**
  * \brief Uninstall a device.

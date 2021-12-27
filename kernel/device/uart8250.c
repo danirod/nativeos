@@ -146,18 +146,18 @@ static uint32_t uart8250_read(unsigned char *buf, uint32_t len);
 static uint32_t uart8250_write(unsigned char *buf, uint32_t len);
 
 static driver_t uart8250_driver = {
-    .dv_name = "UART8250",
-    .dv_flags = DV_FCHARDEV,
-    .dv_init = &uart8250_init,
-    .dv_tini = &uart8250_tini,
+    .drv_name = "UART8250",
+    .drv_flags = DV_FCHARDEV,
+    .drv_init = &uart8250_init,
+    .drv_tini = &uart8250_tini,
 };
 
-static chardev_t uart8250_chardev = {
-    .cd_family = &uart8250_driver,
-    .cd_open = &uart8250_open,
-    .cd_read = &uart8250_read,
-    .cd_write = &uart8250_write,
-    .cd_close = &uart8250_close,
+static device_t uart8250_device = {
+    .dev_family = &uart8250_driver,
+    .dev_open = &uart8250_open,
+    .dev_read_chr = &uart8250_read,
+    .dev_write_chr = &uart8250_write,
+    .dev_close = &uart8250_close,
 };
 
 static void
@@ -178,7 +178,7 @@ uart8250_interrupt(struct idt_data *idt)
 static int
 uart8250_init(void)
 {
-	device_install(&uart8250_chardev, "uart");
+	device_install(&uart8250_device, "uart");
 	uart8250_reconfigure();
 	idt_set_handler(0x24, &uart8250_interrupt);
 	acknowledge();

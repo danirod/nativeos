@@ -54,12 +54,12 @@ device_init(void)
 	driver_start = (driver_t **) &devices_start;
 	driver_end = (driver_t **) &devices_end;
 	for (driver = driver_start; driver < driver_end; driver++) {
-		(*driver)->dv_init();
+		(*driver)->drv_init();
 	}
 }
 
 int
-device_install(chardev_t *dev, char *mtname)
+device_install(device_t *dev, char *mtname)
 {
 	vfs_node_t *node;
 	if ((node = devfs_finddir(0, mtname)) != 0)
@@ -91,9 +91,9 @@ device_remove(char *mtname)
 static int
 devfs_open(vfs_node_t *node, unsigned int flags)
 {
-	chardev_t *cdev = (chardev_t *) node->vn_payload;
-	if (cdev && cdev->cd_open) {
-		return cdev->cd_open(flags);
+	device_t *dev = (device_t *) node->vn_payload;
+	if (dev && dev->dev_open) {
+		return dev->dev_open(flags);
 	}
 	return -1;
 }
@@ -101,19 +101,40 @@ devfs_open(vfs_node_t *node, unsigned int flags)
 static unsigned int
 devfs_read(vfs_node_t *node, unsigned int offt, void *buf, unsigned int len)
 {
-	chardev_t *cdev = (chardev_t *) node->vn_payload;
-	if (cdev && cdev->cd_read) {
-		return cdev->cd_read((unsigned char *) buf, len);
+	device_t *dev = (device_t *) node->vn_payload;
+	unsigned char *chbuf = (unsigned char *) buf;
+	unsigned int flags;
+
+	if (dev && dev->dev_family) {
+		flags = dev->dev_family->drv_flags;
+		if ((flags & DV_FCHARDEV) != 0 && dev->dev_read_chr) {
+			return dev->dev_read_chr(chbuf, len);
+		} else if ((flags & DV_FBLCKDEV) != 0 && dev->dev_read_blk) {
+			return dev->dev_read_blk(chbuf, offt, len);
+		} else {
+			return -1;
+		}
 	}
+
 	return -1;
 }
 
 static unsigned int
 devfs_write(vfs_node_t *node, unsigned int offt, void *buf, unsigned int len)
 {
-	chardev_t *cdev = (chardev_t *) node->vn_payload;
-	if (cdev && cdev->cd_write) {
-		return cdev->cd_write((unsigned char *) buf, len);
+	device_t *dev = (device_t *) node->vn_payload;
+	unsigned char *chbuf = (unsigned char *) buf;
+	unsigned int flags;
+
+	if (dev && dev->dev_family) {
+		flags = dev->dev_family->drv_flags;
+		if ((flags & DV_FCHARDEV) != 0 && dev->dev_write_chr) {
+			return dev->dev_write_chr(chbuf, len);
+		} else if ((flags & DV_FBLCKDEV) != 0 && dev->dev_write_blk) {
+			return dev->dev_write_blk(chbuf, offt, len);
+		} else {
+			return -1;
+		}
 	}
 	return -1;
 }
@@ -121,9 +142,9 @@ devfs_write(vfs_node_t *node, unsigned int offt, void *buf, unsigned int len)
 static int
 devfs_close(vfs_node_t *node)
 {
-	chardev_t *cdev = (chardev_t *) node->vn_payload;
-	if (cdev && cdev->cd_close) {
-		return cdev->cd_close();
+	device_t *cdev = (device_t *) node->vn_payload;
+	if (cdev && cdev->dev_close) {
+		return cdev->dev_close();
 	}
 	return -1;
 }

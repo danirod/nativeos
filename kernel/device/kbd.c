@@ -9,16 +9,16 @@ static int keyboard_close(void);
 static unsigned int keyboard_read(unsigned char *buf, unsigned int len);
 
 static driver_t keyboard_driver = {
-    .dv_name = "keyboard",
-    .dv_flags = DV_FCHARDEV,
-    .dv_init = &keyboard_init,
+    .drv_name = "keyboard",
+    .drv_flags = DV_FCHARDEV,
+    .drv_init = &keyboard_init,
 };
 
-static chardev_t keyboard_chardev = {
-    .cd_family = &keyboard_driver,
-    .cd_open = &keyboard_open,
-    .cd_read = &keyboard_read,
-    .cd_close = &keyboard_close,
+static device_t keyboard_device = {
+    .dev_family = &keyboard_driver,
+    .dev_open = &keyboard_open,
+    .dev_read_chr = &keyboard_read,
+    .dev_close = &keyboard_close,
 };
 
 static ringbuf_t *keyboard_rbuf;
@@ -62,7 +62,7 @@ keyboard_init(void)
 {
 	keyboard_rbuf = ringbuf_alloc(1024);
 	idt_set_handler(0x21, &keyboard_key_handler);
-	device_install(&keyboard_chardev, "kbd");
+	device_install(&keyboard_device, "kbd");
 	return 0;
 }
 

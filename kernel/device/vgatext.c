@@ -148,16 +148,16 @@ vgatext_close()
 }
 
 static driver_t vgatext_driver = {
-    .dv_name = "vgacon",
-    .dv_flags = DV_FCHARDEV,
-    .dv_init = &vgatext_init,
+    .drv_name = "vgacon",
+    .drv_flags = DV_FCHARDEV,
+    .drv_init = &vgatext_init,
 };
 
-static chardev_t vgatext_device = {
-    .cd_family = &vgatext_driver,
-    .cd_open = &vgatext_open,
-    .cd_write = &vgatext_write,
-    .cd_close = &vgatext_close,
+static device_t vgatext_device = {
+    .dev_family = &vgatext_driver,
+    .dev_open = &vgatext_open,
+    .dev_write_chr = &vgatext_write,
+    .dev_close = &vgatext_close,
 };
 
 static int

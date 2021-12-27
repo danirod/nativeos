@@ -8,25 +8,25 @@ static unsigned int zero_dev_read(unsigned char *buf, unsigned int len);
 static int null_dev_close();
 
 static driver_t null_driver = {
-    .dv_name = "null",
-    .dv_flags = DV_FCHARDEV,
-    .dv_init = &null_init,
+    .drv_name = "null",
+    .drv_flags = DV_FCHARDEV,
+    .drv_init = &null_init,
 };
 
-static chardev_t null_chardev = {
-    .cd_family = &null_driver,
-    .cd_open = &null_dev_open,
-    .cd_read = &null_dev_read,
-    .cd_write = &null_dev_write,
-    .cd_close = &null_dev_close,
+static device_t null_device = {
+    .dev_family = &null_driver,
+    .dev_open = &null_dev_open,
+    .dev_read_chr = &null_dev_read,
+    .dev_write_chr = &null_dev_write,
+    .dev_close = &null_dev_close,
 };
 
-static chardev_t zero_chardev = {
-    .cd_family = &null_driver,
-    .cd_open = &null_dev_open,
-    .cd_read = &zero_dev_read,
-    .cd_write = &null_dev_write,
-    .cd_close = &null_dev_close,
+static device_t zero_device = {
+    .dev_family = &null_driver,
+    .dev_open = &null_dev_open,
+    .dev_read_chr = &zero_dev_read,
+    .dev_write_chr = &null_dev_write,
+    .dev_close = &null_dev_close,
 };
 
 static int
@@ -67,8 +67,8 @@ zero_dev_read(unsigned char *buf, unsigned int len)
 static int
 null_init(void)
 {
-	device_install(&null_chardev, "null");
-	device_install(&zero_chardev, "zero");
+	device_install(&null_device, "null");
+	device_install(&zero_device, "zero");
 	return 0;
 }
 
