@@ -27,6 +27,7 @@ typedef unsigned int (*device_read_blk)(unsigned char *buf,
 typedef unsigned int (*device_write_blk)(unsigned char *buf,
                                          unsigned int offt,
                                          unsigned int size);
+typedef int (*device_ioctl)(int iorq, void *args);
 typedef int (*device_close)();
 
 typedef struct device {
@@ -36,6 +37,7 @@ typedef struct device {
 	device_write_blk dev_write_blk;
 	device_read_chr dev_read_chr;
 	device_write_chr dev_write_chr;
+	device_ioctl dev_ioctl;
 	device_close dev_close;
 } device_t;
 

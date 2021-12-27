@@ -36,6 +36,15 @@ fs_write(vfs_node_t *node, unsigned int offt, void *buf, unsigned int len)
 	return -1;
 }
 
+int
+fs_ioctl(vfs_node_t *node, int iorq, void *args)
+{
+	if (node->vn_ioctl) {
+		return node->vn_ioctl(node, iorq, args);
+	}
+	return -1;
+}
+
 vfs_node_t *
 fs_readdir(vfs_node_t *node, unsigned int index)
 {

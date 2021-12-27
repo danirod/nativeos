@@ -20,6 +20,7 @@ typedef unsigned int (*vfs_write)(struct vfs_node *node,
                                   unsigned int offset,
                                   void *buf,
                                   unsigned int len);
+typedef int (*vfs_ioctl)(struct vfs_node *node, int iorq, void *args);
 typedef int (*vfs_close)(struct vfs_node *node);
 typedef struct vfs_node *(*vfs_readdir)(struct vfs_node *node,
                                         unsigned int index);
@@ -33,6 +34,7 @@ typedef struct vfs_node {
 	vfs_open vn_open;
 	vfs_read vn_read;
 	vfs_write vn_write;
+	vfs_ioctl vn_ioctl;
 	vfs_close vn_close;
 	vfs_readdir vn_readdir;
 	vfs_finddir vn_finddir;
@@ -56,6 +58,7 @@ unsigned int
 fs_read(vfs_node_t *node, unsigned int offset, void *buf, unsigned int len);
 unsigned int
 fs_write(vfs_node_t *node, unsigned int offset, void *buf, unsigned int len);
+int fs_ioctl(vfs_node_t *node, int iorq, void *args);
 int fs_close(vfs_node_t *node);
 vfs_node_t *fs_readdir(vfs_node_t *node, unsigned int index);
 vfs_node_t *fs_finddir(vfs_node_t *node, char *name);

@@ -28,6 +28,7 @@
 static int devfs_open(vfs_node_t *node, unsigned int flags);
 static unsigned int devfs_read(vfs_node_t *, unsigned, void *, unsigned);
 static unsigned int devfs_write(vfs_node_t *, unsigned, void *, unsigned);
+static int devfs_ioctl(vfs_node_t *, int iorq, void *args);
 static int devfs_close(vfs_node_t *node);
 static vfs_node_t *devfs_readdir(vfs_node_t *node, unsigned int index);
 static vfs_node_t *devfs_finddir(vfs_node_t *node, char *name);
@@ -73,6 +74,7 @@ device_install(device_t *dev, char *mtname)
 	node->vn_open = devfs_open;
 	node->vn_read = devfs_read;
 	node->vn_write = devfs_write;
+	node->vn_ioctl = devfs_ioctl;
 	node->vn_close = devfs_close;
 	list_append(devmgr_list, node);
 	return 0;
@@ -135,6 +137,16 @@ devfs_write(vfs_node_t *node, unsigned int offt, void *buf, unsigned int len)
 		} else {
 			return -1;
 		}
+	}
+	return -1;
+}
+
+static int
+devfs_ioctl(vfs_node_t *node, int iorq, void *args)
+{
+	device_t *dev = (device_t *) node->vn_payload;
+	if (dev && dev->dev_ioctl) {
+		return dev->dev_ioctl(iorq, args);
 	}
 	return -1;
 }
