@@ -26,8 +26,8 @@
 #include <sys/vfs.h>
 
 static int devfs_open(vfs_node_t *node, unsigned int flags);
-static unsigned int devfs_read(vfs_node_t *node, void *buf, unsigned int len);
-static unsigned int devfs_write(vfs_node_t *node, void *buf, unsigned int len);
+static unsigned int devfs_read(vfs_node_t *, unsigned, void *, unsigned);
+static unsigned int devfs_write(vfs_node_t *, unsigned, void *, unsigned);
 static int devfs_close(vfs_node_t *node);
 static vfs_node_t *devfs_readdir(vfs_node_t *node, unsigned int index);
 static vfs_node_t *devfs_finddir(vfs_node_t *node, char *name);
@@ -99,7 +99,7 @@ devfs_open(vfs_node_t *node, unsigned int flags)
 }
 
 static unsigned int
-devfs_read(vfs_node_t *node, void *buf, unsigned int len)
+devfs_read(vfs_node_t *node, unsigned int offt, void *buf, unsigned int len)
 {
 	chardev_t *cdev = (chardev_t *) node->vn_payload;
 	if (cdev && cdev->cd_read) {
@@ -109,7 +109,7 @@ devfs_read(vfs_node_t *node, void *buf, unsigned int len)
 }
 
 static unsigned int
-devfs_write(vfs_node_t *node, void *buf, unsigned int len)
+devfs_write(vfs_node_t *node, unsigned int offt, void *buf, unsigned int len)
 {
 	chardev_t *cdev = (chardev_t *) node->vn_payload;
 	if (cdev && cdev->cd_write) {

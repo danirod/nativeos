@@ -19,19 +19,19 @@ fs_close(vfs_node_t *node)
 }
 
 unsigned int
-fs_read(vfs_node_t *node, void *buf, unsigned int len)
+fs_read(vfs_node_t *node, unsigned int offt, void *buf, unsigned int len)
 {
 	if (node->vn_read) {
-		return node->vn_read(node, buf, len);
+		return node->vn_read(node, offt, buf, len);
 	}
 	return -1;
 }
 
 unsigned int
-fs_write(vfs_node_t *node, void *buf, unsigned int len)
+fs_write(vfs_node_t *node, unsigned int offt, void *buf, unsigned int len)
 {
 	if (node->vn_write) {
-		return node->vn_write(node, buf, len);
+		return node->vn_write(node, offt, buf, len);
 	}
 	return -1;
 }

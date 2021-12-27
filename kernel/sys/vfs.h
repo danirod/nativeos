@@ -13,9 +13,11 @@ struct vfs_node;
 
 typedef int (*vfs_open)(struct vfs_node *node, unsigned int flags);
 typedef unsigned int (*vfs_read)(struct vfs_node *node,
+                                 unsigned int offset,
                                  void *buf,
                                  unsigned int len);
 typedef unsigned int (*vfs_write)(struct vfs_node *node,
+                                  unsigned int offset,
                                   void *buf,
                                   unsigned int len);
 typedef int (*vfs_close)(struct vfs_node *node);
@@ -50,8 +52,10 @@ vfs_node_t *vfs_get_volume(char *mountname);
 vfs_node_t *fs_resolve(const char *path);
 
 int fs_open(vfs_node_t *node, unsigned int flags);
-unsigned int fs_read(vfs_node_t *node, void *buf, unsigned int len);
-unsigned int fs_write(vfs_node_t *node, void *buf, unsigned int len);
+unsigned int
+fs_read(vfs_node_t *node, unsigned int offset, void *buf, unsigned int len);
+unsigned int
+fs_write(vfs_node_t *node, unsigned int offset, void *buf, unsigned int len);
 int fs_close(vfs_node_t *node);
 vfs_node_t *fs_readdir(vfs_node_t *node, unsigned int index);
 vfs_node_t *fs_finddir(vfs_node_t *node, char *name);

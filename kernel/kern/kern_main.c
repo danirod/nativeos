@@ -56,9 +56,9 @@ fs_resolve_and_open(const char *path, unsigned int args)
 }
 
 static unsigned int
-fs_write_string(vfs_node_t *node, const char *str)
+fs_write_string(vfs_node_t *node, unsigned int offt, const char *str)
 {
-	return fs_write(node, (unsigned char *) str, strlen(str));
+	return fs_write(node, offt, (unsigned char *) str, strlen(str));
 }
 
 static void
@@ -69,20 +69,20 @@ kernel_welcome(void)
 	kbd = fs_resolve_and_open("DEV:/kbd", VO_FREAD);
 	uart = fs_resolve_and_open("DEV:/uart", VO_FWRITE | VO_FREAD);
 
-	fs_write_string(fb, "This is NativeOS\n");
-	fs_write_string(fb, "Please, check out the UART output for debug\n");
-	fs_write_string(fb, "Press any key to type garbage :)\n\n");
+	fs_write_string(fb, 0, "This is NativeOS\n");
+	fs_write_string(fb, 0, "Please, check out the UART output for debug\n");
+	fs_write_string(fb, 0, "Press any key to type garbage :)\n\n");
 
-	fs_write_string(uart, "This is NativeOS\n");
-	fs_write_string(uart, "Type some characters to get echo:\n\n");
+	fs_write_string(uart, 0, "This is NativeOS\n");
+	fs_write_string(uart, 0, "Type some characters to get echo:\n\n");
 
 	unsigned char buf[16];
 	unsigned int read;
 	for (;;) {
-		read = fs_read(kbd, buf, 16);
-		fs_write(fb, buf, read);
+		read = fs_read(kbd, 0, buf, 16);
+		fs_write(fb, 0, buf, read);
 
-		read = fs_read(uart, buf, 16);
-		fs_write(uart, buf, read);
+		read = fs_read(uart, 0, buf, 16);
+		fs_write(uart, 0, buf, read);
 	}
 }
