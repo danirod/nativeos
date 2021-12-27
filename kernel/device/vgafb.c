@@ -11,6 +11,8 @@
  * also will make additional transformations, such as changing attributes.
  */
 
+#include "vgafb.h"
+#include "kernel/cpu/io.h"
 #include <sys/device.h>
 #include <sys/stdkern.h>
 #include <sys/vfs.h>
@@ -22,6 +24,9 @@
 #define VGA_SIZE (VGA_CHARS * 2)
 #define VGA_LIMIT (VGA_BASE + VGA_SIZE)
 
+#define VGA_IOR_ADDR 0x3D4
+#define VGA_IOR_DATA 0x3D5
+
 static int vgafb_init(void);
 static int vgafb_open(unsigned int flags);
 static int vgafb_close(void);
@@ -29,6 +34,7 @@ static unsigned int
 vgafb_read(unsigned char *buf, unsigned int off, unsigned int len);
 static unsigned int
 vgafb_write(unsigned char *buf, unsigned int off, unsigned int len);
+static int vgafb_ioctl(int iorq, void *argp);
 
 static driver_t vgafb_driver = {
     .drv_name = "vgafb",
@@ -42,6 +48,7 @@ static device_t vgafb_device = {
     .dev_close = &vgafb_close,
     .dev_read_blk = &vgafb_read,
     .dev_write_blk = &vgafb_write,
+    .dev_ioctl = &vgafb_ioctl,
 };
 
 static int
@@ -112,6 +119,47 @@ vgafb_write(unsigned char *buf, unsigned int offt, unsigned int len)
 	}
 
 	return write_bytes;
+}
+
+static void
+enablecursor(int enabled)
+{
+	unsigned char in;
+	if (enabled) {
+		IO_OutP(VGA_IOR_ADDR, 0xA);
+		in = IO_InP(VGA_IOR_DATA) & 0x1F;
+		IO_OutP(VGA_IOR_DATA, in | 0xD);
+		IO_OutP(VGA_IOR_ADDR, 0xB);
+		in = IO_InP(VGA_IOR_DATA) & 0xC0;
+		IO_OutP(VGA_IOR_DATA, in | 0xF);
+	} else {
+		IO_OutP(VGA_IOR_ADDR, 0xA);
+		IO_OutP(VGA_IOR_DATA, 0x20);
+	}
+}
+
+static void
+movecursor(unsigned short abspos)
+{
+	IO_OutP(VGA_IOR_ADDR, 0xE);
+	IO_OutP(VGA_IOR_DATA, (abspos >> 8) & 0xFF);
+	IO_OutP(VGA_IOR_ADDR, 0xF);
+	IO_OutP(VGA_IOR_DATA, abspos & 0xFF);
+}
+
+static int
+vgafb_ioctl(int iorq, void *arg)
+{
+	switch (iorq) {
+	case VGAFB_IOCTL_SETCUR:
+		enablecursor(((int) arg) != 0);
+		return 0;
+	case VGAFB_IOCTL_MOVECUR:
+		movecursor(*(unsigned short *) arg);
+		return 0;
+	}
+
+	return -1;
 }
 
 DEVICE_DESCRIPTOR(vgafb, vgafb_driver);

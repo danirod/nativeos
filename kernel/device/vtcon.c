@@ -10,9 +10,6 @@
  * In the future, vtcon will also:
  * - Intercept calls to the keyboard driver and decode the scancodes.
  * - Transform the given string using some rules (such as ANSI escape codes).
- *
- * In the future, some of the low level I/O operations done by the vtcon
- * driver may be moved to the vgafb driver instead, once I implement ioctl.
  */
 
 #include <kernel/cpu/io.h>
@@ -20,16 +17,14 @@
 #include <sys/stdkern.h>
 #include <sys/vfs.h>
 
+#include "vgafb.h"
+
 static int vtcon_init(void);
 
 #define VGA_COLS 80
 #define VGA_ROWS 25
 #define VGA_SIZE (VGA_COLS * VGA_ROWS)
-
 #define VGA_ENTRY(char, fg, bg) (char | fg << 8 | bg << 12)
-
-#define VGA_IOR_ADDR 0x3D4
-#define VGA_IOR_DATA 0x3D5
 
 struct vtcontext {
 	unsigned int cx, cy;
@@ -45,30 +40,20 @@ static struct vtcontext context = {
 };
 
 static void
-syncfbcursor()
+resetcontext()
 {
-	int abspos = context.cy * VGA_COLS + context.cx;
-	IO_OutP(VGA_IOR_ADDR, 0xE);
-	IO_OutP(VGA_IOR_DATA, (abspos >> 8) & 0xFF);
-	IO_OutP(VGA_IOR_ADDR, 0xF);
-	IO_OutP(VGA_IOR_DATA, abspos & 0xFF);
+	context.cx = 0;
+	context.cy = 0;
+	context.fg = 7;
+	context.bg = 0;
+	context.fb = 0;
 }
 
-static void
-enablecursor(int enabled)
+static inline void
+syncfbcursor()
 {
-	unsigned char in;
-	if (enabled) {
-		IO_OutP(VGA_IOR_ADDR, 0xA);
-		in = IO_InP(VGA_IOR_DATA) & 0x1F;
-		IO_OutP(VGA_IOR_DATA, in | 0xD);
-		IO_OutP(VGA_IOR_ADDR, 0xB);
-		in = IO_InP(VGA_IOR_DATA) & 0xC0;
-		IO_OutP(VGA_IOR_DATA, in | 0xF);
-	} else {
-		IO_OutP(VGA_IOR_ADDR, 0xA);
-		IO_OutP(VGA_IOR_DATA, 0x20);
-	}
+	unsigned short abspos = context.cy * VGA_COLS + context.cx;
+	fs_ioctl(context.fb, VGAFB_IOCTL_MOVECUR, &abspos);
 }
 
 static inline void
@@ -89,7 +74,7 @@ clearrow(unsigned int row)
 {
 	unsigned int i;
 	unsigned int rowofft = VGA_COLS * row * 2;
-	unsigned short value = 0x700;
+	unsigned short value = context.fg << 8;
 	for (i = 0; i < VGA_COLS; i++)
 		fs_write(context.fb, rowofft + 2 * i, &value, 2);
 }
@@ -160,6 +145,7 @@ vtcon_open(unsigned int flags)
 	if (!context.fb || fs_open(context.fb, VO_FWRITE) < 0)
 		/* Cannot open framebuffer. */
 		return -1;
+	syncfbcursor();
 	return 0;
 }
 
@@ -168,7 +154,7 @@ vtcon_close()
 {
 	if (fs_close(context.fb) < 0)
 		return -1;
-	context.fb = 0;
+	resetcontext();
 	return 0;
 }
 
@@ -188,9 +174,7 @@ static device_t vtcon_device = {
 static int
 vtcon_init(void)
 {
-	syncfbcursor();
-	enablecursor(1);
-
+	resetcontext();
 	device_install(&vtcon_device, "vtcon");
 	return 0;
 }
