@@ -66,21 +66,18 @@ kernel_welcome(void)
 {
 	vfs_node_t *vtcon, *kbd, *uart;
 	vtcon = fs_resolve_and_open("DEV:/vtcon", VO_FWRITE);
-	kbd = fs_resolve_and_open("DEV:/kbd", VO_FREAD);
 	uart = fs_resolve_and_open("DEV:/uart", VO_FWRITE | VO_FREAD);
 
-	fs_write_string(vtcon, 0, "This is NativeOS\n");
-	fs_write_string(vtcon, 0, "Check out the UART output for debug\n");
-	fs_write_string(vtcon, 0, "Press any key to type garbage :)\n\n");
+	fs_write_string(vtcon, 0, "This is the NativeOS VTCON\n");
+	fs_write_string(vtcon, 0, "Press any key to test the keyboard :)\n\n");
 
-	fs_write_string(uart, 0, "This is NativeOS\n");
+	fs_write_string(uart, 0, "This is the NativeOS UART\n");
 	fs_write_string(uart, 0, "Type some characters to get echo:\n\n");
 
 	unsigned char buf[16];
 	unsigned int read;
 	for (;;) {
-		read = fs_read(kbd, 0, buf, 16);
-		fs_write(vtcon, 0, buf, read);
+		fs_read(vtcon, 0, buf, 16);
 
 		read = fs_read(uart, 0, buf, 16);
 		fs_write(uart, 0, buf, read);

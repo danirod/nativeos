@@ -8,7 +8,7 @@ arch/i386/kernel/mem/alloc.c            standard
 arch/i386/kernel/mem/heap.c             standard
 arch/i386/kernel/mem/pmm.c              standard
 kernel/device/vgafb.c standard
-kernel/device/vtcon.c standard
+kernel/device/vtcon/vtcon.c standard
 kernel/device/kbd.c			standard
 kernel/device/pctimer.c			standard
 kernel/device/uart8250.c standard
