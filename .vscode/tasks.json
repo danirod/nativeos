@@ -1,0 +1,61 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "problemMatcher": [],
+    "tasks": [
+        {
+            "label": "kcons (I386)",
+            "type": "shell",
+            "command": "${workspaceFolder}/tools/kcons conf/I386",
+        },
+        {
+            "label": "rebuild compile_commands.json (I386)",
+            "type": "shell",
+            "dependsOn": [
+                "kcons (I386)"
+            ],
+            "command": "bear -- make -C ${workspaceFolder}/compile/I386 clean kernel",
+        },
+        {
+            "label": "build (I386)",
+            "type": "shell",
+            "dependsOn": [
+                "kcons (I386)"
+            ],
+            "command": "make -C ${workspaceFolder}/compile/I386 kernel",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "clean (I386)",
+            "type": "shell",
+            "dependsOn": [
+                "kcons (I386)"
+            ],
+            "command": "make -C ${workspaceFolder}/compile/I386 clean",
+        },
+        {
+            "label": "qemu (I386)",
+            "type": "shell",
+            "dependsOn": [
+                "kcons (I386)"
+            ],
+            "command": "make -C ${workspaceFolder}/compile/I386 qemu",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "qemu-gdb (I386)",
+            "type": "shell",
+            "dependsOn": [
+                "kcons (I386)"
+            ],
+            "command": "make -C ${workspaceFolder}/compile/I386 qemu-gdb",
+        }
+    ]
+}
