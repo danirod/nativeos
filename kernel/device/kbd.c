@@ -1,5 +1,5 @@
 #include <kernel/cpu/idt.h>
-#include <kernel/cpu/io.h>
+#include <machine/cpu.h>
 #include <sys/device.h>
 #include <sys/ringbuf.h>
 
@@ -53,7 +53,7 @@ keyboard_read(unsigned char *buf, unsigned int len)
 static void
 keyboard_key_handler(struct idt_data *idt)
 {
-	int scancode = IO_InP(0x60);
+	int scancode = port_in_byte(0x60);
 	ringbuf_write(keyboard_rbuf, (char) scancode);
 }
 

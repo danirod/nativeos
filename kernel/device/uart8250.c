@@ -52,7 +52,7 @@
  * which will be.
  */
 #include <kernel/cpu/idt.h>
-#include <kernel/cpu/io.h>
+#include <machine/cpu.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/device.h>
@@ -117,25 +117,25 @@ static void
 uart8250_reconfigure(void)
 {
 	unsigned short divisor = uart8250_baud_divisors[BAUD_RATE_19200];
-	IO_OutP(UART_PORT + 1, 0x00); // turn off interrupts
+	port_out_byte(UART_PORT + 1, 0x00); // turn off interrupts
 
 	// Set the baud rate.
-	IO_OutP(UART_PORT + 3, 0x80); // DLAB = on
-	IO_OutP(UART_PORT + 0, divisor & 0xFF);
-	IO_OutP(UART_PORT + 1, divisor >> 8);
+	port_out_byte(UART_PORT + 3, 0x80); // DLAB = on
+	port_out_byte(UART_PORT + 0, divisor & 0xFF);
+	port_out_byte(UART_PORT + 1, divisor >> 8);
 
 	// Configure interrupts and status line.
 	// WHY DO I WASTE SO MANY HOURS DEBUGGING THIS PIECE OF ANCIENT SHIT
-	IO_OutP(UART_PORT + 3, 0x03); // 8N1 Mode
-	// IO_OutP(UART_PORT + 2, 0xC7); // FIFO and all this shit
-	IO_OutP(UART_PORT + 4, 0x07); // Modem, RTS, DTR, Interrupts ON
-	IO_OutP(UART_PORT + 1, 0x01); // Actually turn on ready interrupts
+	port_out_byte(UART_PORT + 3, 0x03); // 8N1 Mode
+	// port_outb(UART_PORT + 2, 0xC7); // FIFO and all this shit
+	port_out_byte(UART_PORT + 4, 0x07); // Modem, RTS, DTR, Interrupts ON
+	port_out_byte(UART_PORT + 1, 0x01); // Actually turn on ready interrupts
 }
 
 static void
 acknowledge(void)
 {
-	IO_InP(UART_PORT + 2);
+	port_in_byte(UART_PORT + 2);
 }
 
 static int uart8250_init(void);
@@ -166,8 +166,8 @@ uart8250_interrupt(struct idt_data *idt)
 	uint8_t value;
 
 	/* Assert there is data. */
-	while (IO_InP(UART_PORT + 5) & 1) {
-		value = IO_InP(UART_PORT);
+	while (port_in_byte(UART_PORT + 5) & 1) {
+		value = port_in_byte(UART_PORT);
 		if (uart8250_context.flags & VO_FWRITE) {
 			ringbuf_write(uart8250_context.rx_buf, value);
 		}
@@ -236,7 +236,7 @@ uart8250_write_binary(unsigned char *buf, uint32_t len)
 {
 	unsigned int write_bytes = 0;
 	while (len--) {
-		IO_OutP(UART_PORT, *buf++);
+		port_out_byte(UART_PORT, *buf++);
 		write_bytes++;
 	}
 	return write_bytes;
@@ -249,18 +249,18 @@ uart8250_write_non_binary(unsigned char *buf, uint32_t len)
 	while (len--) {
 		switch (*buf) {
 		case '\r':
-			IO_OutP(UART_PORT, '\r');
-			IO_OutP(UART_PORT, '\n');
+			port_out_byte(UART_PORT, '\r');
+			port_out_byte(UART_PORT, '\n');
 			write_bytes += 2;
 			buf++;
 			break;
 		case 127:
-			IO_OutP(UART_PORT, '\b');
+			port_out_byte(UART_PORT, '\b');
 			write_bytes++;
 			buf++;
 			break;
 		default:
-			IO_OutP(UART_PORT, *buf++);
+			port_out_byte(UART_PORT, *buf++);
 			write_bytes++;
 			break;
 		}

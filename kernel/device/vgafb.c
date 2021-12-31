@@ -12,7 +12,7 @@
  */
 
 #include "vgafb.h"
-#include "kernel/cpu/io.h"
+#include <machine/cpu.h>
 #include <sys/device.h>
 #include <sys/stdkern.h>
 #include <sys/vfs.h>
@@ -126,25 +126,25 @@ enablecursor(int enabled)
 {
 	unsigned char in;
 	if (enabled) {
-		IO_OutP(VGA_IOR_ADDR, 0xA);
-		in = IO_InP(VGA_IOR_DATA) & 0x1F;
-		IO_OutP(VGA_IOR_DATA, in | 0xD);
-		IO_OutP(VGA_IOR_ADDR, 0xB);
-		in = IO_InP(VGA_IOR_DATA) & 0xC0;
-		IO_OutP(VGA_IOR_DATA, in | 0xF);
+		port_out_byte(VGA_IOR_ADDR, 0xA);
+		in = port_in_byte(VGA_IOR_DATA) & 0x1F;
+		port_out_byte(VGA_IOR_DATA, in | 0xD);
+		port_out_byte(VGA_IOR_ADDR, 0xB);
+		in = port_in_byte(VGA_IOR_DATA) & 0xC0;
+		port_out_byte(VGA_IOR_DATA, in | 0xF);
 	} else {
-		IO_OutP(VGA_IOR_ADDR, 0xA);
-		IO_OutP(VGA_IOR_DATA, 0x20);
+		port_out_byte(VGA_IOR_ADDR, 0xA);
+		port_out_byte(VGA_IOR_DATA, 0x20);
 	}
 }
 
 static void
 movecursor(unsigned short abspos)
 {
-	IO_OutP(VGA_IOR_ADDR, 0xE);
-	IO_OutP(VGA_IOR_DATA, (abspos >> 8) & 0xFF);
-	IO_OutP(VGA_IOR_ADDR, 0xF);
-	IO_OutP(VGA_IOR_DATA, abspos & 0xFF);
+	port_out_byte(VGA_IOR_ADDR, 0xE);
+	port_out_byte(VGA_IOR_DATA, (abspos >> 8) & 0xFF);
+	port_out_byte(VGA_IOR_ADDR, 0xF);
+	port_out_byte(VGA_IOR_DATA, abspos & 0xFF);
 }
 
 static int

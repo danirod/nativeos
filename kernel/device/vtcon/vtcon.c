@@ -10,7 +10,6 @@
 
 #include <device/vgafb.h>
 #include <device/vtcon/scancodes.h>
-#include <kernel/cpu/io.h>
 #include <sys/device.h>
 #include <sys/stdkern.h>
 #include <sys/vfs.h>

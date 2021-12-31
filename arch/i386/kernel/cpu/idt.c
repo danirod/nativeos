@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <kernel/cpu/io.h>
 #include <kernel/cpu/idt.h>
 #include <kernel/cpu/isrdef.h>
+#include <machine/cpu.h>
 
 /* Table of contents for the IDT structure. */
 struct idt_table idt_toc;
@@ -47,24 +47,24 @@ static void idt_set_entry(int pos, unsigned int offset,
 static void remap_pic(unsigned int start_int)
 {
 	/* Tell the PIC the party is about to begin. */
-	IO_OutP(0x20, 0x11);
-	IO_OutP(0xA0, 0x11);
+	port_out_byte(0x20, 0x11);
+	port_out_byte(0xA0, 0x11);
 
 	/* Tell the PIC where the interrupt vectors start. */
-	IO_OutP(0x21, start_int);
-	IO_OutP(0xA1, start_int + 8);
+	port_out_byte(0x21, start_int);
+	port_out_byte(0xA1, start_int + 8);
 
 	/* Tell each PIC which one is PIC1 and which one is PIC2. */
-	IO_OutP(0x21, 0x04);
-	IO_OutP(0xA1, 0x02);
+	port_out_byte(0x21, 0x04);
+	port_out_byte(0xA1, 0x02);
 
 	/* Tell the PICs that this is x86. */
-	IO_OutP(0x21, 0x01);
-	IO_OutP(0xA1, 0x01);
+	port_out_byte(0x21, 0x01);
+	port_out_byte(0xA1, 0x01);
 
 	/* Unmask the PICs. */
-	IO_OutP(0x21, 0x00);
-	IO_OutP(0xA1, 0x00);
+	port_out_byte(0x21, 0x00);
+	port_out_byte(0xA1, 0x00);
 }
 
 /* These are the handlers. */
@@ -125,8 +125,10 @@ void idt_handler(struct idt_data* data)
 	 * Acknowledge the interrupt to PIC1. If the interrupt came from,
 	 * PIC2, then PIC1 will forward the interrupt acknowledge to PIC2.
 	 */
-	if (data->int_no >= 0x28 && data->int_no < 0x30) IO_OutP(0xA0, 0x20);
-	if (data->int_no >= 0x20 && data->int_no < 0x30) IO_OutP(0x20, 0x20);
+	if (data->int_no >= 0x28 && data->int_no < 0x30)
+		port_out_byte(0xA0, 0x20);
+	if (data->int_no >= 0x20 && data->int_no < 0x30)
+		port_out_byte(0x20, 0x20);
 }
 
 /* Vector interrupt table begins here. */
