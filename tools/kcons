@@ -487,6 +487,16 @@ class Context:
         os.makedirs(self.compile_dir, exist_ok=True)
         MakefileDumper(self).dump()
 
+    def try_create_machdep_references(self):
+        source_dir = os.path.join(self.root_dir, "kernel", self.profile.arch)
+        include_dir = os.path.join(source_dir, "include")
+        target_path = os.path.join(self.compile_dir, "machine")
+        if os.path.exists(include_dir):
+            # symlink will fail if the target location already exists
+            if os.path.exists(target_path):
+                os.unlink(target_path)
+            os.symlink(include_dir, target_path)
+
     def normalize_file(self, path, base=None):
         """
         Given a path that should map to a file, this function will normalize
@@ -511,3 +521,4 @@ context = Context(sys.argv[1])
 context.parse_profile()
 context.parse_files()
 context.create_compile()
+context.try_create_machdep_references()
