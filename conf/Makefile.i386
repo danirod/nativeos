@@ -5,6 +5,7 @@ AS = clang
 LD = ld.lld
 
 CFLAGS = -c -nostdlib -ffreestanding -fno-builtin -target i386-elf -m32
+CFLAGS += -I.
 CFLAGS += -I../../arch/i386/include
 CFLAGS += -I../../kernel
 
