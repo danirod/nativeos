@@ -95,6 +95,8 @@ class MakefileDumper:
                     self.expand_makeopts(makefile)
                 elif clean_line == "%%OBJS":
                     self.expand_objs(makefile)
+                elif clean_line == "%%SRCS":
+                    self.expand_srcs(makefile)
                 elif clean_line == "%%RULES":
                     self.expand_rules(makefile)
                 else:
@@ -109,23 +111,30 @@ class MakefileDumper:
         options.sort()
         file.write("\n".join(options) + "\n")
 
-    def expand_objs(self, file):
-        buffer = "OBJS =\t"
-        for source_file in self.context.file_list:
-            object_file = self.object_file_for(source_file)
-            before_buffer = buffer + " " + object_file
+    def expand_list_of_files(self, file, preffix, items):
+        buffer = preffix
+        for item in items:
+            before_buffer = buffer + " " + item
             if len(before_buffer) > 60:
-                # Escape a line break to avoid making the line very long"
+                # Escape a line break to avoid making the line very long
                 buffer += "\\\n"
                 file.write(buffer)
-                buffer = "\t" + object_file + " "
+                buffer = "\t" + item + " "
             else:
-                buffer += object_file + " "
+                buffer += item + " "
         # Remove trailing space.
         if buffer.endswith(" "):
             buffer = buffer[:-1]
         file.write(buffer)
         file.write("\n")
+
+    def expand_srcs(self, file):
+        sources = ["".join(["$(ROOT)/", s]) for s in self.context.file_list]
+        self.expand_list_of_files(file, "SRCS = \t", sources)
+
+    def expand_objs(self, file):
+        objects = [self.object_file_for(s) for s in self.context.file_list]
+        self.expand_list_of_files(file, "OBJS = \t", objects)
 
     def expand_rules(self, file):
         for source_file in self.context.file_list:

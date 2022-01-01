@@ -59,11 +59,19 @@ the `compile/` directory. In this directory, a Makefile will be present.
 Use it to build the kernel image:
 
     $ cd compile/I386
+
+Generating a depfile is recommended in order to have the object files
+recompiled whenever the imported source code changes:
+
+    $ make .depend
+
+Then, proceed to build the kernel.
+
     $ make kernel
 
 Or, to make things faster,
 
-    $ make -C compile/I386 kernel
+    $ make -C compile/I386 .depend kernel
 
 The NativeOS kernel file is a binary in the ELF format. It supports the
 Multiboot specification, so it can be deployed in any machine using a

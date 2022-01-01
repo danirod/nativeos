@@ -9,6 +9,11 @@ CFLAGS += -I.
 CFLAGS += -I../../arch/i386/include
 CFLAGS += -I../../kernel
 
+DEPENDFLAGS = -E -MM
+DEPENDFLAGS += -I.
+DEPENDFLAGS += -I../../arch/i386/include
+DEPENDFLAGS += -I../../kernel
+
 LDFLAGS = -nostdlib -T ../../arch/i386/kernel/linker.ld
 
 ROOT=../..
@@ -23,8 +28,19 @@ ROOT=../..
 %%OBJS
 #### OBJS end here
 
+#### SRCS start here
+%%SRCS
+#### SRCS end here
+
 kernel: ${OBJS}
 	${LD} ${LDFLAGS} -o kernel ${OBJS}
+
+# If the .depend file is available, rules will be imported.
+-include .depend
+
+# Rebuild the .depend file using the rules database
+.depend: ${SRCS}
+	${CC} ${DEPENDFLAGS} ${SRCS} > .depend
 
 #### RULES start here
 %%RULES
