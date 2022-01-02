@@ -33,12 +33,21 @@ static int devfs_close(vfs_node_t *node);
 static vfs_node_t *devfs_readdir(vfs_node_t *node, unsigned int index);
 static vfs_node_t *devfs_finddir(vfs_node_t *node, char *name);
 
+static vfs_ops_t devfs_ops = {
+    .vfs_open = devfs_open,
+    .vfs_read = devfs_read,
+    .vfs_write = devfs_write,
+    .vfs_ioctl = devfs_ioctl,
+    .vfs_close = devfs_close,
+    .vfs_readdir = devfs_readdir,
+    .vfs_finddir = devfs_finddir,
+};
+
 static list_t *devmgr_list;
 static vfs_node_t devfs_rootdir = {
     .vn_name = {0},
     .vn_flags = VN_FDIR,
-    .vn_readdir = devfs_readdir,
-    .vn_finddir = devfs_finddir,
+    .vn_ops = &devfs_ops,
 };
 
 void
@@ -71,12 +80,7 @@ device_install(device_t *dev, char *mtname)
 	node->vn_flags = VN_FCHARDEV;
 	node->vn_payload = dev;
 	node->vn_parent = &devfs_rootdir;
-	node->vn_open = devfs_open;
-	node->vn_read = devfs_read;
-	node->vn_write = devfs_write;
-	node->vn_ioctl = devfs_ioctl;
-	node->vn_close = devfs_close;
-	list_append(devmgr_list, node);
+	node->vn_ops = &devfs_ops, list_append(devmgr_list, node);
 	return 0;
 }
 

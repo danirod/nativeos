@@ -19,6 +19,14 @@ static vfs_node_t *rootfs_readdir(struct vfs_node *node, unsigned int index);
 static vfs_node_t *rootfs_finddir(struct vfs_node *node, char *name);
 static vfs_node_t *rootfs_create_entry(mountpoint_t *vmtp);
 
+static vfs_ops_t rootfs_ops = {
+    .vfs_open = rootfs_open,
+    .vfs_read = rootfs_read,
+    .vfs_close = rootfs_close,
+    .vfs_readdir = rootfs_readdir,
+    .vfs_finddir = rootfs_finddir,
+};
+
 /**
  * \brief Root File System
  *
@@ -29,8 +37,7 @@ static vfs_node_t *rootfs_create_entry(mountpoint_t *vmtp);
 static vfs_node_t rootfs_root = {
     .vn_name = {0},
     .vn_flags = VN_FDIR,
-    .vn_readdir = rootfs_readdir,
-    .vn_finddir = rootfs_finddir,
+    .vn_ops = &rootfs_ops,
 };
 
 static inline mountpoint_t *
@@ -85,9 +92,7 @@ rootfs_create_entry(mountpoint_t *vmtp)
 		rootfs_entry->vn_flags = VN_FREGFILE;
 		rootfs_entry->vn_payload = vmtp;
 		rootfs_entry->vn_parent = &rootfs_root;
-		rootfs_entry->vn_open = rootfs_open;
-		rootfs_entry->vn_close = rootfs_close;
-		rootfs_entry->vn_read = rootfs_read;
+		rootfs_entry->vn_ops = &rootfs_ops;
 	}
 
 	return rootfs_entry;

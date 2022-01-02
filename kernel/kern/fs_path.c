@@ -16,7 +16,7 @@ fs_follow_path(vfs_node_t *root, char *path)
 
 	/* Get the next path component and locate it in the file system. */
 	out = strsep(&path, "/");
-	node = root->vn_finddir(root, out);
+	node = fs_finddir(root, out);
 
 	/* This was the last element in the chain, so return it. */
 	if (!path) {

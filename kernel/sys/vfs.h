@@ -11,33 +11,147 @@ struct vfs_node;
 #define VN_FCHARDEV 0x3
 #define VN_FBLOCKDEV 0x4
 
-typedef int (*vfs_open)(struct vfs_node *node, unsigned int flags);
-typedef unsigned int (*vfs_read)(struct vfs_node *node,
-                                 unsigned int offset,
-                                 void *buf,
-                                 unsigned int len);
-typedef unsigned int (*vfs_write)(struct vfs_node *node,
-                                  unsigned int offset,
-                                  void *buf,
-                                  unsigned int len);
-typedef int (*vfs_ioctl)(struct vfs_node *node, int iorq, void *args);
-typedef int (*vfs_close)(struct vfs_node *node);
-typedef struct vfs_node *(*vfs_readdir)(struct vfs_node *node,
-                                        unsigned int index);
-typedef struct vfs_node *(*vfs_finddir)(struct vfs_node *node, char *nodename);
+/**
+ * \brief Virtual File System Operations
+ *
+ * A file system implementation will implement some of the hooks in this
+ * data structure. If the operating system receives a hook request on behalf
+ * of a specific node, it will call the hook implementation as long as the
+ * node operations table implements the given function.
+ */
+typedef struct vfs_ops {
+	/**
+	 * \brief Open a VFS node for further access.
+	 *
+	 * This hook can only be implemented by regular files and devices.
+	 *
+	 * The file system implementation should allocate a way for the system
+	 * to send further VFS requests to the node, such as reading or
+	 * writing.
+	 *
+	 * \param node the VFS node that will be opened
+	 * \param flags a flags mask with the node open mode.
+	 * \return status code: zero on success, non-zero on failure.
+	 */
+	int (*vfs_open)(struct vfs_node *node, unsigned int flags);
+
+	/**
+	 * \brief Read from a VFS node.
+	 *
+	 * This hook can only be implemented by regular files and devices.
+	 *
+	 * A file system implementation that uses this hook should copy into
+	 * the given buffer \p buf up to \p len bytes from the underlying
+	 * container mapped to the VFS node, starting at offset \p offt.
+	 *
+	 * \param node the VFS node that will be read
+	 * \param offt the offset to apply within the container
+	 * \param buf the buffer where the read bytes should be copied
+	 * \param len the number of bytes to copy into the buffer
+	 * \return the actual number of bytes that were copied to the buffer
+	 */
+	unsigned int (*vfs_read)(struct vfs_node *node,
+	                         unsigned int offt,
+	                         void *buf,
+	                         unsigned int len);
+
+	/**
+	 * \brief Write to a VFS node.
+	 *
+	 * This hook can only be implemented by regular files and devices.
+	 *
+	 * A file system implementation that uses this hook should copy from
+	 * the given buffer \p buf up to \p len bytes into the underlying
+	 * container mapped to the VFS node, starting at offset \p offt.
+	 *
+	 * \param node the VFS node that will be written
+	 * \param offt the offset to apply within the container
+	 * \param buf the buffer where the bytes to copy are located
+	 * \param len the number of bytes to copy into the container
+	 * \return the actual number of bytes that were copied from the buffer
+	 */
+	unsigned int (*vfs_write)(struct vfs_node *node,
+	                          unsigned int offt,
+	                          void *buf,
+	                          unsigned int len);
+
+	/**
+	 * \brief IO Control for VFS nodes.
+	 *
+	 * This hook can only be implemented by devices.
+	 *
+	 * ioctl is a special hack that has been in use for a very long time
+	 * to execute side requests into device driver files. It can only be
+	 * used by devices, and the semantics of the request depend in the
+	 * device driver itself.
+	 *
+	 * \param node the VFS node where the request will be sent
+	 * \param iorq the request code number to send to the device
+	 * \param args additional iorq-dependent parameter payload
+	 * \return the outcome of the ioctl request as defined by the driver
+	 */
+	int (*vfs_ioctl)(struct vfs_node *node, int iorq, void *args);
+
+	/**
+	 * \brief Close an VFS node
+	 *
+	 * This hook can only be implemented by regular files and devices.
+	 *
+	 * This hook is used by the file system implementation to mark the
+	 * node as closed. The file system implementation should assume that
+	 * after this hook is called, no further requests to the given VFS
+	 * node will be received until another open request is received.
+	 *
+	 * \param node the VFS node to close.
+	 * \return zero if successful, non-zero if not successful
+	 */
+	int (*vfs_close)(struct vfs_node *node);
+
+	/**
+	 * \brief Read a directory entry
+	 *
+	 * This hook can only be implemented by directories.
+	 *
+	 * This hook is used to traverse the VFS node representation of a
+	 * directory in order to look for child VFS nodes that are contained
+	 * inside the directory. To iterate, an \p index number is given,
+	 * which should return a proper node if it points to a valid node
+	 * inside this directory. Otherwise, it should return NULL to mark
+	 * that the index is out of the bounds of the directory children.
+	 *
+	 * \todo This is not a directory entry, this is an vfs_node.
+	 * \param node the VFS node to iterate
+	 * \param index the index number of the child VFS node to find.
+	 * \return a pointer to the child VFS node or NULL.
+	 */
+	struct vfs_node *(*vfs_readdir)(struct vfs_node *node,
+	                                unsigned int index);
+
+	/**
+	 * \brief Find a directory entry
+	 *
+	 * This hook can only be implemented by directories.
+	 *
+	 * This hook is used to locate a specific node inside the given
+	 * VFS node by its name. It is a way to lookup a specific entry
+	 * given the name of the entry. It should return a pointer to the
+	 * VFS node if the given directory contains a child VFS node
+	 * that matches this name. Otherwise, it should return NULL.
+	 *
+	 * \todo This is not a directory entry, this is an vfs_node.
+	 * \param node the VFS node to lookup into
+	 * \param nodename the name of the child node to lookup
+	 * \return a pointer to the child VFS ndoe or NULL.
+	 */
+	struct vfs_node *(*vfs_finddir)(struct vfs_node *node, char *nodename);
+} vfs_ops_t;
 
 typedef struct vfs_node {
 	char vn_name[64];
 	unsigned int vn_flags;
 	struct vfs_node *vn_parent;
+	vfs_ops_t *vn_ops;
 	void *vn_payload;
-	vfs_open vn_open;
-	vfs_read vn_read;
-	vfs_write vn_write;
-	vfs_ioctl vn_ioctl;
-	vfs_close vn_close;
-	vfs_readdir vn_readdir;
-	vfs_finddir vn_finddir;
 } vfs_node_t;
 
 void vfs_init(void);
