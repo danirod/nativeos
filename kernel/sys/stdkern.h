@@ -51,6 +51,23 @@ void *memcpy(void *dst, const void *src, size_t count);
 void *memset(void *dest, int byte, size_t count);
 
 /**
+ * @brief Appends a copy of the string s2 into s1.
+ * @param s1 the string where to append
+ * @param s2 the string to append
+ * @return a pointer to s1
+ */
+char *strcat(char *s1, const char *s2);
+
+/**
+ * @brief Appends a slice of the string s2 into s1.
+ * @param s1 the string where to append
+ * @param s2 the string to append
+ * @param count how many characters to append as a maximum
+ * @return a pointer to s1.
+ */
+char *strncat(char *s1, const char *s2, size_t count);
+
+/**
  * @brief Compare lexicographically both strings.
  * @param s1 the first string to compare
  * @param s2 the second string to compare
