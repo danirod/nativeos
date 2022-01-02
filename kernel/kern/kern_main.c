@@ -61,12 +61,115 @@ fs_write_string(vfs_node_t *node, unsigned int offt, const char *str)
 	return fs_write(node, offt, (unsigned char *) str, strlen(str));
 }
 
+static void dump_path(vfs_node_t *stdout, char *path);
+static void dump_dir(vfs_node_t *stdout, char *path, vfs_node_t *dir);
+
+static void
+dump_dir(vfs_node_t *stdout, char *path, vfs_node_t *dir)
+{
+	unsigned int i = 0;
+	vfs_node_t *node;
+	size_t child_len;
+	char *child_path;
+
+	while ((node = fs_readdir(dir, i++))) {
+		child_len = strlen(path) + strlen(node->vn_name) + 2;
+		child_path = (char *) malloc(child_len);
+		if (child_path) {
+			strcpy(child_path, path);
+			strcat(child_path, node->vn_name);
+			dump_path(stdout, child_path);
+			free(child_path);
+		}
+	}
+}
+
+static void
+dump_path(vfs_node_t *stdout, char *path)
+{
+	vfs_node_t *node = fs_resolve(path);
+
+	if (node) {
+		switch (node->vn_flags) {
+		case VN_FREGFILE:
+			fs_write_string(stdout, 0, "[FIL]");
+			break;
+		case VN_FDIR:
+			fs_write_string(stdout, 0, "[DIR]");
+			break;
+		case VN_FCHARDEV:
+			fs_write_string(stdout, 0, "[CHD]");
+			break;
+		case VN_FBLOCKDEV:
+			fs_write_string(stdout, 0, "[BLD]");
+			break;
+		}
+		fs_write_string(stdout, 0, " ");
+		fs_write_string(stdout, 0, path);
+		fs_write_string(stdout, 0, " (");
+		fs_write_string(stdout, 0, node->vn_name);
+		fs_write_string(stdout, 0, ")\n");
+		if (node->vn_flags == VN_FDIR) {
+			dump_dir(stdout, path, node);
+		}
+	}
+}
+
+static void
+dump_mountpoint(vfs_node_t *stdout, char *name)
+{
+	char *path = malloc(sizeof(name) + 3);
+	strcpy(path, name);
+	strcat(path, ":/");
+	dump_path(stdout, path);
+	fs_write_string(stdout, 0, "\n");
+}
+
+static void
+dump_mountpoints(vfs_node_t *stdout)
+{
+	vfs_node_t *rootfs, *mountpoint;
+	unsigned int i = 0;
+
+	rootfs = fs_resolve("ROOT:/");
+	if (rootfs) {
+		while ((mountpoint = fs_readdir(rootfs, i++))) {
+			/* Make sure ROOT is not dumped, infinite loop! */
+			if (strcmp(mountpoint->vn_name, "ROOT")) {
+				dump_mountpoint(stdout, mountpoint->vn_name);
+			}
+		}
+	}
+}
+
+static void
+print_mountpoints(vfs_node_t *stdout)
+{
+	vfs_node_t *rootfs, *mountpoint;
+	unsigned int i = 0;
+
+	rootfs = fs_resolve("ROOT:/");
+	if (rootfs) {
+		fs_write_string(stdout, 0, "Mounted file systems:\n");
+		while ((mountpoint = fs_readdir(rootfs, i++))) {
+			fs_write_string(stdout, 0, mountpoint->vn_name);
+			fs_write_string(stdout, 0, "\n");
+		}
+		fs_write_string(stdout, 0, "\n");
+	} else {
+		fs_write_string(stdout, 0, "Error! No rootfs is present\n\n");
+	}
+}
+
 static void
 kernel_welcome(void)
 {
 	vfs_node_t *vtcon, *kbd, *uart;
 	vtcon = fs_resolve_and_open("DEV:/vtcon", VO_FWRITE);
 	uart = fs_resolve_and_open("DEV:/uart", VO_FWRITE | VO_FREAD);
+
+	print_mountpoints(vtcon);
+	dump_mountpoints(vtcon);
 
 	fs_write_string(vtcon, 0, "This is the NativeOS VTCON\n");
 	fs_write_string(vtcon, 0, "Press any key to test the keyboard :)\n\n");
