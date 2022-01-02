@@ -64,7 +64,10 @@ fs_resolve(const char *path)
 
 	/* Then start processing the path to look for the file in the device. */
 	strsep_in++;
-	descriptor = fs_follow_path(descriptor, strsep_in);
+	if (*strsep_in != 0) {
+		descriptor = fs_follow_path(descriptor, strsep_in);
+	}
+
 defer:
 	free(strsep_orig);
 	return descriptor;
