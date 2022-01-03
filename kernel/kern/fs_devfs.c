@@ -50,6 +50,15 @@ static vfs_node_t devfs_rootdir = {
     .vn_ops = &devfs_ops,
 };
 
+static vfs_filesys_t devfs_fs = {
+    .fsd_ident = "devfs",
+    .fsd_name = "Device FS",
+    .fsd_init = 0, // Will be manually initialised
+    .fsd_ops = &devfs_ops,
+};
+
+FS_DESCRIPTOR(devfs, devfs_fs);
+
 void
 device_init(void)
 {

@@ -31,6 +31,13 @@ SECTIONS
 		devices_end = .;
 	}
 
+	.text.fs : ALIGN(0x1000)
+	{
+		fs_descriptor__start = .;
+		*(.text.fs);
+		fs_descriptor__end = .;
+	}
+
 	.note.gnu.build-id : ALIGN(0x1000)
 	{
 		*(.note.gnu.build-id)

@@ -12,7 +12,7 @@
  * \param dev the device_t structure to add to the table
  */
 #define DEVICE_DESCRIPTOR(name, dev) \
-	driver_t *descriptor_##name \
+	driver_t *device_descriptor_##name \
 	    __attribute__((section(".text.driver"), used)) = &dev
 
 struct device;

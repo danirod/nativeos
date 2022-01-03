@@ -154,7 +154,29 @@ typedef struct vfs_node {
 	void *vn_payload;
 } vfs_node_t;
 
+typedef struct vfs_filesys {
+	/** The identifier name of the file system driver. */
+	char *fsd_ident;
+
+	/** The public name of the file system driver. */
+	char *fsd_name;
+
+	/** A hook to tell the FS Driver it is being initialised. */
+	void (*fsd_init)(void);
+
+	/** A hook to tell the FS Driver it is being destructed. */
+	void (*fsd_tini)(void);
+
+	/** A pointer to the operations table for this FS Driver. */
+	vfs_ops_t *fsd_ops;
+} vfs_filesys_t;
+
+#define FS_DESCRIPTOR(name, fs) \
+	vfs_filesys_t *fs_descriptor_##name \
+	    __attribute__((section(".text.fs"), used)) = &fs
+
 void vfs_init(void);
+
 int vfs_mount(vfs_node_t *node, char *mountname);
 int vfs_umount(char *mountname);
 

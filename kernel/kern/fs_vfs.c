@@ -9,6 +9,8 @@ typedef struct mountpoint {
 } mountpoint_t;
 static list_t *vfs_volumes;
 
+static list_t *vfs_drivers;
+
 static int rootfs_open(struct vfs_node *node, unsigned int flags);
 static int rootfs_close(struct vfs_node *node);
 static unsigned int rootfs_read(struct vfs_node *node,
@@ -40,6 +42,15 @@ static vfs_node_t rootfs_root = {
     .vn_ops = &rootfs_ops,
 };
 
+static vfs_filesys_t rootfs_fs = {
+    .fsd_ident = "rootfs",
+    .fsd_name = "Root FS",
+    .fsd_init = 0, // Manually initialised
+    .fsd_ops = &rootfs_ops,
+};
+
+FS_DESCRIPTOR(rootfs, rootfs_fs);
+
 static inline mountpoint_t *
 find_mountpoint_by_name(char *mtname)
 {
@@ -58,8 +69,24 @@ find_mountpoint_by_name(char *mtname)
 void
 vfs_init(void)
 {
+	extern char fs_descriptor__start, fs_descriptor__end;
+	vfs_filesys_t **fs_start, **fs_end, **fs;
+
 	vfs_volumes = list_alloc();
+	vfs_drivers = list_alloc();
+
+	/* TODO: This should happen after adding the drivers. */
 	vfs_mount(&rootfs_root, "ROOT");
+
+	/* Register the file system drivers. */
+	fs_start = (vfs_filesys_t **) &fs_descriptor__start;
+	fs_end = (vfs_filesys_t **) &fs_descriptor__end;
+	for (fs = fs_start; fs < fs_end; fs++) {
+		if ((*fs)->fsd_init) {
+			(*fs)->fsd_init();
+		}
+		list_append(vfs_drivers, *fs);
+	}
 }
 
 int
