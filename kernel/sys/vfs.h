@@ -1,6 +1,7 @@
 #pragma once
 
 struct vfs_node;
+struct vfs_filesys;
 
 #define VO_FREAD 0x0001 /**< Open the file to read from it. */
 #define VO_FWRITE 0x0002 /**< Open the file to write into it. */
@@ -154,6 +155,13 @@ typedef struct vfs_node {
 	void *vn_payload;
 } vfs_node_t;
 
+typedef struct vfs_volume {
+	char *vv_name;
+	struct vfs_filesys *vv_family;
+	struct vfs_node *vv_root;
+	void *vv_payload;
+} vfs_volume_t;
+
 typedef struct vfs_filesys {
 	/** The identifier name of the file system driver. */
 	char *fsd_ident;
@@ -167,6 +175,9 @@ typedef struct vfs_filesys {
 	/** A hook to tell the FS Driver it is being destructed. */
 	void (*fsd_tini)(void);
 
+	/** A hook used to tell the FS Driver that a volume is mounted. */
+	int (*fsd_mount)(vfs_volume_t *vol);
+
 	/** A pointer to the operations table for this FS Driver. */
 	vfs_ops_t *fsd_ops;
 } vfs_filesys_t;
@@ -177,7 +188,7 @@ typedef struct vfs_filesys {
 
 void vfs_init(void);
 
-int vfs_mount(vfs_node_t *node, char *mountname);
+int vfs_mount(char *driver, char *name, void *argp);
 int vfs_umount(char *mountname);
 
 vfs_node_t *vfs_get_volume(char *mountname);

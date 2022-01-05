@@ -25,6 +25,7 @@
 #include <sys/stdkern.h>
 #include <sys/vfs.h>
 
+static int devfs_mount(vfs_volume_t *vol);
 static int devfs_open(vfs_node_t *node, unsigned int flags);
 static unsigned int devfs_read(vfs_node_t *, unsigned, void *, unsigned);
 static unsigned int devfs_write(vfs_node_t *, unsigned, void *, unsigned);
@@ -54,6 +55,7 @@ static vfs_filesys_t devfs_fs = {
     .fsd_ident = "devfs",
     .fsd_name = "Device FS",
     .fsd_init = 0, // Will be manually initialised
+    .fsd_mount = &devfs_mount,
     .fsd_ops = &devfs_ops,
 };
 
@@ -67,7 +69,8 @@ device_init(void)
 
 	/* Init the data structures. */
 	devmgr_list = list_alloc();
-	vfs_mount(&devfs_rootdir, "DEV");
+
+	vfs_mount("devfs", "DEV", 0);
 
 	/* Mount the devices. */
 	driver_start = (driver_t **) &devices_start;
@@ -101,6 +104,14 @@ device_remove(char *mtname)
 		list_delete(devmgr_list, node);
 		free(node);
 	}
+}
+
+static int
+devfs_mount(vfs_volume_t *vol)
+{
+	/* TODO: Reject mount if called twice. */
+	vol->vv_root = &devfs_rootdir;
+	return 0;
 }
 
 static int
