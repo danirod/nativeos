@@ -3,6 +3,11 @@
 # been compiled first, in order to have access to the symbol table.
 # It will work if QEMU is launched using the `make qemu-gdb` target.
 
+# Load useful gdbscripts
+source tools/gdbscripts/devices.gdb
+source tools/gdbscripts/heap.gdb
+source tools/gdbscripts/vfs.gdb
+
 target remote localhost:1234
 
 file compile/I386/kernel
