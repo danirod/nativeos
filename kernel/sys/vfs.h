@@ -151,7 +151,7 @@ typedef struct vfs_node {
 	char vn_name[64];
 	unsigned int vn_flags;
 	struct vfs_node *vn_parent;
-	vfs_ops_t *vn_ops;
+	struct vfs_volume *vn_volume;
 	void *vn_payload;
 } vfs_node_t;
 
@@ -181,6 +181,17 @@ typedef struct vfs_filesys {
 	/** A pointer to the operations table for this FS Driver. */
 	vfs_ops_t *fsd_ops;
 } vfs_filesys_t;
+
+/**
+ * \brief Get the file system operations table for a VFS node.
+ * \param node the file system node to retrieve the operations table.
+ * \return the operations table for the given node.
+ */
+#define NODE_OPS(node) \
+	((node && node->vn_volume && node->vn_volume \
+	  && node->vn_volume->vv_family) \
+	     ? node->vn_volume->vv_family->fsd_ops \
+	     : 0)
 
 #define FS_DESCRIPTOR(name, fs) \
 	vfs_filesys_t *fs_descriptor_##name \

@@ -48,7 +48,6 @@ static list_t *devmgr_list;
 static vfs_node_t devfs_rootdir = {
     .vn_name = {0},
     .vn_flags = VN_FDIR,
-    .vn_ops = &devfs_ops,
 };
 
 static vfs_filesys_t devfs_fs = {
@@ -90,9 +89,10 @@ device_install(device_t *dev, char *mtname)
 		return -1; /* cannot allocate. */
 	strncpy(node->vn_name, mtname, 64);
 	node->vn_flags = VN_FCHARDEV;
+	node->vn_volume = devfs_rootdir.vn_volume;
 	node->vn_payload = dev;
 	node->vn_parent = &devfs_rootdir;
-	node->vn_ops = &devfs_ops, list_append(devmgr_list, node);
+	list_append(devmgr_list, node);
 	return 0;
 }
 
@@ -109,9 +109,13 @@ device_remove(char *mtname)
 static int
 devfs_mount(vfs_volume_t *vol)
 {
-	/* TODO: Reject mount if called twice. */
-	vol->vv_root = &devfs_rootdir;
-	return 0;
+	if (devfs_rootdir.vn_volume) {
+		return -1;
+	} else {
+		devfs_rootdir.vn_volume = vol;
+		vol->vv_root = &devfs_rootdir;
+		return 0;
+	}
 }
 
 static int

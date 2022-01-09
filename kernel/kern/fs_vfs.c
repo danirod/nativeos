@@ -35,7 +35,7 @@ static vfs_ops_t rootfs_ops = {
 static vfs_node_t rootfs_root = {
     .vn_name = {0},
     .vn_flags = VN_FDIR,
-    .vn_ops = &rootfs_ops,
+    .vn_volume = 0,
 };
 
 static vfs_filesys_t rootfs_fs = {
@@ -168,7 +168,7 @@ rootfs_register_volume(vfs_volume_t *vol)
 	mati_stop_using_haskell = (vfs_node_t *) malloc(sizeof(vfs_node_t));
 	strcpy(mati_stop_using_haskell->vn_name, vol->vv_name);
 	mati_stop_using_haskell->vn_flags = VN_FREGFILE;
-	mati_stop_using_haskell->vn_ops = &rootfs_ops;
+	mati_stop_using_haskell->vn_volume = rootfs_root.vn_volume;
 	mati_stop_using_haskell->vn_parent = &rootfs_root;
 	mati_stop_using_haskell->vn_payload = vol;
 	list_append(rootfs_nodes, mati_stop_using_haskell);
@@ -198,6 +198,7 @@ rootfs_mount(vfs_volume_t *vol)
 	}
 
 	rootfs_nodes = list_alloc();
+	rootfs_root.vn_volume = vol;
 	vol->vv_root = &rootfs_root;
 	return 0;
 }
