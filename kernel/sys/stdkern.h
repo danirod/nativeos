@@ -68,6 +68,22 @@ char *strcat(char *s1, const char *s2);
 char *strncat(char *s1, const char *s2, size_t count);
 
 /**
+ * @brief Locates the first ocurrence of the character c in the string s.
+ * @param s the string where the search has to be performed.
+ * @param c the character to locate in the string.
+ * @return either a pointer to the in-string character, or NULL if not found.
+ */
+char *strchr(const char *s, int c);
+
+/**
+ * @brief Locates the last ocurrence of the character c in the string s.
+ * @param s the string where the search has to be performed.
+ * @param c the character to locate in the string.
+ * @return either a pointer to the in-string character, or NULL if not found.
+ */
+char *strrchr(const char *s, int c);
+
+/**
  * @brief Compare lexicographically both strings.
  * @param s1 the first string to compare
  * @param s2 the second string to compare
