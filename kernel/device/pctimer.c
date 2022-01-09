@@ -22,11 +22,12 @@ static unsigned int pctimer_write(unsigned char *buf, unsigned int len);
 
 static driver_t pctimer_driver = {
     .drv_name = "pctimer",
-    .drv_flags = 0,
+    .drv_flags = DV_FCHARDEV,
     .drv_init = &pctimer_init,
 };
 
 static device_t pctimer_device = {
+    .dev_family = &pctimer_driver,
     .dev_open = &pctimer_open,
     .dev_close = &pctimer_close,
     .dev_read_chr = &pctimer_read,

@@ -88,7 +88,15 @@ device_install(device_t *dev, char *mtname)
 	if ((node = (vfs_node_t *) malloc(sizeof(vfs_node_t))) == 0)
 		return -1; /* cannot allocate. */
 	strncpy(node->vn_name, mtname, 64);
-	node->vn_flags = VN_FCHARDEV;
+	node->vn_flags = 0;
+	switch (dev->dev_family->drv_flags & (DV_FBLCKDEV | DV_FCHARDEV)) {
+	case DV_FBLCKDEV:
+		node->vn_flags |= VN_FBLOCKDEV;
+		break;
+	case DV_FCHARDEV:
+		node->vn_flags |= VN_FCHARDEV;
+		break;
+	}
 	node->vn_volume = devfs_rootdir.vn_volume;
 	node->vn_payload = dev;
 	node->vn_parent = &devfs_rootdir;

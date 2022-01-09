@@ -146,7 +146,7 @@ static uint32_t uart8250_read(unsigned char *buf, uint32_t len);
 static uint32_t uart8250_write(unsigned char *buf, uint32_t len);
 
 static driver_t uart8250_driver = {
-    .drv_name = "UART8250",
+    .drv_name = "uart8250",
     .drv_flags = DV_FCHARDEV,
     .drv_init = &uart8250_init,
     .drv_tini = &uart8250_tini,
