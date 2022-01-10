@@ -8,4 +8,6 @@ arch i386
 makeoption CFLAGS+="-g -O0"
 option debug
 
+# Enable support for the multiboot standard
 option multiboot
+define MULTIBOOT
