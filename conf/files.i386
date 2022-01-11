@@ -1,5 +1,3 @@
-arch/i386/kernel/boot/boot.S            standard
-arch/i386/kernel/boot/multiboot.c       optional multiboot
 arch/i386/kernel/cpu/idt.c              standard
 arch/i386/kernel/cpu/lidt.S             standard
 arch/i386/kernel/cpu/spinlock.c         standard
@@ -11,4 +9,6 @@ kernel/device/vtcon/vtcon.c standard
 kernel/device/kbd.c			standard
 kernel/device/pctimer.c			standard
 kernel/device/uart8250.c standard
+kernel/i386/i386/locore.S standard
+kernel/i386/i386/multiboot.S optional multiboot
 kernel/i386/i386/port.c standard

@@ -30,7 +30,7 @@ struct idt_entry idt_entries[INTERRUPTS];
 extern void idt_load(void);
 
 /* Halts the system. */
-extern void kdie(void);
+extern void kernel_die(void);
 
 /* This function will modify one entry in the IDT table. */
 static void idt_set_entry(int pos, unsigned int offset,
@@ -119,7 +119,8 @@ void idt_handler(struct idt_data* data)
 	}
 
 	/* If this is an exception, I have to halt the system (I think?) */
-	if (data->int_no < 16) kdie();
+	if (data->int_no < 16)
+		kernel_die();
 
 	/*
 	 * Acknowledge the interrupt to PIC1. If the interrupt came from,

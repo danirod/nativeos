@@ -1,12 +1,13 @@
 OUTPUT_ARCH(i386);
 OUTPUT_FORMAT(elf32-i386);
 
-ENTRY (Bootstrap)
+ENTRY (kernel_bootstrap)
 
-/* Size of the kernel heap.  Note that the kernel heap is only used to allocate
- * kernel objects using kmalloc and kfree, and it's not shared with other
- * binary programs.  Size of the kernel heap is 1 MB, but feel free to increase
- * this value if the heap exhausts too often.  */
+/*
+ * Size of the kernel heap, used to allocate kernel objects. This is not the
+ * allocator that will be used by the userland. This value should be set to
+ * something big enough to let the kernel do its work.
+ */
 heap_size = 0x100000;
 
 SECTIONS
@@ -41,7 +42,7 @@ SECTIONS
 	.note.gnu.build-id : ALIGN(0x1000)
 	{
 		*(.note.gnu.build-id)
-	} 
+	}
 
 	.rodata ALIGN (0x1000) :
 	{
@@ -53,12 +54,12 @@ SECTIONS
 		*(.data)
 	}
 
-        .heap ALIGN (0x1000) :
-        {
-            heap_bottom = .;
-            . = . + heap_size;
-            heap_top = .;
-        }
+	.heap ALIGN (0x1000) :
+	{
+		heap_bottom = .;
+		. = . + heap_size;
+		heap_top = .;
+	}
 
 	.bss :
 	{

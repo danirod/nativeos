@@ -14,7 +14,7 @@ DEPENDFLAGS += -I.
 DEPENDFLAGS += -I../../arch/i386/include
 DEPENDFLAGS += -I../../kernel
 
-LDFLAGS = -nostdlib -T ../../arch/i386/kernel/linker.ld
+LDFLAGS = -nostdlib -T ../../kernel/i386/conf/kernel.ld
 
 ROOT=../..
 
