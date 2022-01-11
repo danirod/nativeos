@@ -29,9 +29,9 @@
  * the virtual memory address range.
  */
 
-#include <kernel/multiboot.h>
 #include <kernel/mem/heap.h>
 #include <kernel/mem/pmm.h>
+#include <machine/multiboot.h>
 
 /**
  * \brief Frame index.

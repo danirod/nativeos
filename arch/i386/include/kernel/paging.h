@@ -19,7 +19,7 @@
 #ifndef ARCH_X86_PAGING_H_
 #define ARCH_X86_PAGING_H_
 
-#include <kernel/multiboot.h>
+#include <machine/multiboot.h>
 
 /**
  * @brief Data structure that represents an entry in the page table.
