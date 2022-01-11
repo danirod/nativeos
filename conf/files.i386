@@ -1,6 +1,5 @@
 arch/i386/kernel/cpu/idt.c              standard
 arch/i386/kernel/cpu/lidt.S             standard
-arch/i386/kernel/cpu/spinlock.c         standard
 arch/i386/kernel/mem/alloc.c            standard
 arch/i386/kernel/mem/heap.c             standard
 arch/i386/kernel/mem/pmm.c              standard
@@ -12,3 +11,4 @@ kernel/device/uart8250.c standard
 kernel/i386/i386/locore.S standard
 kernel/i386/i386/multiboot.S optional multiboot
 kernel/i386/i386/port.c standard
+kernel/i386/i386/spinlock.c standard

@@ -49,7 +49,7 @@
  */
 
 #include <kernel/mem/heap.h>
-#include <kernel/cpu/spinlock.h>
+#include <sys/spinlock.h>
 
 /** Magic number that indicates that a heap control block follows.  */
 #define HEAP_MAGIC_HEAD 0x51514949
@@ -97,7 +97,7 @@ extern volatile const unsigned char heap_bottom;
 extern volatile const unsigned char heap_top;
 
 /* Forbids multiple processors of allocating memory at the same time.  */
-static spinlock_t heap_allocator_spinlock;
+static struct spinlock heap_allocator_spinlock;
 
 /**
  * \brief Attempt to merge the given heap control blocks.
@@ -163,6 +163,8 @@ heap_init (void)
 	heap_root->size = total - sizeof(heap_block_t);
 	heap_root->prev = 0;
 	heap_root->next = 0;
+
+	spinlock_init(&heap_allocator_spinlock);
 }
 
 void *
@@ -175,7 +177,7 @@ heap_alloc (size_t size)
 	buffer = 0;
 
 	/* Make sure we are the only allocator in the neighbourhood.  */
-	spinlock_lock(&heap_allocator_spinlock, "");
+	spinlock_lock(&heap_allocator_spinlock);
 
 	for (block = root; block; block = (heap_block_t *) block->next) {
 		blockptr = (HEAP_ADDR) block;
@@ -235,7 +237,7 @@ heap_free (void * ptr)
 	heap_block_t * bufheader, * nextblock, * prevblock;
 
 	/* Lock before doing anything useful.  */
-	spinlock_lock(&heap_allocator_spinlock, "");
+	spinlock_lock(&heap_allocator_spinlock);
 
 	/* If this is an allocated buffer, it should have a header.  */
 	bufheader = (heap_block_t *) (ptr - sizeof(heap_block_t));
