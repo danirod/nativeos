@@ -1,4 +1,5 @@
 kernel/device/null.c		standard
+kernel/fs/tarfs/tar.c		standard
 kernel/kern/fs_devfs.c		standard
 kernel/kern/fs_fsops.c		standard
 kernel/kern/fs_path.c		standard

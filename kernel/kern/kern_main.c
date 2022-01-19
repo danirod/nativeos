@@ -4,6 +4,8 @@
  * SPDX-License-Identifier:  GPL-3.0-only
  */
 
+#include <fs/tarfs/tar.h>
+#include <machine/multiboot.h>
 #include <sys/device.h>
 #include <sys/stdkern.h>
 #include <sys/vfs.h>
@@ -26,6 +28,7 @@ extern void keyboard_install(void);
 extern void pctimer_install(void);
 extern void uart8250_install(void);
 
+static void ramdisk_init(void);
 static void kernel_welcome(void);
 
 /**
@@ -40,7 +43,19 @@ kernel_main(void)
 {
 	vfs_init();
 	device_init();
+	ramdisk_init();
 	kernel_welcome();
+}
+
+static void
+ramdisk_init(void)
+{
+	multiboot_module_t *multiboot_mods;
+	unsigned char *tar_buffer;
+
+	multiboot_mods = (multiboot_module_t *) multiboot_info->mods_addr;
+	tar_buffer = (unsigned char *) multiboot_mods[0].mod_start;
+	vfs_mount("tarfs", "INITRD", tar_buffer);
 }
 
 static vfs_node_t *
@@ -77,11 +92,30 @@ dump_dir(vfs_node_t *stdout, char *path, vfs_node_t *dir)
 		child_path = (char *) malloc(child_len);
 		if (child_path) {
 			strcpy(child_path, path);
+			/* If the folder I'm in is not root. */
+			if (node->vn_parent->vn_parent) {
+				strcat(child_path, "/");
+			}
 			strcat(child_path, node->vn_name);
 			dump_path(stdout, child_path);
 			free(child_path);
 		}
 	}
+}
+
+static void
+dump_file(vfs_node_t *stdout, vfs_node_t *node)
+{
+	unsigned int read = 0;
+	char buf[128];
+	unsigned int offset = 0;
+
+	fs_write_string(stdout, 0, "\n");
+	while ((read = fs_read(node, offset, buf, 128)) > 0) {
+		fs_write(stdout, 0, buf, read);
+		offset += read;
+	}
+	fs_write_string(stdout, 0, "\n");
 }
 
 static void
@@ -111,6 +145,8 @@ dump_path(vfs_node_t *stdout, char *path)
 		fs_write_string(stdout, 0, ")\n");
 		if (node->vn_flags == VN_FDIR) {
 			dump_dir(stdout, path, node);
+		} else if (node->vn_flags == VN_FREGFILE) {
+			dump_file(stdout, node);
 		}
 	}
 }
@@ -118,7 +154,7 @@ dump_path(vfs_node_t *stdout, char *path)
 static void
 dump_mountpoint(vfs_node_t *stdout, char *name)
 {
-	char *path = malloc(sizeof(name) + 3);
+	char *path = malloc(strlen(name) + 3);
 	strcpy(path, name);
 	strcat(path, ":/");
 	dump_path(stdout, path);
@@ -159,6 +195,17 @@ print_mountpoints(vfs_node_t *stdout)
 	} else {
 		fs_write_string(stdout, 0, "Error! No rootfs is present\n\n");
 	}
+}
+
+static unsigned int
+octal2int(char *octstring)
+{
+	unsigned int acc = 0;
+	while (*octstring) {
+		acc = acc * 8 + (*octstring - '0');
+		octstring++;
+	}
+	return acc;
 }
 
 static void

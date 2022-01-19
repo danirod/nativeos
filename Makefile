@@ -49,13 +49,17 @@ build-kernel: check-profile
 	tools/kcons conf/${PROFILE}
 	make -C compile/${PROFILE}
 
+dist/ramdisk.tar: check-profile
+	tar -C ramdisk -cf dist/ramdisk.tar .
+
 cdrom: check-profile dist/nativeos-${PROFILE}.iso
 
-dist/nativeos-${PROFILE}.iso: compile/${PROFILE}/kernel
+dist/nativeos-${PROFILE}.iso: compile/${PROFILE}/kernel dist/ramdisk.tar
 	rm -rf dist/${PROFILE}
 	mkdir -p dist/${PROFILE}
 	cp -R tools/cdrom/* dist/${PROFILE}
 	cp compile/${PROFILE}/kernel dist/${PROFILE}/boot/nativeos.exe
+	cp dist/ramdisk.tar dist/${PROFILE}/ramdisk.tar
 	${GRUB_MKRESCUE} -d ${GRUB_ROOT}/../lib/grub/i386-pc -o dist/nativeos-${PROFILE}.iso dist/${PROFILE}
 
 
