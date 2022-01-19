@@ -150,7 +150,7 @@ static unsigned int
 clock_read(unsigned char *buf, unsigned int len)
 {
 	// YYYYMMDDHHMMSS
-	if (len < 14) {
+	if (len < 15) {
 		return 0;
 	}
 	write_number(&buf[0], rtclock.year, 4);
@@ -159,7 +159,8 @@ clock_read(unsigned char *buf, unsigned int len)
 	write_number(&buf[8], rtclock.hours, 2);
 	write_number(&buf[10], rtclock.minutes, 2);
 	write_number(&buf[12], rtclock.seconds, 2);
-	return 14;
+	buf[14] = 0;
+	return 15;
 }
 
 static int
