@@ -8,6 +8,7 @@
  * in case the protocol ever changes from VGA/CGA to something like VESA.
  */
 
+#include <config.h>
 #include <device/vgafb.h>
 #include <device/vtcon/scancodes.h>
 #include <sys/device.h>
@@ -32,29 +33,125 @@ static int vtcon_init(void);
 struct vtcontext {
 	unsigned int cx, cy;
 	unsigned char fg, bg;
-	vfs_node_t *fb, *kbd;
-
 	unsigned int kbd_status;
+	unsigned short buffer[VGA_COLS * VGA_ROWS];
 };
 
-static struct vtcontext context;
+static vfs_node_t *con_fb, *con_kbd;
+static struct vtcontext contexts[8];
+static unsigned int current_context = 0;
+static struct vtcontext *context = &contexts[0];
+static vfs_node_t *clock = 0;
 
 static void
-resetcontext()
+drawstatus()
 {
-	context.cx = 0;
-	context.cy = 0;
-	context.fg = 7;
-	context.bg = 0;
-	context.fb = 0;
-	context.kbd = 0;
+	char text[80], date[15];
+	unsigned char fg, bg;
+	unsigned short buffer[80];
+	unsigned int i;
+
+	/* Compose status bar text. */
+	memset(text, 0, 80);
+	text[1] = '1' + current_context;
+	strncpy(&text[4], VERSION_NAME, 70);
+	fs_read(clock, 0, &date, 15);
+
+	/* Render status bar. */
+	for (i = 0; i < VGA_COLS; i++) {
+		fg = i < 3 ? 0x1 : 0x7;
+		bg = fg == 0x7 ? 0x1 : 0x7;
+		buffer[i] = VGA_ENTRY(text[i], fg, bg);
+	}
+
+	/* TODO: Add a sprintf function to never do this again. */
+	buffer[VGA_COLS - 21] = VGA_ENTRY(' ', 0x1, 0x7);
+	buffer[VGA_COLS - 20] = VGA_ENTRY(date[0], 0x1, 0x7);
+	buffer[VGA_COLS - 19] = VGA_ENTRY(date[1], 0x1, 0x7);
+	buffer[VGA_COLS - 18] = VGA_ENTRY(date[2], 0x1, 0x7);
+	buffer[VGA_COLS - 17] = VGA_ENTRY(date[3], 0x1, 0x7);
+	buffer[VGA_COLS - 16] = VGA_ENTRY('/', 0x1, 0x7);
+	buffer[VGA_COLS - 15] = VGA_ENTRY(date[4], 0x1, 0x7);
+	buffer[VGA_COLS - 14] = VGA_ENTRY(date[5], 0x1, 0x7);
+	buffer[VGA_COLS - 13] = VGA_ENTRY('/', 0x1, 0x7);
+	buffer[VGA_COLS - 12] = VGA_ENTRY(date[6], 0x1, 0x7);
+	buffer[VGA_COLS - 11] = VGA_ENTRY(date[7], 0x1, 0x7);
+	buffer[VGA_COLS - 10] = VGA_ENTRY(' ', 0x1, 0x7);
+	buffer[VGA_COLS - 9] = VGA_ENTRY(date[8], 0x1, 0x7);
+	buffer[VGA_COLS - 8] = VGA_ENTRY(date[9], 0x1, 0x7);
+	buffer[VGA_COLS - 7] = VGA_ENTRY(':', 0x1, 0x7);
+	buffer[VGA_COLS - 6] = VGA_ENTRY(date[10], 0x1, 0x7);
+	buffer[VGA_COLS - 5] = VGA_ENTRY(date[11], 0x1, 0x7);
+	buffer[VGA_COLS - 4] = VGA_ENTRY(':', 0x1, 0x7);
+	buffer[VGA_COLS - 3] = VGA_ENTRY(date[12], 0x1, 0x7);
+	buffer[VGA_COLS - 2] = VGA_ENTRY(date[13], 0x1, 0x7);
+	buffer[VGA_COLS - 1] = VGA_ENTRY(' ', 0x1, 0x7);
+
+	fs_write(con_fb, 2 * VGA_COLS * (VGA_ROWS - 1), buffer, sizeof(buffer));
+}
+
+static void
+resetcontext(unsigned int i)
+{
+	unsigned int pos;
+
+	contexts[i].cx = 0;
+	contexts[i].cy = 0;
+	contexts[i].fg = 7;
+	contexts[i].bg = 0;
+	for (pos = 0; pos < VGA_ROWS * VGA_COLS; pos++) {
+		contexts[i].buffer[pos] = VGA_ENTRY(' ', 0x7, 0x0);
+	}
+}
+
+static void
+resetcontexts()
+{
+	unsigned int i;
+	for (i = 0; i < 8; i++) {
+		resetcontext(i);
+	}
 }
 
 static inline void
 syncfbcursor()
 {
-	unsigned short abspos = context.cy * VGA_COLS + context.cx;
-	fs_ioctl(context.fb, VGAFB_IOCTL_MOVECUR, &abspos);
+	unsigned short abspos = context->cy * VGA_COLS + context->cx;
+	fs_ioctl(con_fb, VGAFB_IOCTL_MOVECUR, &abspos);
+}
+
+static void
+switchcontext(unsigned int to)
+{
+	if (to < 8) {
+		fs_read(con_fb, 0, context->buffer, sizeof(context->buffer));
+		current_context = to;
+		context = &contexts[current_context];
+		fs_write(con_fb, 0, context->buffer, sizeof(context->buffer));
+		drawstatus();
+		syncfbcursor();
+	}
+}
+
+static void
+clearscreen()
+{
+	int x, y;
+	unsigned int pos;
+	unsigned short entry;
+
+	for (y = 0; y < VGA_ROWS; y++) {
+		for (x = 0; x < VGA_COLS; x++) {
+			pos = y * VGA_COLS + x;
+			entry = VGA_ENTRY(' ', context->fg, context->bg);
+			fs_write(con_fb, 2 * pos, &entry, 2);
+		}
+	}
+
+	context->cx = 0;
+	context->cy = 0;
+	drawstatus();
+	syncfbcursor();
 }
 
 static inline void
@@ -65,8 +162,8 @@ copyrow(unsigned int dst, unsigned int src)
 	if (dst < VGA_ROWS && src < VGA_ROWS) {
 		srcofft = VGA_COLS * src * 2;
 		dstofft = VGA_COLS * dst * 2;
-		read = fs_read(context.fb, srcofft, buf, VGA_COLS * 2);
-		fs_write(context.fb, dstofft, buf, read);
+		read = fs_read(con_fb, srcofft, buf, VGA_COLS * 2);
+		fs_write(con_fb, dstofft, buf, read);
 	}
 }
 
@@ -75,28 +172,28 @@ clearrow(unsigned int row)
 {
 	unsigned int i;
 	unsigned int rowofft = VGA_COLS * row * 2;
-	unsigned short value = context.fg << 8;
+	unsigned short value = context->fg << 8;
 	for (i = 0; i < VGA_COLS; i++)
-		fs_write(context.fb, rowofft + 2 * i, &value, 2);
+		fs_write(con_fb, rowofft + 2 * i, &value, 2);
 }
 
 static inline void
 moveline()
 {
 	unsigned int row;
-	if (++context.cy == VGA_ROWS) {
-		for (row = 1; row < VGA_ROWS; row++)
+	if (++context->cy == VGA_ROWS - 1) {
+		for (row = 1; row < VGA_ROWS - 1; row++)
 			copyrow(row - 1, row);
-		clearrow(VGA_ROWS - 1);
-		context.cy = VGA_ROWS - 1;
+		clearrow(VGA_ROWS - 2);
+		context->cy = VGA_ROWS - 2;
 	}
 }
 
 static inline void
 movecursor()
 {
-	if (++context.cx == VGA_COLS) {
-		context.cx = 0;
+	if (++context->cx == VGA_COLS) {
+		context->cx = 0;
 		moveline();
 	}
 }
@@ -108,31 +205,32 @@ putchar(unsigned int ch)
 	short entry;
 	switch (ch) {
 	case '\b':
-		if (context.cx > 0) {
-			context.cx--;
+		if (context->cx > 0) {
+			context->cx--;
 		}
 		break;
 	case '\t':
 		do {
-			context.cx++;
-		} while (context.cx % 7);
-		if (context.cx >= VGA_COLS) {
-			context.cx = 0;
+			context->cx++;
+		} while (context->cx % 7);
+		if (context->cx >= VGA_COLS) {
+			context->cx = 0;
 			moveline();
 		}
 		break;
 	case '\n':
 		moveline();
 	case '\r':
-		context.cx = 0;
+		context->cx = 0;
 		break;
 	default:
-		pos = context.cy * VGA_COLS + context.cx;
-		entry = VGA_ENTRY(ch, context.fg, context.bg);
-		fs_write(context.fb, 2 * pos, &entry, 2);
+		pos = context->cy * VGA_COLS + context->cx;
+		entry = VGA_ENTRY(ch, context->fg, context->bg);
+		fs_write(con_fb, 2 * pos, &entry, 2);
 		movecursor();
 		break;
 	}
+	drawstatus();
 	syncfbcursor();
 }
 
@@ -157,7 +255,7 @@ get_single_scancode(unsigned char key)
 	}
 	scancode = &us_scancodes_1[key];
 	scancode_bytes = (char *) scancode;
-	idx = context.kbd_status & KBD_MODS;
+	idx = context->kbd_status & KBD_MODS;
 	return scancode_bytes[idx];
 }
 
@@ -165,16 +263,16 @@ static inline void
 releasebit(unsigned short bit, unsigned int rel)
 {
 	if (rel) {
-		context.kbd_status &= ~bit;
+		context->kbd_status &= ~bit;
 	} else {
-		context.kbd_status |= bit;
+		context->kbd_status |= bit;
 	}
 }
 
 static inline void
 togglekbdbit(unsigned short bit)
 {
-	context.kbd_status ^= bit;
+	context->kbd_status ^= bit;
 }
 
 static int
@@ -205,7 +303,7 @@ decode_scancode(kbdev_t *kbdev, unsigned char *buf, unsigned int len)
 			break;
 		}
 
-		kbdev->flags = context.kbd_status;
+		kbdev->flags = context->kbd_status;
 		if (rel) {
 			kbdev->flags |= KBD_CAP_UP;
 		}
@@ -270,7 +368,7 @@ decode_scancode(kbdev_t *kbdev, unsigned char *buf, unsigned int len)
 			releasebit(KBD_MOD_META, rel);
 			break;
 		}
-		kbdev->flags = context.kbd_status;
+		kbdev->flags = context->kbd_status;
 		if (rel) {
 			kbdev->flags |= KBD_CAP_UP;
 		}
@@ -325,7 +423,7 @@ echo_scancode(kbdev_t *kbdev)
 		putstr("^K");
 		break;
 	case VK_FF:
-		putstr("^L");
+		clearscreen();
 		break;
 	case VK_CR:
 		putchar('\r');
@@ -415,28 +513,28 @@ echo_scancode(kbdev_t *kbdev)
 		putstr("^[[6~");
 		break;
 	case VK_F1:
-		putstr("^[[11~");
+		switchcontext(0);
 		break;
 	case VK_F2:
-		putstr("^[[12~");
+		switchcontext(1);
 		break;
 	case VK_F3:
-		putstr("^[[13~");
+		switchcontext(2);
 		break;
 	case VK_F4:
-		putstr("^[[14~");
+		switchcontext(3);
 		break;
 	case VK_F5:
-		putstr("^[[15~");
+		switchcontext(4);
 		break;
 	case VK_F6:
-		putstr("^[[17~");
+		switchcontext(5);
 		break;
 	case VK_F7:
-		putstr("^[[18~");
+		switchcontext(6);
 		break;
 	case VK_F8:
-		putstr("^[[19~");
+		switchcontext(7);
 		break;
 	case VK_F9:
 		putstr("^[[20~");
@@ -465,8 +563,11 @@ vtcon_read(unsigned char *buf, unsigned int len)
 	unsigned char kbd_buf[16];
 	kbdev_t kbdev;
 
+	/* TODO: I'm going to hell for doing this in this function. */
+	drawstatus();
+
 	while (len >= sizeof(kbdev_t)) {
-		kbd_len = fs_read(context.kbd, 0, kbd_buf, 16);
+		kbd_len = fs_read(con_kbd, 0, kbd_buf, 16);
 		if (kbd_len == 0) {
 			break;
 		}
@@ -494,8 +595,8 @@ vtcon_write(unsigned char *buf, unsigned int len)
 static int
 try_open_fb()
 {
-	context.fb = fs_resolve("DEV:/fb");
-	if (context.fb && fs_open(context.fb, VO_FWRITE) == 0) {
+	con_fb = fs_resolve("DEV:/fb");
+	if (con_fb && fs_open(con_fb, VO_FWRITE) == 0) {
 		return 0;
 	}
 	return -1;
@@ -504,8 +605,18 @@ try_open_fb()
 static int
 try_open_kbd()
 {
-	context.kbd = fs_resolve("DEV:/kbd");
-	if (context.kbd && fs_open(context.kbd, VO_FREAD) == 0) {
+	con_kbd = fs_resolve("DEV:/kbd");
+	if (con_kbd && fs_open(con_kbd, VO_FREAD) == 0) {
+		return 0;
+	}
+	return -1;
+}
+
+static int
+try_open_clock()
+{
+	clock = fs_resolve("DEV:/clock");
+	if (clock && fs_open(clock, VO_FREAD) == 0) {
 		return 0;
 	}
 	return -1;
@@ -514,7 +625,16 @@ try_open_kbd()
 static int
 try_close_kbd()
 {
-	if (fs_close(context.fb) != 0) {
+	if (fs_close(con_fb) != 0) {
+		return -1;
+	}
+	return 0;
+}
+
+static int
+try_close_clock()
+{
+	if (fs_close(clock) != 0) {
 		return -1;
 	}
 	return 0;
@@ -523,7 +643,7 @@ try_close_kbd()
 static int
 try_close_fb()
 {
-	if (fs_close(context.fb) != 0) {
+	if (fs_close(con_fb) != 0) {
 		return -1;
 	}
 	return 0;
@@ -535,7 +655,7 @@ vtcon_open(unsigned int flags)
 	if (flags & VO_FREAD)
 		/* This is a write only device. */
 		return -1;
-	if (context.fb)
+	if (con_fb)
 		/* Device is already opened. */
 		return -1;
 	if (try_open_fb() < 0) {
@@ -545,16 +665,33 @@ vtcon_open(unsigned int flags)
 		try_close_fb();
 		return -1;
 	}
+	if (try_open_clock() < 0) {
+		try_close_kbd();
+		try_close_fb();
+		return -1;
+	}
+	drawstatus();
 	syncfbcursor();
 	return 0;
 }
 
 static int
+vtcon_ioctl(int op, void *argp)
+{
+	if (op == 0) {
+		clearscreen();
+		return 0;
+	}
+	return -1;
+}
+
+static int
 vtcon_close()
 {
+	try_close_clock();
 	try_close_kbd();
 	try_close_fb();
-	resetcontext();
+	resetcontexts();
 	return 0;
 }
 
@@ -569,13 +706,14 @@ static device_t vtcon_device = {
     .dev_open = &vtcon_open,
     .dev_read_chr = &vtcon_read,
     .dev_write_chr = &vtcon_write,
+    .dev_ioctl = &vtcon_ioctl,
     .dev_close = &vtcon_close,
 };
 
 static int
 vtcon_init(void)
 {
-	resetcontext();
+	resetcontexts();
 	device_install(&vtcon_device, "vtcon");
 	return 0;
 }

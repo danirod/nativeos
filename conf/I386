@@ -4,6 +4,9 @@
 
 arch i386
 
+# Version information
+define VERSION_NAME="\"NativeOS Preview\""
+
 # Turn on useful tools for debug
 makeoption CFLAGS+="-g -O0"
 option debug
