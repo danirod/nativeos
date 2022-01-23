@@ -8,7 +8,7 @@ arch i386
 define VERSION_NAME="\"NativeOS Preview\""
 
 # Turn on useful tools for debug
-makeoption CFLAGS+="-g -O0"
+makeoption CFLAGS+="-g -O0 -march=i386"
 option debug
 
 define KERNEL_STACK_SIZE=0x4000

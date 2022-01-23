@@ -64,10 +64,10 @@ dist/nativeos-${PROFILE}.iso: compile/${PROFILE}/kernel dist/ramdisk.tar
 
 
 qemu: check-profile dist/nativeos-${PROFILE}.iso
-	$(QEMU) -cdrom dist/nativeos-${PROFILE}.iso -serial stdio
+	$(QEMU) -m 16 -cpu 486 -cdrom dist/nativeos-${PROFILE}.iso -serial stdio
 
 qemu-gdb: check-profile dist/nativeos-${PROFILE}.iso
-	$(QEMU) -cdrom dist/nativeos-${PROFILE}.iso -serial stdio -s -S
+	$(QEMU) -m 16 -cpu 486 -cdrom dist/nativeos-${PROFILE}.iso -serial stdio -s -S
 
 clean:
 	rm -rf compile
