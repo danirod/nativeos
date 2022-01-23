@@ -1,0 +1,17 @@
+Welcome to NativeOS Preview.
+
+Thank you for your interest in testing NativeOS. NativeOS is a toy
+OS for the i386 system architecture to help me learn more about how
+computers work.
+
+This is a work in progress. Expect bugs. Please, keep an eye on the
+repository and the issue tracker for future work and bug fixes.
+
+* Repository: https://git.danirod.es/nativeos.git
+* Issue tracker: https://redmine.danirod.es/projects/nativeos
+* GitHub Mirror: https://github.com/danirod/nativeos
+
+
+This is the virtual console test.
+Press keys to type them into the screen.
+Press keys F1 to F8 to switch context.
