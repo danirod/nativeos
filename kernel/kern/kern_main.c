@@ -4,6 +4,7 @@
  * SPDX-License-Identifier:  GPL-3.0-only
  */
 
+#include <i386/include/paging.h>
 #include <machine/multiboot.h>
 #include <sys/device.h>
 #include <sys/stdkern.h>
@@ -36,6 +37,7 @@ kernel_main(void)
 	vfs_init();
 	device_init();
 	ramdisk_init();
+	enable_paging();
 	kernel_welcome();
 }
 

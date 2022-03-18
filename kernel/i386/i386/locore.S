@@ -30,6 +30,7 @@
 	.extern pmm_init
 	.extern multiboot_init
 	.extern kernel_main
+	.extern virtual_memory_init
 
 /**
  * This procedure is the actual kernel entrypoint as executed by the bootloader
@@ -54,6 +55,7 @@ kernel_bootstrap:
 	call idt_init
 	call heap_init
 	call pmm_init
+	call virtual_memory_init
 
 	/* Execute the kernel. */
 	call kernel_main

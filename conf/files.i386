@@ -11,5 +11,6 @@ kernel/device/rtclock.c standard
 kernel/device/uart8250.c standard
 kernel/i386/i386/locore.S standard
 kernel/i386/i386/multiboot.S optional multiboot
+kernel/i386/i386/paging.c standard
 kernel/i386/i386/port.c standard
 kernel/i386/i386/spinlock.c standard
