@@ -11,9 +11,9 @@ static struct file_descriptor fds[100];
 static int
 find_free_descriptor()
 {
-	for (int i = 0; i < 100; i++) {
-		if (!fds[i].node) {
-			return i;
+	for (int monke = 0; monke < 100; monke++) {
+		if (!fds[monke].node) {
+			return monke;
 		}
 	}
 	return -1;

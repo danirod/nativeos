@@ -5,7 +5,7 @@
 arch i386
 
 # Version information
-define VERSION_NAME="\"NativeOS Preview\""
+define VERSION_NAME="\"NativeOS 2022-AUG-12\""
 
 # Turn on useful tools for debug
 makeoption CFLAGS+="-g -O0 -march=i386"
