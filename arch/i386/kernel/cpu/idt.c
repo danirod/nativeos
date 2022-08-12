@@ -33,8 +33,11 @@ extern void idt_load(void);
 extern void kernel_die(void);
 
 /* This function will modify one entry in the IDT table. */
-static void idt_set_entry(int pos, unsigned int offset,
-		unsigned short segment, unsigned char attributes)
+static void
+idt_set_entry(int pos,
+              unsigned int offset,
+              unsigned short segment,
+              unsigned char attributes)
 {
 	idt_entries[pos].offset1 = offset & 0xFFFF;
 	idt_entries[pos].offset2 = (offset >> 16) & 0xFFFF;
@@ -44,7 +47,8 @@ static void idt_set_entry(int pos, unsigned int offset,
 }
 
 /* Remaps the PIC device to use the given interrupt vector. */
-static void remap_pic(unsigned int start_int)
+static void
+remap_pic(unsigned int start_int)
 {
 	/* Tell the PIC the party is about to begin. */
 	port_out_byte(0x20, 0x11);
@@ -76,17 +80,20 @@ static local_idt_handler_t idt_handlers[INTERRUPTS];
  * could attach his own handler to the keyboard interrupt in order to
  * receive events when a key is pressed or released.
  */
-void idt_set_handler(unsigned int interrupt_code, local_idt_handler_t handler)
+void
+idt_set_handler(unsigned int interrupt_code, local_idt_handler_t handler)
 {
-	if (interrupt_code >= INTERRUPTS) return;
+	if (interrupt_code >= INTERRUPTS)
+		return;
 	idt_handlers[interrupt_code] = handler;
 }
 
-void idt_init()
+void
+idt_init()
 {
 	/* Create the IDT table. */
 	idt_toc.base = (unsigned int) &idt_entries;
-	idt_toc.limit = (sizeof (struct idt_entry) * INTERRUPTS) - 1;
+	idt_toc.limit = (sizeof(struct idt_entry) * INTERRUPTS) - 1;
 
 	/* Remap the PIC. */
 	remap_pic(0x20);
@@ -103,13 +110,15 @@ void idt_init()
 }
 
 /* Fallback handler for interrupts. */
-static void fallback_handler(struct idt_data* data)
+static void
+fallback_handler(struct idt_data *data)
 {
-    // NOP
+	// NOP
 }
 
 /* This function is invoked when an interrupt is received. */
-void idt_handler(struct idt_data* data)
+void
+idt_handler(struct idt_data *data)
 {
 	/* Use the given interrupt handler if exists or use the fallback. */
 	if (idt_handlers[data->int_no] != 0) {
@@ -134,52 +143,26 @@ void idt_handler(struct idt_data* data)
 
 /* Vector interrupt table begins here. */
 unsigned int isr_vector[] = {
-	(unsigned int) &isr_0,
-	(unsigned int) &isr_1,
-	(unsigned int) &isr_2,
-	(unsigned int) &isr_3,
-	(unsigned int) &isr_4,
-	(unsigned int) &isr_5,
-	(unsigned int) &isr_6,
-	(unsigned int) &isr_7,
-	(unsigned int) &isr_8,
-	(unsigned int) &isr_9,
-	(unsigned int) &isr_10,
-	(unsigned int) &isr_11,
-	(unsigned int) &isr_12,
-	(unsigned int) &isr_13,
-	(unsigned int) &isr_14,
-	(unsigned int) &isr_15,
-	(unsigned int) &isr_16,
-	(unsigned int) &isr_17,
-	(unsigned int) &isr_18,
-	(unsigned int) &isr_19,
-	(unsigned int) &isr_20,
-	(unsigned int) &isr_21,
-	(unsigned int) &isr_22,
-	(unsigned int) &isr_23,
-	(unsigned int) &isr_24,
-	(unsigned int) &isr_25,
-	(unsigned int) &isr_26,
-	(unsigned int) &isr_27,
-	(unsigned int) &isr_28,
-	(unsigned int) &isr_29,
-	(unsigned int) &isr_30,
-	(unsigned int) &isr_31,
-	(unsigned int) &isr_32,
-	(unsigned int) &isr_33,
-	(unsigned int) &isr_34,
-	(unsigned int) &isr_35,
-	(unsigned int) &isr_36,
-	(unsigned int) &isr_37,
-	(unsigned int) &isr_38,
-	(unsigned int) &isr_39,
-	(unsigned int) &isr_40,
-	(unsigned int) &isr_41,
-	(unsigned int) &isr_42,
-	(unsigned int) &isr_43,
-	(unsigned int) &isr_44,
-	(unsigned int) &isr_45,
-	(unsigned int) &isr_46,
-	(unsigned int) &isr_47
+    (unsigned int) &isr_0,  (unsigned int) &isr_1,  (unsigned int) &isr_2,
+    (unsigned int) &isr_3,  (unsigned int) &isr_4,  (unsigned int) &isr_5,
+    (unsigned int) &isr_6,  (unsigned int) &isr_7,  (unsigned int) &isr_8,
+    (unsigned int) &isr_9,  (unsigned int) &isr_10, (unsigned int) &isr_11,
+    (unsigned int) &isr_12, (unsigned int) &isr_13, (unsigned int) &isr_14,
+    (unsigned int) &isr_15, (unsigned int) &isr_16, (unsigned int) &isr_17,
+    (unsigned int) &isr_18, (unsigned int) &isr_19, (unsigned int) &isr_20,
+    (unsigned int) &isr_21, (unsigned int) &isr_22, (unsigned int) &isr_23,
+    (unsigned int) &isr_24, (unsigned int) &isr_25, (unsigned int) &isr_26,
+    (unsigned int) &isr_27, (unsigned int) &isr_28, (unsigned int) &isr_29,
+    (unsigned int) &isr_30, (unsigned int) &isr_31, (unsigned int) &isr_32,
+    (unsigned int) &isr_33, (unsigned int) &isr_34, (unsigned int) &isr_35,
+    (unsigned int) &isr_36, (unsigned int) &isr_37, (unsigned int) &isr_38,
+    (unsigned int) &isr_39, (unsigned int) &isr_40, (unsigned int) &isr_41,
+    (unsigned int) &isr_42, (unsigned int) &isr_43, (unsigned int) &isr_44,
+    (unsigned int) &isr_45, (unsigned int) &isr_46, (unsigned int) &isr_47,
+    (unsigned int) &isr_48, (unsigned int) &isr_49, (unsigned int) &isr_50,
+    (unsigned int) &isr_51, (unsigned int) &isr_52, (unsigned int) &isr_53,
+    (unsigned int) &isr_54, (unsigned int) &isr_55, (unsigned int) &isr_56,
+    (unsigned int) &isr_57, (unsigned int) &isr_58, (unsigned int) &isr_59,
+    (unsigned int) &isr_60, (unsigned int) &isr_61, (unsigned int) &isr_62,
+    (unsigned int) &isr_63,
 };

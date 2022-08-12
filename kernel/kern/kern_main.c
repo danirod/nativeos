@@ -24,6 +24,12 @@
 static void ramdisk_init(void);
 static void kernel_welcome(void);
 
+extern void syscall_init(void);
+extern int syscall_open(const char *path, unsigned int attr);
+extern int syscall_close(int fd);
+extern int syscall_read(int fd, void *buf, unsigned int len);
+extern int syscall_write(int fd, void *buf, unsigned int len);
+
 /**
  * \brief Kernel main
  *
@@ -37,6 +43,7 @@ kernel_main(void)
 	vfs_init();
 	device_init();
 	ramdisk_init();
+	syscall_init();
 	enable_paging();
 	kernel_welcome();
 }
@@ -60,44 +67,22 @@ ramdisk_init(void)
 	}
 }
 
-static vfs_node_t *
-fs_resolve_and_open(const char *path, unsigned int args)
-{
-	vfs_node_t *node = fs_resolve(path);
-	if (node) {
-		if (fs_open(node, args) != 0) {
-			node = NULL;
-		}
-	}
-	return node;
-}
-
-static unsigned int
-fs_write_string(vfs_node_t *node, unsigned int offt, const char *str)
-{
-	return fs_write(node, offt, (unsigned char *) str, strlen(str));
-}
-
 static void
 kernel_welcome(void)
 {
-	vfs_node_t *vtcon, *motd;
-	int read, offt;
+	int vtcon, motd, read;
 	char buffer[64];
 
-	vtcon = fs_resolve_and_open("DEV:/vtcon", VO_FWRITE);
-
-	motd = fs_resolve_and_open("INITRD:/SYSTEM/MOTD.TXT", VO_FREAD);
+	vtcon = syscall_open("DEV:/vtcon", VO_FWRITE);
+	motd = syscall_open("INITRD:/SYSTEM/MOTD.TXT", VO_FREAD);
 	if (motd) {
-		offt = 0;
-		while ((read = fs_read(motd, offt, buffer, 64)) > 0) {
-			fs_write(vtcon, 0, buffer, read);
-			offt += read;
+		while ((read = syscall_read(motd, buffer, 64)) > 0) {
+			syscall_write(vtcon, buffer, read);
 		}
-		fs_write_string(vtcon, 0, "\n");
-		fs_close(motd);
+		syscall_write(vtcon, "\n", 1);
+		syscall_close(motd);
 	}
 	for (;;) {
-		fs_read(vtcon, 0, buffer, 64);
+		syscall_read(vtcon, buffer, 64);
 	}
 }

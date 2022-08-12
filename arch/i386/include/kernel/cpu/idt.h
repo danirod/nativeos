@@ -34,7 +34,7 @@ struct idt_entry {
 
 struct idt_data {
 	unsigned int edi, esi, ebp, esp;
-	unsigned int eax, ebx, ecx, edx;
+	unsigned int ebx, edx, ecx, eax;
 	unsigned int int_no, err_code;
 } __attribute__((packed));
 
@@ -42,10 +42,10 @@ struct idt_data {
 void idt_init(void);
 
 /* This function will handle an interrupt. */
-void idt_handler(struct idt_data* data);
+void idt_handler(struct idt_data *data);
 
 /* This is the prototype function for local IDT handlers. */
-typedef void (*local_idt_handler_t)(struct idt_data*);
+typedef void (*local_idt_handler_t)(struct idt_data *);
 
 /* This function is used to modify the handler associated to a interrupt. */
 void idt_set_handler(unsigned int interrupt_code, local_idt_handler_t handler);

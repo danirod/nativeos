@@ -25,7 +25,7 @@
  * o Interrupts 32-48 are reserved for hardware (PIC, keyboard, timer...)
  * o Still have to decide an interrupt for system calls.
  */
-#define INTERRUPTS 48
+#define INTERRUPTS 64
 
 /*
  * These are my interrupt entrypoints. This is ugly, but it has to be done
@@ -80,6 +80,22 @@ extern void isr_44(void);
 extern void isr_45(void);
 extern void isr_46(void);
 extern void isr_47(void);
+extern void isr_48(void);
+extern void isr_49(void);
+extern void isr_50(void);
+extern void isr_51(void);
+extern void isr_52(void);
+extern void isr_53(void);
+extern void isr_54(void);
+extern void isr_55(void);
+extern void isr_56(void);
+extern void isr_57(void);
+extern void isr_58(void);
+extern void isr_59(void);
+extern void isr_60(void);
+extern void isr_61(void);
+extern void isr_62(void);
+extern void isr_63(void);
 
 /* Interrupt table. */
 extern unsigned int isr_vector[INTERRUPTS];

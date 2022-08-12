@@ -5,6 +5,8 @@ kernel/kern/fs_fsops.c		standard
 kernel/kern/fs_path.c		standard
 kernel/kern/fs_vfs.c		standard
 kernel/kern/kern_main.c		standard
+kernel/kern/syscall_impl.S standard
+kernel/kern/syscall.c standard
 kernel/stdkern/list.c		standard
 kernel/stdkern/memcpy.c		standard
 kernel/stdkern/memset.c		standard
