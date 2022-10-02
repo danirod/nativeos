@@ -17,146 +17,199 @@ test_eident()
 {
 	unsigned char *ident = ehdr->e_ident;
 
-	printf("e_ident test is starting\n");
-
 	// Testing EI_MAG
 	if ((ident[EI_MAG0] != ELFMAG0) || (ident[EI_MAG1] != ELFMAG1)
 	    || (ident[EI_MAG2] != ELFMAG2) || (ident[EI_MAG3] != ELFMAG3)) {
-		printf("[fail] EI_MAG invalid\n");
-		printf("       Stopping eident checking for safety reason\n");
+		printf("EI_MAG invalid\n");
+		printf("Stopping eident checking for safety reason\n");
 		return -1;
 	}
-	printf("[ ok ] EI_MAG = <0x7f> E L F\n");
-
-	if (ident[EI_CLASS] == ELFCLASS32)
-		printf("[ ok ] EI_CLASS is 32 bit\n");
-	else if (ident[EI_CLASS] == ELFCLASS64)
-		printf("[ ok ] EI_CLASS is 64 bit\n");
-	else
-		printf("[fail] EI_CLASS is invalid: %d\n", ident[EI_CLASS]);
-
-	if (ident[EI_DATA] == ELFDATA2LSB)
-		printf("[ ok ] EI_DATA is ELFDATA2LSB\n");
-	else if (ident[EI_DATA] == ELFDATA2MSB)
-		printf("[ ok ] EI_DATA is ELFDATA2MSB\n");
-	else
-		printf("[fail] EI_DATA is invalid: %d\n", ident[EI_DATA]);
-
-	if (ident[EI_VERSION] == EV_CURRENT)
-		printf("[ ok ] EI_VERSION is EV_CURRENT\n");
-	else
-		printf("[fail] EI_VERSION is invalid: %d\n", ident[EI_VERSION]);
-
-	printf("e_ident test is done\n");
 	return 0;
 }
 
+#define DUMP_START(variable, bind) \
+	do { \
+		int bind = variable; \
+		switch (variable)
+#define DUMP_END() \
+	printf("\n"); \
+	} \
+	while (0) \
+		;
+#define DUMP_UNKNOWN(value) printf("Unknown: %x", value)
+#define DUMP_CASE(value, str) \
+	case value: \
+		printf(str); \
+		break;
+
 void
-test_ehdr()
+dump_ehdr()
 {
-	printf("ehdr test is starting\n");
+	printf("ELF Header:\n");
 
-	if (ehdr->e_type == ET_REL)
-		printf("[ ok ] e_type is ET_REL\n");
-	else if (ehdr->e_type == ET_EXEC)
-		printf("[ ok ] e_type is ET_EXEC\n");
-	else if (ehdr->e_type == ET_DYN)
-		printf("[ ok ] e_type is ET_DYN\n");
-	else if (ehdr->e_type == ET_CORE)
-		printf("[ ok ] e_type is ET_CORE\n");
-	else
-		printf("[fail] e_type is unknown: %d\n", ehdr->e_type);
+	printf("Magic:");
+	for (int i = 0; i < 16; i++)
+		printf(" %02x", ehdr->e_ident[i]);
+	printf("\n");
 
-	if (ehdr->e_machine == EM_NONE)
-		printf("[fail] e_machine is NONE\n");
-	else if (ehdr->e_machine == EM_386)
-		printf("[ ok ] e_machine is 386\n");
-	else if (ehdr->e_machine == EM_AMD64)
-		printf("[ ok ] e_machine is AMD64\n");
-	else if (ehdr->e_machine == EM_ARM)
-		printf("[ ok ] e_machine is ARM\n");
-	else if (ehdr->e_machine == EM_AARCH64)
-		printf("[ ok ] e_machine is AARCH64\n");
-	else
-		printf("[fail] e_machine is not registered: %d",
-		       ehdr->e_machine);
+	printf("Class: ");
+	DUMP_START(ehdr->e_ident[EI_CLASS], i)
+	{
+		DUMP_CASE(ELFCLASS32, "ELF32");
+		DUMP_CASE(ELFCLASS64, "ELF64");
+		DUMP_UNKNOWN(i);
+	}
+	DUMP_END();
 
-	if (ehdr->e_version == EV_CURRENT)
-		printf("[ ok ] EI_VERSION is EV_CURRENT\n");
-	else
-		printf("[fail] EI_VERSION is invalid: %d\n", ehdr->e_version);
+	printf("Data: 2's complement, ");
+	DUMP_START(ehdr->e_ident[EI_DATA], i)
+	{
+		DUMP_CASE(ELFDATA2LSB, "little endian");
+		DUMP_CASE(ELFDATA2MSB, "big endian");
+		DUMP_UNKNOWN(i);
+	}
+	DUMP_END();
 
-	printf("[info] e_entry is %x \n", ehdr->e_entry);
-	printf("[info] e_phoff is %x \n", ehdr->e_phoff);
-	printf("[info] e_shoff is %x \n", ehdr->e_shoff);
-	printf("[info] e_flags is %x \n", ehdr->e_flags);
-	printf("[info] e_ehsize is %d \n", ehdr->e_ehsize);
-	printf("[info] e_phentsize is %d \n", ehdr->e_phentsize);
-	printf("[info] e_phnum is %d \n", ehdr->e_phnum);
-	printf("[info] e_shentsize is %d \n", ehdr->e_shentsize);
-	printf("[info] e_shnum is %d \n", ehdr->e_shnum);
-	printf("[info] e_shstrndx is %d \n", ehdr->e_shstrndx);
+	printf("Version: %d", ehdr->e_ident[EI_VERSION]);
+	if (ehdr->e_ident[EI_VERSION] == 1) {
+		printf(" (current)");
+	}
+	printf("\n");
 
-	printf("ehdr test is done\n");
+	printf("OS/ABI: ");
+	DUMP_START(ehdr->e_ident[EI_OSABI], i)
+	{
+		DUMP_CASE(ELFOSABI_NONE, "UNIX - System V");
+		DUMP_CASE(ELFOSABI_NETBSD, "UNIX - NetBSD");
+		DUMP_CASE(ELFOSABI_GNU, "UNIX - GNU");
+		DUMP_CASE(ELFOSABI_FREEBSD, "UNIX - FreeBSD");
+		DUMP_CASE(ELFOSABI_OPENBSD, "UNIX - OpenBSD");
+		DUMP_UNKNOWN(i);
+	}
+	DUMP_END();
+
+	printf("ABI Version: %d\n", ehdr->e_ident[EI_ABIVERSION]);
+
+	printf("Type: ");
+	DUMP_START(ehdr->e_type, i)
+	{
+		DUMP_CASE(ET_REL, "REL (Relocatable file)");
+		DUMP_CASE(ET_EXEC, "EXEC (Executable file)");
+		DUMP_CASE(ET_DYN, "DYN (Shared Object File)");
+		DUMP_CASE(ET_CORE, "CORE (Core file)");
+		DUMP_UNKNOWN(i);
+	}
+	DUMP_END();
+
+	printf("Machine: ");
+	DUMP_START(ehdr->e_machine, i)
+	{
+		DUMP_CASE(EM_386, "Intel 80386");
+		DUMP_CASE(EM_AMD64, "Advanced Micro Devices X86-64");
+		DUMP_CASE(EM_ARM, "ARM");
+		DUMP_CASE(EM_AARCH64, "AArch64");
+		DUMP_UNKNOWN(i);
+	}
+	DUMP_END();
+
+	printf("Version: 0x%x\n", ehdr->e_version);
+	printf("Entry point address: 0x%x\n", ehdr->e_entry);
+	printf("Start of program headers: %d (bytes into file)\n",
+	       ehdr->e_phoff);
+	printf("Start of section headers: %d (bytes into file)\n",
+	       ehdr->e_shoff);
+	printf("Flags: 0x%x\n", ehdr->e_flags);
+	printf("Size of this header: %d (bytes)\n", ehdr->e_ehsize);
+	printf("Size of program headers: %d (bytes)\n", ehdr->e_phentsize);
+	printf("Number of program headers: %d\n", ehdr->e_phnum);
+	printf("Size of section headers: %d (bytes)\n", ehdr->e_shentsize);
+	printf("Number of section headers: %d\n", ehdr->e_shnum);
+	printf("Section header string table index: %d\n", ehdr->e_shstrndx);
 }
 
-#define SECTION_TYPE(value) \
+#define SECTION_TYPE(value, text) \
 	case value: \
-		printf(#value); \
+		printf(text); \
 		return;
 
 void
 dump_section_type(Elf32_Shdr *section)
 {
 	switch (section->sh_type) {
-		SECTION_TYPE(SHT_NULL);
-		SECTION_TYPE(SHT_PROGBITS);
-		SECTION_TYPE(SHT_SYMTAB);
-		SECTION_TYPE(SHT_STRTAB);
-		SECTION_TYPE(SHT_RELA);
-		SECTION_TYPE(SHT_HASH);
-		SECTION_TYPE(SHT_DYNAMIC);
-		SECTION_TYPE(SHT_NOTE);
-		SECTION_TYPE(SHT_NOBITS);
-		SECTION_TYPE(SHT_REL);
-		SECTION_TYPE(SHT_SHLIB);
-		SECTION_TYPE(SHT_DYNSYM);
+		SECTION_TYPE(SHT_NULL, "NULL");
+		SECTION_TYPE(SHT_PROGBITS, "PROGBITS");
+		SECTION_TYPE(SHT_SYMTAB, "SYMTAB");
+		SECTION_TYPE(SHT_STRTAB, "STRTAB");
+		SECTION_TYPE(SHT_RELA, "RELA");
+		SECTION_TYPE(SHT_HASH, "HASH");
+		SECTION_TYPE(SHT_DYNAMIC, "DYNAMIC");
+		SECTION_TYPE(SHT_NOTE, "NOTE");
+		SECTION_TYPE(SHT_NOBITS, "NOBITS");
+		SECTION_TYPE(SHT_REL, "REL");
+		SECTION_TYPE(SHT_SHLIB, "SHLIB");
+		SECTION_TYPE(SHT_DYNSYM, "DYNSYM");
 	}
 }
 
+#define DUMP_SECTIONFLAG(flags, value, letter) \
+	if ((flags & value) != 0) \
+		printf(letter);
+
 void
-dump_section_table_entry(Elf32_Shdr *section)
+print_section_flags(Elf32_Word flags)
 {
-	printf("section offset = %x, size = %x, type = %x \n",
+	DUMP_SECTIONFLAG(flags, SHF_WRITE, "W");
+	DUMP_SECTIONFLAG(flags, SHF_ALLOC, "A");
+	DUMP_SECTIONFLAG(flags, SHF_EXECINSTR, "X");
+	DUMP_SECTIONFLAG(flags, SHF_MERGE, "M");
+	DUMP_SECTIONFLAG(flags, SHF_STRINGS, "S");
+	DUMP_SECTIONFLAG(flags, SHF_INFO_LINK, "I");
+	DUMP_SECTIONFLAG(flags, SHF_LINK_ORDER, "L");
+	DUMP_SECTIONFLAG(flags, SHF_OS_NONCONFIRMING, "O");
+	DUMP_SECTIONFLAG(flags, SHF_GROUP, "G");
+	DUMP_SECTIONFLAG(flags, SHF_TLS, "T");
+	DUMP_SECTIONFLAG(flags, SHF_COMPRESSED, "C");
+}
+
+void
+dump_section_table_entry(int i, Elf32_Shdr *section)
+{
+	printf("[%d] ", i);
+	printf("%s", shstrtab + section->sh_name);
+	if (*(shstrtab + section->sh_name)) {
+		printf(" ");
+	}
+	dump_section_type(section);
+	printf(" %08x %06x %06x %02x",
+	       section->sh_addr,
 	       section->sh_offset,
 	       section->sh_size,
-	       section->sh_type);
-
-	printf("  Name: %s\n", shstrtab + section->sh_name);
-	printf("  Type: ");
-	dump_section_type(section);
-	printf("\n");
-
-	printf("  Flags: ");
-	if (section->sh_flags & SHF_WRITE)
-		printf("SHF_WRITE ");
-	if (section->sh_flags & SHF_ALLOC)
-		printf("SHF_ALLOC ");
-	if (section->sh_flags & SHF_EXECINSTR)
-		printf("SHF_EXECINSTR ");
-	printf("\n");
-	puts("===");
+	       section->sh_entsize);
+	if (section->sh_flags) {
+		printf(" ");
+		print_section_flags(section->sh_flags);
+	}
+	printf(" %d %d %d\n",
+	       section->sh_link,
+	       section->sh_info,
+	       section->sh_addralign);
 }
 
 void
 dump_section_table()
 {
-	puts("section table start");
+	printf("Section Headers:\n");
+	printf("[Nr] Name Type Addr Off Size ES Flg Lk Inf Al\n");
 	for (int i = 0; i < ehdr->e_shnum; i++) {
-		dump_section_table_entry(&shtable[i]);
+		dump_section_table_entry(i, &shtable[i]);
 	}
-	puts("section table done");
-	puts("===");
+	printf("Key to Flags:\n");
+	printf("W (write), A (alloc), X (execute), M (merge), S (strings), I "
+	       "(info),\n");
+	printf("L (link order), O (extra OS processing required), G (group), T "
+	       "(TLS),\n");
+	printf("C (compressed), x (unknown), o (OS specific), E (exclude),\n");
+	printf("D (mbind), p (processor specific)\n");
 }
 
 void
@@ -204,7 +257,8 @@ dump_elf()
 		puts("Stopping dump for safety reasons");
 		return;
 	}
-	test_ehdr();
+	dump_ehdr();
+	printf("\n");
 	dump_section_table();
 	dump_symbol_tables();
 }

@@ -18,3 +18,9 @@ debug.obj: elfdump test.obj
 	gdb ./elfdump test.obj
 debug.elf: elfdump test.elf
 	gdb ./elfdump test.elf
+
+# readelf the benchmarks
+read.obj: test.obj
+	readelf -e -s test.obj --wide | tr -s ' ' | sed 's/^ //; s/\[\s*/\[/g'
+read.elf: test.elf
+	readelf -e -s test.elf --wide | tr -s ' ' | sed 's/^ //; s/\[\s*/\[/g'

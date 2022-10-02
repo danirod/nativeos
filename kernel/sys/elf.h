@@ -19,7 +19,9 @@ typedef uint32_t Elf32_Word;
 #define EI_CLASS 4
 #define EI_DATA 5
 #define EI_VERSION 6
-#define EI_PAD 7
+#define EI_OSABI 7
+#define EI_ABIVERSION 8
+#define EI_PAD 9
 
 // The following constants exist to avoid hardcoding numbers in the
 // header, to make the enum types more sound. So instead of just
@@ -61,6 +63,14 @@ typedef uint32_t Elf32_Word;
 #define ET_LOPROC 0xff00
 #define ET_HIPROC 0xffff
 
+// OS ABI. I do not care about this a lot, but let's keep it minimum
+#define ELFOSABI_NONE 0
+#define ELFOSABI_NETBSD 2
+#define ELFOSABI_GNU 3
+#define ELFOSABI_LINUX 3
+#define ELFOSABI_FREEBSD 9
+#define ELFOSABI_OPENBSD 12
+
 // The machine type (processor). There are A LOT of processors, it would be
 // impossible to list the list (or at least very long, so I am only adding
 // those where I want NativeOS to run).
@@ -68,7 +78,7 @@ typedef uint32_t Elf32_Word;
 #define EM_386 3
 #define EM_AMD64 62
 #define EM_ARM 40
-#define EM_AARCH64 64
+#define EM_AARCH64 183
 
 typedef struct {
 	unsigned char e_ident[EI_NIDENT];
@@ -129,6 +139,14 @@ typedef struct {
 #define SHF_WRITE 0x1
 #define SHF_ALLOC 0x2
 #define SHF_EXECINSTR 0x4
+#define SHF_MERGE 0x10
+#define SHF_STRINGS 0x20
+#define SHF_INFO_LINK 0x40
+#define SHF_LINK_ORDER 0x80
+#define SHF_OS_NONCONFIRMING 0x100
+#define SHF_GROUP 0x200
+#define SHF_TLS 0x400
+#define SHF_COMPRESSED 0x800
 
 typedef struct {
 	Elf32_Word st_name;
