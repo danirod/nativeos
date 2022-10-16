@@ -32,7 +32,6 @@ test_eident()
 		int bind = variable; \
 		switch (variable)
 #define DUMP_END() \
-	printf("\n"); \
 	} \
 	while (0) \
 		;
@@ -60,6 +59,7 @@ dump_ehdr()
 		DUMP_UNKNOWN(i);
 	}
 	DUMP_END();
+	printf("\n");
 
 	printf("Data: 2's complement, ");
 	DUMP_START(ehdr->e_ident[EI_DATA], i)
@@ -69,6 +69,7 @@ dump_ehdr()
 		DUMP_UNKNOWN(i);
 	}
 	DUMP_END();
+	printf("\n");
 
 	printf("Version: %d", ehdr->e_ident[EI_VERSION]);
 	if (ehdr->e_ident[EI_VERSION] == 1) {
@@ -87,6 +88,7 @@ dump_ehdr()
 		DUMP_UNKNOWN(i);
 	}
 	DUMP_END();
+	printf("\n");
 
 	printf("ABI Version: %d\n", ehdr->e_ident[EI_ABIVERSION]);
 
@@ -100,6 +102,7 @@ dump_ehdr()
 		DUMP_UNKNOWN(i);
 	}
 	DUMP_END();
+	printf("\n");
 
 	printf("Machine: ");
 	DUMP_START(ehdr->e_machine, i)
@@ -111,6 +114,7 @@ dump_ehdr()
 		DUMP_UNKNOWN(i);
 	}
 	DUMP_END();
+	printf("\n");
 
 	printf("Version: 0x%x\n", ehdr->e_version);
 	printf("Entry point address: 0x%x\n", ehdr->e_entry);
@@ -220,18 +224,71 @@ breakpoint()
 void
 dump_symbol_table(Elf32_Shdr *section)
 {
+	char *name = shstrtab + section->sh_name;
+	int count = section->sh_size / sizeof(Elf32_Sym);
+	printf("Symbol table '%s' contains %d entries:\n", name, count);
+
 	Elf32_Sym *symtab = (Elf32_Sym *) ((char *) ehdr + section->sh_offset);
 	Elf32_Shdr *strings = &shtable[section->sh_link];
 	char *stringstab = (char *) ehdr + strings->sh_offset;
-	int i, symno = section->sh_size / sizeof(Elf32_Sym);
 
-	for (i = 0; i < symno; i++) {
-		breakpoint();
-		printf("%d ", i);
+	puts("Num: Value Size Type Bind Vis Ndx Name");
+	for (int i = 0; i < count; i++) {
+		Elf32_Sym *s = &symtab[i];
+		printf("%d: %08x %d ", i, s->st_value, s->st_size);
 
-		printf("%s\n", stringstab + symtab[i].st_name);
-		printf("  size=%d ", symtab[i].st_size);
-		printf("  value=%x ", symtab[i].st_value);
+		DUMP_START(ELF32_ST_TYPE(s->st_info), i)
+		{
+			DUMP_CASE(STT_NOTYPE, "NOTYPE");
+			DUMP_CASE(STT_OBJECT, "OBJECT");
+			DUMP_CASE(STT_FUNC, "FUNC");
+			DUMP_CASE(STT_SECTION, "SECTION");
+			DUMP_CASE(STT_FILE, "FILE");
+			DUMP_CASE(STT_COMMON, "COMMON");
+			DUMP_CASE(STT_TLS, "TLS");
+			DUMP_UNKNOWN(i);
+		}
+		DUMP_END();
+
+		printf(" ");
+
+		DUMP_START(ELF32_ST_BIND(s->st_info), i)
+		{
+			DUMP_CASE(STB_GLOBAL, "GLOBAL");
+			DUMP_CASE(STB_LOCAL, "LOCAL");
+			DUMP_CASE(STB_WEAK, "WEAK");
+			DUMP_UNKNOWN(i);
+		}
+		DUMP_END();
+
+		printf(" ");
+
+		DUMP_START(ELF32_ST_VISIBILITY(s->st_other), i)
+		{
+			DUMP_CASE(STV_HIDDEN, "HIDDEN");
+			DUMP_CASE(STV_DEFAULT, "DEFAULT");
+			DUMP_CASE(STV_INTERNAL, "INTERNAL");
+			DUMP_UNKNOWN(i);
+		}
+		DUMP_END();
+
+		printf(" ");
+
+		if (s->st_shndx == 0) {
+			printf("UND");
+		} else if (ELF32_ST_TYPE(s->st_info) == STT_FILE) {
+			printf("ABS");
+		} else {
+			printf("%d", s->st_shndx);
+		}
+
+		if (ELF32_ST_TYPE(s->st_info) == STT_SECTION) {
+			Elf32_Shdr *target = &shtable[s->st_shndx];
+			char *sname = shstrtab + target->sh_name;
+			printf(" %s", sname);
+		} else {
+			printf(" %s", &stringstab[s->st_name]);
+		}
 		printf("\n");
 	}
 }
@@ -239,15 +296,14 @@ dump_symbol_table(Elf32_Shdr *section)
 void
 dump_symbol_tables()
 {
-	puts("symbol table list start");
 	for (int i = 0; i < ehdr->e_shnum; i++) {
 		if (shtable[i].sh_type != SHT_SYMTAB) {
 			continue;
 		}
+		if (i > 0)
+			puts("");
 		dump_symbol_table(&shtable[i]);
 	}
-	puts("symbol table list end");
-	puts("===");
 }
 
 void

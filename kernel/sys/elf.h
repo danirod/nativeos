@@ -157,6 +157,32 @@ typedef struct {
 	Elf32_Half st_shndx;
 } Elf32_Sym;
 
+// The _info field of the Elf32_Sym data structure is actually a bitmask for
+// other two subfields that are parsed and reconstructed using these
+// macros.
 #define ELF32_ST_BIND(i) ((i) >> 4)
 #define ELF32_ST_TYPE(i) ((i) &0xf)
 #define ELF32_ST_INFO(b, t) (((b) << 4) + ((t) &0 x f))
+
+// Symbol binding.
+#define STB_LOCAL 0
+#define STB_GLOBAL 1
+#define STB_WEAK 2
+
+// Symbol type.
+#define STT_NOTYPE 0
+#define STT_OBJECT 1
+#define STT_FUNC 2
+#define STT_SECTION 3
+#define STT_FILE 4
+#define STT_COMMON 5
+#define STT_TLS 6
+
+// _other field has multiple purposes, so use these bitmask to pick
+#define ELF32_ST_VISIBILITY(o) ((o) &0x3)
+
+// Symbol visibility.
+#define STV_DEFAULT 0
+#define STV_INTERNAL 1
+#define STV_HIDDEN 2
+#define STV_PROTECTED 3
