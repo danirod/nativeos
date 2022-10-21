@@ -9,6 +9,7 @@
 
 Elf32_Ehdr *ehdr; // The ELF file that we are processing
 Elf32_Shdr *shtable; // The section table for quick acccess
+Elf32_Phdr *phtable; // The program table for quick access
 Elf32_Shdr *shstr; // The symbol table for the section table
 char *shstrtab; // The strings in the symbol table for section
 
@@ -217,8 +218,71 @@ dump_section_table()
 }
 
 void
-breakpoint()
+dump_program_table_entry(unsigned int i, Elf32_Phdr *entry)
 {
+	DUMP_START(entry->p_type, i)
+	{
+		DUMP_CASE(PT_NULL, "NULL");
+		DUMP_CASE(PT_LOAD, "LOAD");
+		DUMP_CASE(PT_DYNAMIC, "DYNAMIC");
+		DUMP_CASE(PT_INTERP, "INTERP");
+		DUMP_CASE(PT_NOTE, "NOTE");
+		DUMP_CASE(PT_SHLIB, "SHLIB");
+		DUMP_CASE(PT_PHDR, "PHDR");
+		DUMP_CASE(PT_TLS, "TLS");
+		DUMP_CASE(PT_LOOS, "LOOS");
+		DUMP_CASE(PT_HIOS, "HIOS");
+		DUMP_CASE(PT_LOPROC, "LOPROC");
+		DUMP_CASE(PT_HIPROC, "HIPROC");
+		DUMP_CASE(PT_GNU_EH_FRAME, "GNU_EH_FRAME");
+		DUMP_CASE(PT_GNU_STACK, "GNU_STACK");
+		DUMP_CASE(PT_GNU_RELRO, "GNU_RELRO");
+		DUMP_CASE(PT_GNU_PROPERTY, "GNU_PROPERTY");
+		DUMP_UNKNOWN(i);
+	}
+	DUMP_END();
+
+	printf(" 0x%06x 0x%08x 0x%08x 0x%05x 0x%05x ",
+	       entry->p_offset,
+	       entry->p_vaddr,
+	       entry->p_paddr,
+	       entry->p_filesz,
+	       entry->p_memsz);
+
+	DUMP_START(entry->p_flags & (PF_X | PF_W | PF_R), i)
+	{
+		DUMP_CASE(0, "");
+		DUMP_CASE(1, "E ");
+		DUMP_CASE(2, "W ");
+		DUMP_CASE(3, "WE ");
+		DUMP_CASE(4, "R ");
+		DUMP_CASE(5, "R E ");
+		DUMP_CASE(6, "RW ");
+		DUMP_CASE(7, "RWE ");
+	}
+	DUMP_END();
+
+	printf("0x%x\n", entry->p_align);
+
+	if (entry->p_type == PT_INTERP) {
+		printf("[Requesting program interpreter: %s]\n",
+		       (char *) ehdr + entry->p_offset);
+	}
+}
+
+void
+dump_program_table()
+{
+	printf("\n");
+	if (ehdr->e_phnum == 0) {
+		printf("There are no program headers in this file.\n");
+		return;
+	}
+	printf("Program Headers:\n");
+	printf("Type Offset VirtAddr PhysAddr FileSiz MemSiz Flg Align\n");
+	for (int i = 0; i < ehdr->e_phnum; i++) {
+		dump_program_table_entry(i, &phtable[i]);
+	}
 }
 
 void
@@ -316,6 +380,7 @@ dump_elf()
 	dump_ehdr();
 	printf("\n");
 	dump_section_table();
+	dump_program_table();
 	dump_symbol_tables();
 }
 
@@ -323,12 +388,16 @@ void
 load_global_context(char *data)
 {
 	// Put the ELF file in the global context.
-	char *shtable_addr;
+	char *shtable_addr, *phtable_addr;
 	ehdr = (Elf32_Ehdr *) data;
 
 	// Extract the section table into the global variable.
 	shtable_addr = data + ehdr->e_shoff;
 	shtable = (Elf32_Shdr *) shtable_addr;
+
+	// Extract the prorgam table into the global variable.
+	phtable_addr = data + ehdr->e_phoff;
+	phtable = (Elf32_Phdr *) phtable_addr;
 
 	// Extract the symbol table for the section table.
 	shstr = &shtable[ehdr->e_shstrndx];

@@ -186,3 +186,38 @@ typedef struct {
 #define STV_INTERNAL 1
 #define STV_HIDDEN 2
 #define STV_PROTECTED 3
+
+typedef struct {
+	Elf32_Word p_type;
+	Elf32_Off p_offset;
+	Elf32_Addr p_vaddr;
+	Elf32_Addr p_paddr;
+	Elf32_Word p_filesz;
+	Elf32_Word p_memsz;
+	Elf32_Word p_flags;
+	Elf32_Word p_align;
+} Elf32_Phdr;
+
+#define PT_NULL 0
+#define PT_LOAD 1
+#define PT_DYNAMIC 2
+#define PT_INTERP 3
+#define PT_NOTE 4
+#define PT_SHLIB 5
+#define PT_PHDR 6
+#define PT_TLS 7
+#define PT_LOOS 0x60000000
+#define PT_HIOS 0x6fffffff
+#define PT_LOPROC 0x70000000
+#define PT_HIPROC 0x7fffffff
+
+#define PF_X 1
+#define PF_W 2
+#define PF_R 4
+#define PF_MASKOS 0x0ff00000
+#define PF_MASKPROC 0xf0000000
+#define PT_GNU_EH_FRAME (PT_LOOS + 0x474e550)
+#define PT_SUNW_EH_FRAME PT_GNU_EH_FRAME
+#define PT_GNU_STACK (PT_LOOS + 0x474e551)
+#define PT_GNU_RELRO (PT_LOOS + 0x474e552)
+#define PT_GNU_PROPERTY (PT_LOOS + 0x474e553)
